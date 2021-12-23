@@ -1,0 +1,4 @@
+discord.py
+discord.py[voice]
+youtube_dl
+PyNaCl
