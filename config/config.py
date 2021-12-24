@@ -6,7 +6,8 @@ SPOTIFY_ID = dotenv_values('.env')['SPOTIFY_ID']
 SPOTIFY_SECRET = dotenv_values('.env')['SPOTIFY_SECRET']
 
 BOT_PREFIX = '!'
-INITIAL_EXTENSIONS = {'cogs'}
+INITIAL_EXTENSIONS = {'vulkan.commands.Phrases', 'vulkan.commands.Warframe',
+                      'vulkan.general.Filter', 'vulkan.general.Control', 'vulkan.music.Music'}
 
 VC_TIMEOUT = 600  # seconds
 VC_TIMEOUT_DEFAULT = True

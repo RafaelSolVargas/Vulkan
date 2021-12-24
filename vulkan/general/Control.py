@@ -1,5 +1,7 @@
+import discord
 from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument
 from discord.ext import commands
+from config import config
 
 
 class Control(commands.Cog):
@@ -18,7 +20,9 @@ class Control(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print(f'Bot {self.__bot.user.name} inicializado')
+        print(config.STARTUP_MESSAGE)
+        await self.__bot.change_presence(status=discord.Status.online, activity=discord.Game(name=f"Vulkan | type {config.BOT_PREFIX}help"))
+        print(config.STARTUP_COMPLETE_MESSAGE)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):

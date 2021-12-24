@@ -3,7 +3,7 @@ import json
 import discord
 from dotenv import dotenv_values
 from discord.ext import commands
-CETUS_API = dotenv_values('.env')['CETUS_API']
+from config import config
 
 
 class Warframe(commands.Cog):
@@ -23,7 +23,7 @@ class Warframe(commands.Cog):
     @commands.command(name='cetus', help='Informa o tempo atual de Cetus - Warframe')
     async def get_cetus(self, ctx):
         try:
-            response = requests.get(CETUS_API)
+            response = requests.get(config.CETUS_API)
             data = json.loads(response.content)
             short = data['shortString']
 

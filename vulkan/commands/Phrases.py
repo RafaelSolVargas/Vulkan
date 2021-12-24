@@ -40,10 +40,6 @@ class Phrases(commands.Cog):
                 break
             except json.decoder.JSONDecodeError:
                 continue
-            except discord.errors.Forbidden as e:
-                print(e)
-                await ctx.channel.send('Não posso te enviar a frase, habilite para receber mensagens de qualquer pessoa no servidor (Opções > Privacidade)')
-                break
             except Exception as e:
                 print(e)
                 await ctx.channel.send('Houve um erro inesperado :/')
