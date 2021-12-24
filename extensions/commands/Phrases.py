@@ -2,6 +2,7 @@ import requests
 import json
 import discord
 from discord.ext import commands
+from random import random as rand
 
 
 class Phrases(commands.Cog):
@@ -20,6 +21,11 @@ class Phrases(commands.Cog):
 
     @commands.command(name='frase', help='Envia uma frase legal no seu PV')
     async def send_phrase(self, ctx):
+        # There is a chance that the phrase will be send for the dev
+        sended = await self.calculate_rgn(ctx)
+        if sended:
+            return
+
         while True:
             try:
                 response = requests.get(
@@ -30,7 +36,7 @@ class Phrases(commands.Cog):
                 author = data['quoteAuthor']
 
                 text = f'{phrase} \nBy: {author}'
-                await ctx.author.send(text)
+                await ctx.send(text)
                 break
             except json.decoder.JSONDecodeError:
                 continue
@@ -42,6 +48,15 @@ class Phrases(commands.Cog):
                 print(e)
                 await ctx.channel.send('Houve um erro inesperado :/')
                 break
+
+    async def calculate_rgn(self, ctx):
+        x = rand()
+        print(x)
+        if x < 0.15:
+            await ctx.send('Se leu seu cu é meu\nBy: Minha Pica')
+            return True
+        else:
+            return False
 
 
 def setup(bot):
