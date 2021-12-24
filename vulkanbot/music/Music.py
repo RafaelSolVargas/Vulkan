@@ -1,9 +1,9 @@
 import discord
-from discord import colour
-from discord.embeds import Embed
 from discord.ext import commands
-from discord.ext.commands.core import command
 from youtube_dl import YoutubeDL
+
+from vulkanbot.music.Downloader import Downloader
+from vulkanbot.music.Searcher import Searcher
 
 colours = {
     'red': 0xDC143C,
@@ -15,6 +15,9 @@ colours = {
 
 class Music(commands.Cog):
     def __init__(self, client):
+        self.__searcher = Searcher()
+        self.__downloader = Downloader()
+
         self.client = client
         self.is_playing = False
         self.repetingOne = False

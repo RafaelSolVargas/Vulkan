@@ -1,6 +1,7 @@
 import requests
 import json
 import discord
+from config import config
 from discord.ext import commands
 from random import random as rand
 
@@ -47,9 +48,8 @@ class Phrases(commands.Cog):
 
     async def calculate_rgn(self, ctx):
         x = rand()
-        print(x)
         if x < 0.15:
-            await ctx.send('Se leu seu cu é meu\nBy: Minha Pica')
+            await ctx.send(config.SECRET_MESSAGE)
             return True
         else:
             return False

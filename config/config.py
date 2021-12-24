@@ -4,10 +4,11 @@ CETUS_API = dotenv_values('.env')['CETUS_API']
 BOT_TOKEN = dotenv_values('.env')['BOT_TOKEN']
 SPOTIFY_ID = dotenv_values('.env')['SPOTIFY_ID']
 SPOTIFY_SECRET = dotenv_values('.env')['SPOTIFY_SECRET']
+SECRET_MESSAGE = dotenv_values('.env')['SECRET_MESSAGE']
 
 BOT_PREFIX = '!'
-INITIAL_EXTENSIONS = {'vulkan.commands.Phrases', 'vulkan.commands.Warframe',
-                      'vulkan.general.Filter', 'vulkan.general.Control', 'vulkan.music.Music'}
+INITIAL_EXTENSIONS = {'vulkanbot.commands.Phrases', 'vulkanbot.commands.Warframe',
+                      'vulkanbot.general.Filter', 'vulkanbot.general.Control', 'vulkanbot.music.Music'}
 
 VC_TIMEOUT = 600  # seconds
 VC_TIMEOUT_DEFAULT = True
