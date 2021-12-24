@@ -22,7 +22,6 @@ class ErrorHandler():
 
         full_path = self.__open_file()
         if isinstance(full_path, bool):
-            print('Parei')
             return False
 
         error_str = self.__prepare_error(error)

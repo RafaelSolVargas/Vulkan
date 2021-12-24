@@ -3,6 +3,7 @@ import discord
 
 from config import config
 from discord.ext import commands
+from vulkan.ErrorHandler import ErrorHandler
 
 
 intents = discord.Intents.default()
@@ -12,6 +13,7 @@ bot = commands.Bot(command_prefix=config.BOT_PREFIX, pm_help=True,
                    case_insensitive=True, intents=intents)
 bot.remove_command('help')
 
+
 if __name__ == '__main__':
     config.ABSOLUTE_PATH = os.path.dirname(os.path.abspath(__file__))
     config.COOKIE_PATH = config.ABSOLUTE_PATH + config.COOKIE_PATH
@@ -20,11 +22,12 @@ if __name__ == '__main__':
         print("Error: No bot token!")
         exit()
 
+    bot.log_error = ErrorHandler('errors')  # Creating the error handler
+
     for extension in config.INITIAL_EXTENSIONS:
         try:
             bot.load_extension(extension)
         except Exception as e:
             print(e)
 
-
-bot.run(config.BOT_TOKEN, bot=True, reconnect=True)
+    bot.run(config.BOT_TOKEN, bot=True, reconnect=True)
