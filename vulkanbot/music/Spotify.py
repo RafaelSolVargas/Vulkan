@@ -86,9 +86,8 @@ class SpotifySearch():
                     except:
                         pass
                 return musicsTitle
-            except:
-                if config.SPOTIFY_ID != "" or config.SPOTIFY_SECRET != "":
-                    print("ERROR: Check spotify CLIENT_ID and SECRET")
+            except Exception as e:
+                raise e
 
     def __get_playlist(self, code) -> list:
         """Get the externals urls of a playlist
@@ -114,13 +113,11 @@ class SpotifySearch():
                     titles.append(title)
                 except Exception as e:
                     raise e
+
             return titles
 
         except Exception as e:
-            if config.SPOTIFY_ID != "" or config.SPOTIFY_SECRET != "":
-                print("ERROR: Check spotify CLIENT_ID and SECRET")
-            else:
-                raise e
+            raise e
 
     def __get_track(self, code) -> list:
         """Convert a external_url track to the title of the music
@@ -150,18 +147,3 @@ class SpotifySearch():
         """(Experimental) - Convert the external_url link to the title of music using browser"""
         title = self.__browser(url)
         return title
-
-
-if __name__ == '__main__':
-    spSearch = SpotifySearch()
-    spSearch.connect()
-
-    lista = spSearch.search(
-        'https://open.spotify.com/track/7wpnz7hje4FbnjZuWQtJHP')
-    lista2 = spSearch.search(
-        'https://open.spotify.com/album/6wEkHIUHNb1kZiV2nCnVoh')
-    lista3 = spSearch.search(
-        'https://open.spotify.com/playlist/5DOtjJ6rSMddAKyStv7Yc7?si=v893Wv0VSyuh0PokQvC8-g&utm_source=whatsapp')
-    print(lista3)
-    print(lista2)
-    print(lista)

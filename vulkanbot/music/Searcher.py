@@ -33,11 +33,8 @@ class Searcher():
         if "https://www.youtu" in music or "https://youtu.be" in music:
             return Provider.YouTube
 
-        if "https://open.spotify.com/track" in music:
+        if "https://open.spotify.com" in music:
             return Provider.Spotify
-
-        if "https://open.spotify.com/playlist" in music or "https://open.spotify.com/album" in music:
-            return Provider.Spotify_Playlist
 
         # If no match
         return Provider.Unknown
