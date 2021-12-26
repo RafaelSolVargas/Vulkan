@@ -5,7 +5,7 @@ from yt_dlp.utils import ExtractorError, DownloadError
 
 
 class Downloader():
-    """Download music source from Youtube with a music name or Youtube URL"""
+    """Download musics direct URL or Source from Youtube using a music name or Youtube URL"""
 
     def __init__(self) -> None:
         self.__YDL_OPTIONS = {'format': 'bestaudio/best',
@@ -13,52 +13,69 @@ class Downloader():
                               'playliststart': 0,
                               'extract_flat': True,
                               'playlistend': config.MAX_PLAYLIST_LENGTH,
-                              'cookiefile': config.COOKIE_PATH
                               }
 
-    def download_one(self, music: str) -> list:
-        """Download one music link from Youtube
+    def download_urls(self, musics_input) -> list:
+        """Download the musics direct URL from Youtube and return in a list 
 
-        Arg: Music url or music name to search
-        Return: List with the Youtube URL of the music
+        Arg: List with names or youtube url or a Unique String
+        Return: List with the direct youtube URL of each music
+        """
+        if type(musics_input) != list and type(musics_input) != str:
+            return
+
+        if type(musics_input) == str:  # Turn the string in a list
+            musics_input = [musics_input]
+
+        musics_urls = []
+        for music in musics_input:
+            url = self.__download_one(music)
+            musics_urls.extend(url)
+
+        return musics_urls
+
+    def download_source(self, url) -> dict:
+        """Download musics full info and source from Music URL
+
+        Arg: URL from Youtube 
+        Return: Dict with the full youtube information of the music, including source to play it
+        """
+        options = self.__YDL_OPTIONS
+        options['extract_flat'] = False
+        with YoutubeDL(options) as ydl:
+            try:
+                result = ydl.extract_info(url, download=False)
+
+                return result
+            except ExtractorError or DownloadError:
+                pass
+
+    def __download_one(self, music: str) -> list:
+        """Download one music/playlist direct link from Youtube
+
+        Arg: Playlist URL or Music Name to download direct URL
+        Return: List with the Youtube URL of each music downloaded
         """
         if type(music) != str:
             return
 
         if self.__is_url(music):  # If Url
-            info = self.__download_url(music, flat=True)
+            info = self.__download_links(music)
         else:  # If Title
             info = self.__download_title(music)
 
         return info
 
-    def download_many(self, music_list: list) -> list:
-        """Download many music links from Youtube
-
-        Arg: List with names or music url to search
-        Return: List with the youtube URL of each music
-        """
-        if type(music_list) != list:
-            return
-
-        musics_info = []
-        for music in music_list:
-            info = self.download_one(music)
-            musics_info.extend(info)
-
-        return musics_info
-
-    def download_full(self, link) -> dict:
-        """Download the full music info with the video URL"""
-        info = self.__download_url(url=link, flat=False)
-        return info[0]
-
     def __download_title(self, music_name: str) -> list:
-        """Download and return a list with the music link in dict"""
+        """Download a music direct URL using his name.
+
+        Arg: Music Name
+        Return: List with one item, the music direct URL
+        """
         with YoutubeDL(self.__YDL_OPTIONS) as ydl:
             try:
-                result = ydl.extract_info(
-                    f"ytsearch:{music_name}", download=False)
+                search = f"ytsearch:{music_name}"
+                result = ydl.extract_info(search, download=False)
                 id = result['entries'][0]['id']
 
                 link = f"https://www.youtube.com/watch?v={id}"
@@ -66,14 +83,14 @@ class Downloader():
             except Exception as e:
                 raise e
 
-    def __download_url(self, url: str, flat=True) -> list:
-        """Download musics from Playlist URL or Music URL
+    def __download_links(self, url: str) -> list:
+        """Download musics direct links from Playlist URL or Music URL
 
-        Arg: URL from Youtube
-        Return: List of youtube links
+        Arg_Url: URL from Youtube 
+        Return: List of youtube information of each music
         """
         options = self.__YDL_OPTIONS
-        options['extract_flat'] = flat
+        options['extract_flat'] = True
         with YoutubeDL(options) as ydl:
             try:
                 result = ydl.extract_info(url, download=False)
