@@ -27,7 +27,7 @@ class Control(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, MissingRequiredArgument):
-            await ctx.channel.send(f'Falta argumentos. Digite {self.__bot.prefix}help para ver os comandos')
+            await ctx.channel.send(f'Falta argumentos. Digite {config.BOT_PREFIX}help para ver os comandos')
         elif isinstance(error, CommandNotFound):
             await ctx.channel.send(f'O comando não existe')
         else:
