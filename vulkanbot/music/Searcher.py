@@ -17,16 +17,15 @@ class Searcher():
         """
         url_type = self.__identify_source(music)
 
-        if url_type == Provider.Name:
-            return [music]
-
-        elif url_type == Provider.YouTube:
-            musics = self.__Youtube.search(music)
-            return musics
+        if url_type == Provider.YouTube:
+            return [music], Provider.YouTube
 
         elif url_type == Provider.Spotify:
             musics = self.__Spotify.search(music)
-            return musics
+            return musics, Provider.Name
+
+        elif url_type == Provider.Name:
+            return [music], Provider.Name
 
     def __identify_source(self, music) -> Provider:
         """Identify the provider of a music"""
