@@ -51,6 +51,9 @@ class Phrases(commands.Cog):
                 phrase = data['quoteText']
                 author = data['quoteAuthor']
 
+                if phrase == '' or author == '': # Don't accept incomplete phrases
+                    continue
+
                 text = f'{phrase} \nBy: {author}'
 
                 return text
