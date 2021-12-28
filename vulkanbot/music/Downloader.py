@@ -3,9 +3,11 @@ from config import config
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import ExtractorError, DownloadError
 
+from vulkanbot.music.Types import Provider
+
 
 class Downloader():
-    """Download musics direct URL or Source from Youtube using a music name or Youtube URL"""
+    """Download musics direct URL and title or Source from Youtube using a music name or Youtube URL"""
 
     def __init__(self) -> None:
         self.__YDL_OPTIONS = {'format': 'bestaudio/best',
@@ -15,24 +17,30 @@ class Downloader():
                               'playlistend': config.MAX_PLAYLIST_LENGTH,
                               }
 
-    def download_urls(self, musics_input) -> list:
+    def download_urls(self, musics_input, provider: Provider) -> list:
         """Download the musics direct URL from Youtube and return in a list 
 
         Arg: List with names or youtube url or a Unique String
         Return: List with the direct youtube URL of each music
         """
+        if type(provider) != Provider:
+            return None
+
         if type(musics_input) != list and type(musics_input) != str:
-            return
+            return None
 
-        if type(musics_input) == str:  # Turn the string in a list
-            musics_input = [musics_input]
+        if provider == Provider.Name:  # Send a list of names
+            musics_urls = self.__download_titles(musics_input)
+            print(musics_urls)
+            return musics_urls
 
-        musics_urls = []
-        for music in musics_input:
-            url = self.__download_one(music)
-            musics_urls.extend(url)
-
-        return musics_urls
+        elif provider == Provider.YouTube:  # Send a URL or Title
+            print(musics_input)
+            url = self.__download_one(musics_input)
+            return url
+        else:
+            print('Erro no download')
+            return None
 
     def download_source(self, url) -> dict:
         """Download musics full info and source from Music URL
@@ -46,9 +54,12 @@ class Downloader():
             try:
                 result = ydl.extract_info(url, download=False)
 
+                print('Resultado: ')
+                print(len(result))
                 return result
-            except ExtractorError or DownloadError:
-                pass
+            except (ExtractorError, DownloadError) as e:  # Any type of error in download
+                print(e)
+                return None
 
     def __download_one(self, music: str) -> list:
         """Download one music/playlist direct link from Youtube
@@ -60,26 +71,36 @@ class Downloader():
             return
 
         if self.__is_url(music):  # If Url
-            info = self.__download_links(music)
+            info = self.__download_links(music)  # List of dict
         else:  # If Title
-            info = self.__download_title(music)
+            info = self.__download_titles(music)  # List of dict
 
         return info
 
-    def __download_title(self, music_name: str) -> list:
+    def __download_titles(self, musics_names: list) -> list:
         """Download a music direct URL using his name.
 
         Arg: Music Name
-        Return: List with one item, the music direct URL
+        Return: List with one dict, containing the music direct URL and title
         """
+        if type(musics_names) == str:  # Turn str into list
+            musics_names = [musics_names]
+
+        musics_info = []
         with YoutubeDL(self.__YDL_OPTIONS) as ydl:
             try:
-                search = f"ytsearch:{music_name}"
-                result = ydl.extract_info(search, download=False)
-                id = result['entries'][0]['id']
+                for name in musics_names:
+                    search = f"ytsearch:{name}"
+                    result = ydl.extract_info(search, download=False)
 
-                link = f"https://www.youtube.com/watch?v={id}"
-                return [link]
+                    id = result['entries'][0]['id']
+                    music_info = {
+                        'url': f"https://www.youtube.com/watch?v={id}",
+                        'title': result['entries'][0]['title']
+                    }
+                    musics_info.append(music_info)
+
+                return musics_info  # Return a list
             except Exception as e:
                 raise e
 
@@ -87,24 +108,31 @@ class Downloader():
         """Download musics direct links from Playlist URL or Music URL
 
         Arg_Url: URL from Youtube 
-        Return: List of youtube information of each music
+        Return: List of dicts, with the title and url of each music
         """
         options = self.__YDL_OPTIONS
         options['extract_flat'] = True
         with YoutubeDL(options) as ydl:
             try:
                 result = ydl.extract_info(url, download=False)
-
-                musics_link = []
+                musics_info = []
 
                 if result.get('entries'):  # If got a dict of musics
                     for entry in result['entries']:
-                        link = f"https://www.youtube.com/watch?v={entry['id']}"
-                        musics_link.append(link)
-                else:  # Or a single music
-                    musics_link.append(result['original_url'])
+                        music_info = {
+                            'title': entry['title'],
+                            'url': f"https://www.youtube.com/watch?v={entry['id']}"
+                        }
 
-                return musics_link
+                        musics_info.append(music_info)
+                else:  # Or a single music
+                    music_info = {
+                        'url': result['original_url'],
+                        'title': result['title']
+                    }
+                    musics_info.append(music_info)
+
+                return musics_info  # Return a list
             except ExtractorError or DownloadError:
                 pass
 
@@ -117,3 +145,22 @@ class Downloader():
             return True
         else:
             return False
+
+
+""" 
+# url = 'https://open.spotify.com/playlist/64wCcaIp6DxNmMaDM8X0W3'
+# url = 'https://open.spotify.com/album/6wEkHIUHNb1kZiV2nCnVoh'
+# url = 'https://open.spotify.com/track/7wpnz7hje4FbnjZuWQtJHP'
+# url = 'https://www.youtube.com/watch?v=FLQtLH33ZHM&ab_channel=Acoustic%26CoverTv'
+# url = 'https://www.youtube.com/playlist?list=PLbbKJHHZR9ShYuKAr71cLJCFbYE-83vhS'
+# url = 'https://www.youtube.com/watch?v=pFoc5XKkIIw&list=RDpFoc5XKkIIw&start_radio=1&ab_channel=heldenhaftig'  # Custom
+url = 'Bury The Light'
+search = Searcher()
+musicas, provider = search.search(url)
+print(musicas, provider)
+
+down = Downloader()
+result = down.download_urls(musicas, provider)
+#result = down.download_urls('Cheiro de tame impala', provider)
+print(result)
+ """
