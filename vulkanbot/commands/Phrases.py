@@ -20,39 +20,42 @@ class Phrases(commands.Cog):
     def bot(self, newBot):
         self.__bot = newBot
 
-    @commands.command(name='frase', help='Envia uma frase legal no seu PV')
-    async def send_phrase(self, ctx):
+    @commands.command(name='frase', help='Envia uma frase pica, talvez a braba')
+    async def phrase(self, ctx):
         # There is a chance that the phrase will be send for the dev
-        sended = await self.calculate_rgn(ctx)
-        if sended:
-            return
+        secret = await self.__calculate_rgn()
+        if secret != None:
+            await ctx.send(secret)
+        else:
+            phrase = await self.__get_phrase()
+            await ctx.send(phrase)
 
+    async def __calculate_rgn(self):
+        x = rand()
+        if x < 0.15:
+            return config.SECRET_MESSAGE
+        else:
+            return None
+
+    async def __get_phrase(self):
+        tries = 0
         while True:
+            tries += 1
+            if tries > config.MAX_API_PHRASES_TRIES:
+                return 'O banco de dados dos cara tá off, bando de vagabundo, tenta depois aí bicho'
+
             try:
-                response = requests.get(
-                    'http://api.forismatic.com/api/1.0/?method=getQuote&key=457653&format=json&lang=en')
+                response = requests.get(config.PHRASES_API)
                 data = json.loads(response.content)
 
                 phrase = data['quoteText']
                 author = data['quoteAuthor']
 
                 text = f'{phrase} \nBy: {author}'
-                await ctx.send(text)
-                break
-            except json.decoder.JSONDecodeError:
-                continue
-            except Exception as e:
-                print(e)
-                await ctx.channel.send('Houve um erro inesperado :/')
-                break
 
-    async def calculate_rgn(self, ctx):
-        x = rand()
-        if x < 0.15:
-            await ctx.send(config.SECRET_MESSAGE)
-            return True
-        else:
-            return False
+                return text
+            except Exception as e:
+                continue
 
 
 def setup(bot):
