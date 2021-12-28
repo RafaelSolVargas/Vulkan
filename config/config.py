@@ -5,6 +5,7 @@ BOT_TOKEN = dotenv_values('.env')['BOT_TOKEN']
 SPOTIFY_ID = dotenv_values('.env')['SPOTIFY_ID']
 SPOTIFY_SECRET = dotenv_values('.env')['SPOTIFY_SECRET']
 SECRET_MESSAGE = dotenv_values('.env')['SECRET_MESSAGE']
+PHRASES_API = dotenv_values('.env')['PHRASES_API']
 
 BOT_PREFIX = '!'
 INITIAL_EXTENSIONS = {'vulkanbot.commands.Phrases', 'vulkanbot.commands.Warframe',
@@ -24,7 +25,9 @@ CHANNEL_NOT_FOUND_MESSAGE = "Error: Could not find channel"
 INFO_HISTORY_TITLE = "Songs Played:"
 MAX_HISTORY_LENGTH = 10
 MAX_PLAYLIST_LENGTH = 50
+MAX_QUEUE_LENGTH = 10
 MAX_TRACKNAME_HISTORY_LENGTH = 15
+MAX_API_PHRASES_TRIES = 10
 
 SONGINFO_UPLOADER = "Uploader: "
 SONGINFO_DURATION = "Duration: "
