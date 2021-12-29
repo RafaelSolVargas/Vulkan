@@ -4,10 +4,13 @@ CETUS_API = dotenv_values('.env')['CETUS_API']
 BOT_TOKEN = dotenv_values('.env')['BOT_TOKEN']
 SPOTIFY_ID = dotenv_values('.env')['SPOTIFY_ID']
 SPOTIFY_SECRET = dotenv_values('.env')['SPOTIFY_SECRET']
+SECRET_MESSAGE = dotenv_values('.env')['SECRET_MESSAGE']
+PHRASES_API = dotenv_values('.env')['PHRASES_API']
 
 BOT_PREFIX = '!'
-INITIAL_EXTENSIONS = {'vulkan.commands.Phrases', 'vulkan.commands.Warframe',
-                      'vulkan.general.Filter', 'vulkan.general.Control', 'vulkan.music.Music'}
+INITIAL_EXTENSIONS = {'vulkanbot.commands.Phrases', 'vulkanbot.commands.Warframe',
+                      'vulkanbot.general.Filter', 'vulkanbot.general.Control', 'vulkanbot.music.Music',
+                      'vulkanbot.commands.Random'}
 
 VC_TIMEOUT = 600  # seconds
 VC_TIMEOUT_DEFAULT = True
@@ -22,7 +25,11 @@ CHANNEL_NOT_FOUND_MESSAGE = "Error: Could not find channel"
 
 INFO_HISTORY_TITLE = "Songs Played:"
 MAX_HISTORY_LENGTH = 10
+MAX_PLAYLIST_LENGTH = 50
+MAX_QUEUE_LENGTH = 10
 MAX_TRACKNAME_HISTORY_LENGTH = 15
+MAX_API_PHRASES_TRIES = 10
+MAX_API_CETUS_TRIES = 10
 
 SONGINFO_UPLOADER = "Uploader: "
 SONGINFO_DURATION = "Duration: "
@@ -58,7 +65,7 @@ COOKIE_PATH = '/config/cookies/cookies.txt'
 
 COLOURS = {
     'red': 0xDC143C,
-    'green': 0x00FF7F,
+    'green': 0x58D68D,
     'grey': 0x708090,
-    'blue': 0x0000CD
+    'blue': 0x3498DB
 }

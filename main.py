@@ -3,7 +3,7 @@ import discord
 
 from config import config
 from discord.ext import commands
-from vulkan.ErrorHandler import ErrorHandler
+from vulkanbot.ErrorHandler import ErrorHandler
 
 
 intents = discord.Intents.default()
