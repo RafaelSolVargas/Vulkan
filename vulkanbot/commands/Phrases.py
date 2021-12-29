@@ -1,6 +1,5 @@
 import requests
 import json
-import discord
 from config import config
 from discord.ext import commands
 from random import random as rand
@@ -51,7 +50,7 @@ class Phrases(commands.Cog):
                 phrase = data['quoteText']
                 author = data['quoteAuthor']
 
-                if phrase == '' or author == '': # Don't accept incomplete phrases
+                if phrase == '' or author == '':  # Don't accept incomplete phrases
                     continue
 
                 text = f'{phrase} \nBy: {author}'
