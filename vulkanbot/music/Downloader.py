@@ -31,15 +31,12 @@ class Downloader():
 
         if provider == Provider.Name:  # Send a list of names
             musics_urls = self.__download_titles(musics_input)
-            print(musics_urls)
             return musics_urls
 
         elif provider == Provider.YouTube:  # Send a URL or Title
-            print(musics_input)
             url = self.__download_one(musics_input)
             return url
         else:
-            print('Erro no download')
             return None
 
     def download_source(self, url) -> dict:
@@ -54,8 +51,6 @@ class Downloader():
             try:
                 result = ydl.extract_info(url, download=False)
 
-                print('Resultado: ')
-                print(len(result))
                 return result
             except (ExtractorError, DownloadError) as e:  # Any type of error in download
                 print(e)
@@ -147,20 +142,4 @@ class Downloader():
             return False
 
 
-""" 
-# url = 'https://open.spotify.com/playlist/64wCcaIp6DxNmMaDM8X0W3'
-# url = 'https://open.spotify.com/album/6wEkHIUHNb1kZiV2nCnVoh'
-# url = 'https://open.spotify.com/track/7wpnz7hje4FbnjZuWQtJHP'
-# url = 'https://www.youtube.com/watch?v=FLQtLH33ZHM&ab_channel=Acoustic%26CoverTv'
-# url = 'https://www.youtube.com/playlist?list=PLbbKJHHZR9ShYuKAr71cLJCFbYE-83vhS'
-# url = 'https://www.youtube.com/watch?v=pFoc5XKkIIw&list=RDpFoc5XKkIIw&start_radio=1&ab_channel=heldenhaftig'  # Custom
-url = 'Bury The Light'
-search = Searcher()
-musicas, provider = search.search(url)
-print(musicas, provider)
 
-down = Downloader()
-result = down.download_urls(musicas, provider)
-#result = down.download_urls('Cheiro de tame impala', provider)
-print(result)
- """
