@@ -1,234 +1,168 @@
 import discord
 from discord.ext import commands
-from youtube_dl import YoutubeDL
+import datetime
+import asyncio
 
+from config import config
 from vulkanbot.music.Downloader import Downloader
+from vulkanbot.music.Playlist import Playlist
 from vulkanbot.music.Searcher import Searcher
-
-colours = {
-    'red': 0xDC143C,
-    'green': 0x00FF7F,
-    'grey': 0x708090,
-    'blue': 0x0000CD
-}
 
 
 class Music(commands.Cog):
-    def __init__(self, client):
+    def __init__(self, bot):
         self.__searcher = Searcher()
         self.__downloader = Downloader()
+        self.__playlist = Playlist()
 
-        self.client = client
-        self.is_playing = False
-        self.repetingOne = False
-        self.repetingAll = False
-        self.current = ()
-        # 2d array containing [song, channel]
-        # self.music_queue vai conter as buscas recebidas feitas no youtube em ordem
-        # Caminho do executável para rodar na minha máquina
-        self.ffmpeg = 'C:/ffmpeg/bin/ffmpeg.exe'
-        # Segue o padrão de [[{'source', 'title'}, canal], [musica, canal]]
-        self.music_queue = []
-        self.vc = ""  # Objeto voice_client do discord
+        self.__playing = False
+        self.__bot = bot
+        self.__ffmpeg = 'C:/ffmpeg/bin/ffmpeg.exe'
+        self.__vc = ""  # Objeto voice_bot do discord
+
         self.YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
-        self.FFMPEG_OPTIONS = {'executable': self.ffmpeg,
+        self.FFMPEG_OPTIONS = {'executable': self.__ffmpeg,
                                'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
-    def search_yt(self, item):
-        with YoutubeDL(self.YDL_OPTIONS) as ydl:
-            try:  # Busca um video no youtube e traz o titulo e a fonte dele em formato de dict
-                info = ydl.extract_info("ytsearch:%s" %
-                                        item, download=False)['entries'][0]
+    def __play_next(self):
+        while True:
+            if len(self.__playlist) > 0:
+                source = self.__playlist.next_song()
+                if source == None:  # If there is not a source
+                    continue
 
-            except Exception:
-                return False
-        # Retorna a fonte e o titulo buscado
-        return {'source': info['formats'][0]['url'], 'title': info['title']}
-
-    def play_next(self):
-        if len(self.music_queue) > 0:
-            if self.repetingOne:
-                # Coloca a musica atual no topo da fila
-                self.music_queue.insert(0, self.current)
-            elif self.repetingAll:
-                # Joga a musica atual para o final da fila
-                self.music_queue.append(self.current)
-
-            self.is_playing = True
-            source = self.music_queue[0][0]['source']
-            self.current = self.music_queue[0]  # Update current music
-            self.music_queue.pop(0)  # Remove from the queue
-            player = discord.FFmpegPCMAudio(source, **self.FFMPEG_OPTIONS)
-            self.vc.play(player, after=lambda e: self.play_next())  # Play
-        else:
-            self.is_playing = False
-            self.repetingAll = False
-            self.repetingOne = False
+                player = discord.FFmpegPCMAudio(source, **self.FFMPEG_OPTIONS)
+                self.__vc.play(player, after=lambda e: self.__play_next())
+                break
+            else:
+                self.__playing = False
+                break
 
     # infinite loop checking
-    async def play_music(self):
-        if len(self.music_queue) > 0:
-            self.is_playing = True
-            source = self.music_queue[0][0]['source']
+    async def __play_music(self):
+        while True:
+            if len(self.__playlist) > 0:
+                source = self.__playlist.next_song()
+                if source == None:
+                    continue
 
-            # Try to connect to voice channel if you are not already connected
-            if self.vc == "" or not self.vc.is_connected() or self.vc == None:
-                # Conecta o voice_client no channel da primeira música da lista
-                self.vc = await self.music_queue[0][1].connect()
+                self.__playing = True
+                player = discord.FFmpegPCMAudio(source, **self.FFMPEG_OPTIONS)
+                self.__vc.play(player, after=lambda e: self.__play_next())
+                break
             else:
-                await self.vc.move_to(self.music_queue[0][1])
+                self.__playing = False
+                await self.__vc.disconnect()
+                break
 
-            self.current = self.music_queue[0]  # Update current music
-            self.music_queue.pop(0)  # Remove from the queue
-            player = discord.FFmpegPCMAudio(source, **self.FFMPEG_OPTIONS)
-            # Start the player
-            self.vc.play(player, after=lambda e: self.play_next())
-        else:
-            self.is_playing = False
-            await self.vc.disconnect()
-
-    @commands.command(name="help", alisases=['ajuda'], help="Comando de ajuda")
-    async def ajuda(self, ctx):
-        helptxt = ''
-        for command in self.client.commands:
-            helptxt += f'**{command}** - {command.help}\n'
-        embedhelp = discord.Embed(
-            colour=1646116,  # grey
-            title=f'Comandos do {self.client.user.name}',
-            description=helptxt
-        )
-        embedhelp.set_thumbnail(url=self.client.user.avatar_url)
-        await ctx.send(embed=embedhelp)
-
-    @commands.command(name="play", help="Toca uma música do YouTube", aliases=['p', 'tocar'])
-    async def p(self, ctx, *args):
-        query = " ".join(args)
+    @commands.command(name="play", help="Toca música - YouTube/Spotify/Título", aliases=['p', 'tocar'])
+    async def play(self, ctx, *args):
+        user_input = " ".join(args)
 
         try:
-            # Nome do canal de voz que vai entrar
-            voice_channel = ctx.author.voice.channel
-        except:
+            if self.__vc == "" or not self.__vc.is_connected() or self.__vc == None:
+                voice_channel = ctx.author.voice.channel
+                self.__vc = await voice_channel.connect()
+        except Exception as e:
             # If voice_channel is None:
-            await self.send_embed(ctx, title='Para tocar música, primeiro se conecte a um canal de voz.', colour_name='grey')
+            print(e)
+            await self.__send_embed(ctx, title='Para tocar música, primeiro se conecte a um canal de voz.', colour_name='grey')
             return
         else:
-            song = self.search_yt(query)
-            if type(song) == type(True):  # Caso seja retornado um booleano da busca
-                await self.send_embed(ctx, description='Algo deu errado! Tente escrever o nome da música novamente!', colour_name='red')
-                return
-            else:
-                await self.send_embed(ctx, description=f"Você adicionou a música **{song['title']}** à fila!", colour_name='green')
-                self.music_queue.append([song, voice_channel])
+            songs_quant = 0
+            musics_names, provider = self.__searcher.search(user_input)
+            for music in musics_names:
+                music_info = self.__downloader.download_urls(music, provider)
 
-                if self.is_playing == False:
-                    await self.play_music()
+                for music in music_info:
+                    self.__playlist.add_song(music)
+                    songs_quant += 1
+
+            if songs_quant == 1:
+                await self.__send_embed(ctx, description=f"Você adicionou a música **{music_info[0]['title']}** à fila!", colour_name='green')
+            else:
+                await self.__send_embed(ctx, description=f"Você adicionou {songs_quant} músicas à fila!", colour_name='green')
+
+            if not self.__playing:
+                await self.__play_music()
 
     @commands.command(name="queue", help="Mostra as atuais músicas da fila.", aliases=['q', 'fila'])
-    async def q(self, ctx):
-        fila = ""
-        for x in range(len(self.music_queue)):
-            fila += f"**{x+1} - ** {self.music_queue[x][0]['title']}\n"
+    async def queue(self, ctx):
+        if self.__playlist.looping_one:  # If Repeting one
+            # Send the current song with this title
+            await self.this(ctx)
+            return
 
-        if self.repetingOne:  # If Repeting one
-            await self.send_embed(ctx, title='Repeting One Music',
-                                  description=f'Música: **{self.current[0]["title"]}**', colour_name='green')
-        elif fila != "":
-            if self.repetingAll:  # If repeting all
-                await self.send_embed(ctx, title='Repetindo todas', description=fila, colour_name='green')
+        fila = self.__playlist.queue()
+        total = len(fila)
+        text = f'Total musics: {total}\n\n'
+
+        # Create the string to description
+        for pos, song in enumerate(fila):
+            if pos >= config.MAX_QUEUE_LENGTH:  # Max songs to apper in queue list
+                break
+
+            text += f"**{pos+1} - ** {song}\n"
+
+        if text != "":
+            if self.__playlist.looping_all:  # If repeting all
+                await self.__send_embed(ctx, title='Repeating all', description=text, colour_name='green')
             else:  # Repeting off
-                await self.send_embed(ctx, description=fila, colour_name='green')
+                await self.__send_embed(ctx, title='Queue', description=text, colour_name='green')
         else:  # No music
-            await self.send_embed(ctx, description='Não existem músicas na fila.', colour_name='red')
+            await self.__send_embed(ctx, description='There is not musics in queue.', colour_name='red')
 
     @commands.command(name="skip", help="Pula a atual música que está tocando.", aliases=['pular'])
     async def skip(self, ctx):
-        if self.vc != "" and self.vc:
-            self.vc.stop()
-            await self.send_embed(ctx, description=f'Você pulou a música\nRepetindo Uma: {self.repetingOne} \
-                                \nRepetindo Todas: {self.repetingAll}', colour_name='green')
+        if self.__vc != '' and self.__vc:
+            print('Skip')
+            self.__vc.stop()
 
     @commands.command(name='stop', help='Para de tocar músicas')
     async def stop(self, ctx):
-        if self.vc == '':
+        if self.__vc == '':
             return
-        if self.vc.is_connected():
-            # Remove todas as músicas da lista
-            self.music_queue = []
-            self.current = ()
-            self.repetingOne = False
-            self.repetingAll = False
-            self.is_playing = False
-            self.vc.stop()
-            await self.vc.disconnect()
+        if self.__vc.is_connected():
+            self.__playlist.clear()
+            self.__vc.stop()
+            await self.__vc.disconnect()
 
     @commands.command(name='pause', help='Pausa a música')
     async def pause(self, ctx):
-        if self.vc == '':
+        if self.__vc == '':
             return
-        if self.vc.is_playing():
-            self.vc.pause()
-            await self.send_embed(ctx, description='Música pausada', colour_name='green')
+        if self.__vc.is_playing():
+            self.__vc.pause()
+            await self.__send_embed(ctx, description='Música pausada', colour_name='green')
 
     @commands.command(name='resume', help='Despausa a música atual')
     async def resume(self, ctx):
-        if self.vc == '':
+        if self.__vc == '':
             return
-        if self.vc.is_paused():
-            self.vc.resume()
-            await self.send_embed(ctx, description='Música tocando', colour_name='green')
+        if self.__vc.is_paused():
+            self.__vc.resume()
+            await self.__send_embed(ctx, description='Música tocando', colour_name='green')
 
-    @commands.command(name='repeat_one', help='Repete a música atual')
-    async def repeat_one(self, ctx):
-        if not self.is_playing:  # Garante que o Bot está tocando
-            await self.send_embed(ctx, title='Vulkan não está tocando agora', colour_name='red')
-            return
-
-        if self.repetingAll:  # Verifica se o repeting all não está ligado
-            await self.send_embed(ctx, title='Já está repetindo todas', colour_name='red')
-            return
-        else:  # Liga o repeting one
-            self.repetingOne = True
-            await self.send_embed(ctx, description='Repetir uma música ligado', colour_name='green')
-
-    @commands.command(name='repeat_all', help='Repete toda a fila')
-    async def repeat_all(self, ctx):
-        if not self.is_playing:  # Garante que o Bot está tocando
-            await self.send_embed(ctx, title='Vulkan não está tocando agora', colour_name='red')
-            return
-
-        if self.repetingOne:  # Verifica se o repeting all não está ligado
-            await self.send_embed(ctx, title='Já está repetindo uma música', colour_name='red')
-            return
-        else:  # Liga o repeting one
-            self.repetingAll = True
-            await self.send_embed(ctx, description='Repetir todas as músicas ligado', colour_name='green')
-
-    @commands.command(name='repeat_off', help='Desativa o repetir músicas')
-    async def repeat_off(self, ctx):
-        if not self.is_playing:  # Garante que o Bot está tocando
-            await self.send_embed(ctx, title='Vulkan não está tocando agora', colour_name='red')
-            return
+    @commands.command(name='loop', help='Controla a repetição de músicas')
+    async def loop(self, ctx, args: str):
+        args = args.lower()
+        if args == 'one':
+            description = self.__playlist.loop_one()
+        elif args == 'all':
+            description = self.__playlist.loop_all()
+        elif args == 'off':
+            description = self.__playlist.loop_off()
         else:
-            self.repetingOne = False
-            self.repetingAll = False
-            await self.send_embed(ctx, description='Repetir músicas desligado', colour_name='green')
+            description = 'Comando Loop\nOne - Repete a música atual\nAll - Repete as músicas atuais\nOff - Desativa o loop'
 
-    @skip.error  # Erros para kick
-    async def skip_error(self, ctx, error):
-        if isinstance(error, commands.MissingPermissions):
-            embedvc = discord.Embed(
-                colour=12255232,
-                description=f"Você precisa da permissão **Gerenciar canais** para pular músicas."
-            )
-            await ctx.send(embed=embedvc)
-        else:
-            raise error
+        await self.__send_embed(ctx, description=description, colour_name='grey')
 
-    async def send_embed(self, ctx, title='', description='', colour_name='red'):
+
+    async def __send_embed(self, ctx, title='', description='', colour_name='grey'):
         try:
-            colour = colours[colour_name]
+            colour = config.COLOURS[colour_name]
         except Exception as e:
-            colour = colours['red']
+            colour = config.COLOURS['grey']
 
         embedvc = discord.Embed(
             title=title,
@@ -237,6 +171,43 @@ class Music(commands.Cog):
         )
         await ctx.send(embed=embedvc)
 
+    @commands.command(name='clear', help='Limpa a fila de músicas a tocar')
+    async def clear(self, ctx):
+        self.__playlist.clear()
 
-def setup(client):
-    client.add_cog(Music(client))
+    @commands.command(name='this', help='Mostra a música que está tocando no instante')
+    async def this(self, ctx):
+        if self.__playlist.looping_one:
+            title = 'Music Looping Now'
+        else:
+            title = 'Music Playing Now'
+
+        info = self.__playlist.get_current()
+        embedvc = discord.Embed(
+            title=title,
+            description=f"[{info['title']}]({info['url']})",
+            color=config.COLOURS['grey']
+        )
+
+        embedvc.add_field(name=config.SONGINFO_UPLOADER,
+                          value=info['uploader'],
+                          inline=False)
+
+        if 'thumbnail' in info.keys():
+            embedvc.set_thumbnail(url=info['thumbnail'])
+
+        if 'duration' in info.keys():
+            duration = str(datetime.timedelta(seconds=info['duration']))
+            embedvc.add_field(name=config.SONGINFO_DURATION,
+                              value=f"{duration}",
+                              inline=False)
+        else:
+            embedvc.add_field(name=config.SONGINFO_DURATION,
+                              value=config.SONGINFO_UNKNOWN_DURATION,
+                              inline=False)
+
+        await ctx.send(embed=embedvc)
+
+
+def setup(bot):
+    bot.add_cog(Music(bot))
