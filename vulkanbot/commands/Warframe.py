@@ -1,7 +1,6 @@
 import requests
 import json
 import discord
-from dotenv import dotenv_values
 from discord.ext import commands
 from config import config
 
@@ -21,30 +20,32 @@ class Warframe(commands.Cog):
         self.__bot = newBot
 
     @commands.command(name='cetus', help='Informa o tempo atual de Cetus - Warframe')
-    async def get_cetus(self, ctx):
-        try:
-            response = requests.get(config.CETUS_API)
-            data = json.loads(response.content)
-            short = data['shortString']
+    async def cetus(self, ctx):
+        description = await self.__get_api()
+        embed = discord.Embed(
+            title='Warframe Cetus Timing',
+            description=description,
+            colour=config.COLOURS['blue']
+        )
+        await ctx.send(embed=embed)
 
-            responseText = f'{short}'
+    async def __get_api(self):
+        """Return the information of the Warframe API"""
+        tries = 0
+        while True:
+            tries += 1
+            if tries > config.MAX_API_CETUS_TRIES:
+                return 'Os DE baiano não tão com o banco de dados ligado'
 
-            embed = discord.Embed(
-                title='Warframe Cetus Timing',
-                description=responseText,
-                colour=0xFF0000
-            )
-            await ctx.send(embed=embed)
+            try:
+                response = requests.get(config.CETUS_API)
+                data = json.loads(response.content)
+                short = data['shortString']
 
-        except Exception as e:
-            print(e)
-            responseText = f'Houve um erro inesperado :/'
-            embed = discord.Embed(
-                title='Warframe Cetus Timing',
-                description=responseText,
-                colour=0xFF0000
-            )
-            await ctx.send(embed=embed)
+                return short
+
+            except Exception as e:
+                continue
 
 
 def setup(bot):
