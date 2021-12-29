@@ -11,8 +11,9 @@ class Control(commands.Cog):
         self.__bot = bot
         self.__comandos = {
             'MUSIC': ['this', 'resume', 'pause', 'loop', 'stop', 'skip', 'play', 'queue', 'clear'],
-            'RANDOM': ['cetus', ' frase'],
-            'HELP': ['help']
+            'RANDOM': ['escolha', 'cara', 'random'],
+            'HELP': ['help'],
+            'OTHERS': ['cetus', 'frase']
         }
 
     @property
@@ -39,20 +40,24 @@ class Control(commands.Cog):
             raise error
 
     @commands.command(name="help", alisases=['ajuda'], help="Comando de ajuda")
-    async def help(self, ctx):
+    async def help_msg(self, ctx):
         helptxt = ''
         help_music = '-- MUSIC\n'
         help_random = '-- RANDOM\n'
         help_help = '-- HELP\n'
+        help_others = '-- OTHERS\n'
 
         for command in self.__bot.commands:
             if command.name in self.__comandos['MUSIC']:
                 help_music += f'**{command}** - {command.help}\n'
             elif command.name in self.__comandos['HELP']:
                 help_help += f'**{command}** - {command.help}\n'
+            elif command.name in self.__comandos['OTHERS']:
+                help_others += f'**{command}** - {command.help}\n'
             else:
                 help_random += f'**{command}** - {command.help}\n'
-        helptxt = f'{help_music}\n{help_random}\n{help_help}'
+
+        helptxt = f'{help_music}\n{help_random}\n{help_others}\n{help_help}'
 
         embedhelp = discord.Embed(
             colour=config.COLOURS['grey'],
