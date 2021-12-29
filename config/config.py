@@ -9,7 +9,8 @@ PHRASES_API = dotenv_values('.env')['PHRASES_API']
 
 BOT_PREFIX = '!'
 INITIAL_EXTENSIONS = {'vulkanbot.commands.Phrases', 'vulkanbot.commands.Warframe',
-                      'vulkanbot.general.Filter', 'vulkanbot.general.Control', 'vulkanbot.music.Music'}
+                      'vulkanbot.general.Filter', 'vulkanbot.general.Control', 'vulkanbot.music.Music',
+                      'vulkanbot.commands.Random'}
 
 VC_TIMEOUT = 600  # seconds
 VC_TIMEOUT_DEFAULT = True
@@ -28,6 +29,7 @@ MAX_PLAYLIST_LENGTH = 50
 MAX_QUEUE_LENGTH = 10
 MAX_TRACKNAME_HISTORY_LENGTH = 15
 MAX_API_PHRASES_TRIES = 10
+MAX_API_CETUS_TRIES = 10
 
 SONGINFO_UPLOADER = "Uploader: "
 SONGINFO_DURATION = "Duration: "
@@ -63,7 +65,7 @@ COOKIE_PATH = '/config/cookies/cookies.txt'
 
 COLOURS = {
     'red': 0xDC143C,
-    'green': 0x00FF7F,
+    'green': 0x58D68D,
     'grey': 0x708090,
-    'blue': 0x0000CD
+    'blue': 0x3498DB
 }
