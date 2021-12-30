@@ -1,10 +1,12 @@
-import re
+import asyncio
+import concurrent.futures
+
 from config import config
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import ExtractorError, DownloadError
 
-from vulkanbot.music.Types import Provider
-
+from vulkanbot.music.Song import Song
+from vulkanbot.music.utils import is_url
 
 class Downloader():
     """Download musics direct URL and title or Source from Youtube using a music name or Youtube URL"""
@@ -17,29 +19,60 @@ class Downloader():
                               'playlistend': config.MAX_PLAYLIST_LENGTH,
                               }
 
-    def download_urls(self, musics_input, provider: Provider) -> list:
-        """Download the musics direct URL from Youtube and return in a list 
+    def download_one(self, song: Song) -> Song:
+        """Receives a song object, finish his download and return it"""
+        if song.identifier == None:
+            print('Invalid song identifier type')
+            return
 
-        Arg: List with names or youtube url or a Unique String
-        Return: List with the direct youtube URL of each music
-        """
-        if type(provider) != Provider:
+        if is_url(song.identifier): # Youtube URL
+            song_info = self.__download_url(song.identifier)
+        else: # Song name
+            song_info = self.__download_title(song.identifier)
+
+        if song_info == None:
+            song.destroy() # Destroy the music with problems
             return None
-
-        if type(musics_input) != list and type(musics_input) != str:
-            return None
-
-        if provider == Provider.Name:  # Send a list of names
-            musics_urls = self.__download_titles(musics_input)
-            return musics_urls
-
-        elif provider == Provider.YouTube:  # Send a URL or Title
-            url = self.__download_one(musics_input)
-            return url
         else:
+            song.finish_down(song_info)
+            return song
+        
+    def extract_youtube_link(self, playlist_url: str) -> list:
+        """Extract all songs direct URL from a Youtube Link
+
+        Arg: Url String
+        Return: List with the direct youtube URL of each song
+        """
+        if is_url(playlist_url):  # If Url
+            options = self.__YDL_OPTIONS
+            options['extract_flat'] = True
+
+            with YoutubeDL(options) as ydl:
+                try:
+                    result = ydl.extract_info(playlist_url, download=False)
+                    songs_identifiers = []
+
+                    if result.get('entries'):  # If got a dict of musics
+                        for entry in result['entries']:
+                            songs_identifiers.append(f"https://www.youtube.com/watch?v={entry['id']}")
+
+                    else:  # Or a single music
+                        songs_identifiers.append(result['original_url'])
+
+                    return songs_identifiers  # Return a list
+                except (ExtractorError, DownloadError) as e:
+                    print(e)
+                    return None
+        else:
+            print('Invalid type of playlist URL')
             return None
 
-    def download_source(self, url) -> dict:
+    async def preload(self, songs: list) -> None:
+        """Download the full info of the song object"""
+        for song in songs:
+            asyncio.ensure_future(self.__download_songs(song))
+  
+    def __download_url(self, url) -> dict:
         """Download musics full info and source from Music URL
 
         Arg: URL from Youtube 
@@ -47,6 +80,7 @@ class Downloader():
         """
         options = self.__YDL_OPTIONS
         options['extract_flat'] = False
+
         with YoutubeDL(options) as ydl:
             try:
                 result = ydl.extract_info(url, download=False)
@@ -54,92 +88,52 @@ class Downloader():
                 return result
             except (ExtractorError, DownloadError) as e:  # Any type of error in download
                 print(e)
-                return None
 
-    def __download_one(self, music: str) -> list:
-        """Download one music/playlist direct link from Youtube
-
-        Arg: Playlist URL or Music Name to download direct URL
-        Return: List with the Youtube URL of each music downloaded
-        """
-        if type(music) != str:
+    async def __download_songs(self, song: Song):
+        if song.source != None: # If Music already preloaded
             return
+        
+        def download_song(song):
+            if is_url(song.identifier): # Youtube URL
+                song_info = self.__download_url(song.identifier)
+            else: # Song name
+                song_info = self.__download_title(song.identifier)
 
-        if self.__is_url(music):  # If Url
-            info = self.__download_links(music)  # List of dict
-        else:  # If Title
-            info = self.__download_titles(music)  # List of dict
+            if song_info == None:                    
+                song.destroy() # Remove the song with problems from the playlist
+            else:
+                song.finish_down(song_info)
 
-        return info
+        # Creating a loop task to download each song        
+        loop = asyncio.get_event_loop()
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=config.MAX_PRELOAD_SONGS
+        )
+        await asyncio.wait(fs={loop.run_in_executor(executor, download_song, song)}, 
+            return_when=asyncio.ALL_COMPLETED)
 
-    def __download_titles(self, musics_names: list) -> list:
-        """Download a music direct URL using his name.
+    def __download_title(self, title: str) -> dict:
+        """Download a music full information using his name.
 
         Arg: Music Name
-        Return: List with one dict, containing the music direct URL and title
+        Return: A dict containing the song information
         """
-        if type(musics_names) == str:  # Turn str into list
-            musics_names = [musics_names]
+        if type(title) != str:  
+            print('Invalid music identifier type')
+            return            
 
-        musics_info = []
+        config = self.__YDL_OPTIONS
+        config['extract_flat'] = False
+
         with YoutubeDL(self.__YDL_OPTIONS) as ydl:
             try:
-                for name in musics_names:
-                    search = f"ytsearch:{name}"
-                    result = ydl.extract_info(search, download=False)
+                search = f"ytsearch:{title}"
+                result = ydl.extract_info(search, download=False)
 
-                    id = result['entries'][0]['id']
-                    music_info = {
-                        'url': f"https://www.youtube.com/watch?v={id}",
-                        'title': result['entries'][0]['title']
-                    }
-                    musics_info.append(music_info)
-
-                return musics_info  # Return a list
+                if result == None:
+                    return 
+                
+                # Return a dict with the full info of first music
+                return result['entries'][0]  
             except Exception as e:
-                raise e
-
-    def __download_links(self, url: str) -> list:
-        """Download musics direct links from Playlist URL or Music URL
-
-        Arg_Url: URL from Youtube 
-        Return: List of dicts, with the title and url of each music
-        """
-        options = self.__YDL_OPTIONS
-        options['extract_flat'] = True
-        with YoutubeDL(options) as ydl:
-            try:
-                result = ydl.extract_info(url, download=False)
-                musics_info = []
-
-                if result.get('entries'):  # If got a dict of musics
-                    for entry in result['entries']:
-                        music_info = {
-                            'title': entry['title'],
-                            'url': f"https://www.youtube.com/watch?v={entry['id']}"
-                        }
-
-                        musics_info.append(music_info)
-                else:  # Or a single music
-                    music_info = {
-                        'url': result['original_url'],
-                        'title': result['title']
-                    }
-                    musics_info.append(music_info)
-
-                return musics_info  # Return a list
-            except ExtractorError or DownloadError:
-                pass
-
-    def __is_url(self, string) -> bool:
-        """Verify if a string is a url"""
-        regex = re.compile(
-            "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
-
-        if re.search(regex, string):
-            return True
-        else:
-            return False
-
-
-
+                print(e)
