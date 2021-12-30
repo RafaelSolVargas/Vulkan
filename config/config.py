@@ -1,6 +1,8 @@
 from dotenv import dotenv_values
 
 CETUS_API = dotenv_values('.env')['CETUS_API']
+CAMBION_API = dotenv_values('.env')['CAMBION_API']
+FISSURES_API = dotenv_values('.env')['FISSURES_API']
 BOT_TOKEN = dotenv_values('.env')['BOT_TOKEN']
 SPOTIFY_ID = dotenv_values('.env')['SPOTIFY_ID']
 SPOTIFY_SECRET = dotenv_values('.env')['SPOTIFY_SECRET']
@@ -20,6 +22,8 @@ STARTUP_COMPLETE_MESSAGE = 'Vulkan is now operating.'
 MAX_PLAYLIST_LENGTH = 50
 MAX_API_PHRASES_TRIES = 10
 MAX_API_CETUS_TRIES = 10
+MAX_API_CAMBION_TRIES = 10
+MAX_API_FISSURES_TRIES = 10
 MAX_PRELOAD_SONGS = 10
 
 SONGINFO_UPLOADER = "Uploader: "
