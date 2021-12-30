@@ -1,22 +1,22 @@
 import discord
 from discord.ext import commands
-import datetime
-import asyncio
 
 from config import config
 from vulkanbot.music.Downloader import Downloader
 from vulkanbot.music.Playlist import Playlist
 from vulkanbot.music.Searcher import Searcher
+from vulkanbot.music.Types import Provider
+from vulkanbot.music.utils import *
 
 
 class Music(commands.Cog):
     def __init__(self, bot):
-        self.__searcher = Searcher()
-        self.__downloader = Downloader()
-        self.__playlist = Playlist()
+        self.__searcher: Searcher = Searcher()
+        self.__downloader: Downloader = Downloader()
+        self.__playlist: Playlist = Playlist()
+        self.__bot: discord.Client = bot
 
         self.__playing = False
-        self.__bot = bot
         self.__ffmpeg = 'C:/ffmpeg/bin/ffmpeg.exe'
         self.__vc = ""  # Objeto voice_bot do discord
 
@@ -24,98 +24,109 @@ class Music(commands.Cog):
         self.FFMPEG_OPTIONS = {'executable': self.__ffmpeg,
                                'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
-    def __play_next(self):
+    def __play_next(self, error, ctx):
         while True:
             if len(self.__playlist) > 0:
                 source = self.__playlist.next_song()
-                if source == None:  # If there is not a source
+                if source == None:  # If there is not a source for the song
                     continue
-
-                player = discord.FFmpegPCMAudio(source, **self.FFMPEG_OPTIONS)
-                self.__vc.play(player, after=lambda e: self.__play_next())
+                    
+                coro = self.__play_music(ctx, source)
+                self.__bot.loop.create_task(coro)
                 break
             else:
                 self.__playing = False
                 break
 
-    # infinite loop checking
-    async def __play_music(self):
-        while True:
-            if len(self.__playlist) > 0:
-                source = self.__playlist.next_song()
-                if source == None:
-                    continue
+    async def __play_music(self, ctx, song):
+        self.__playing = True
 
-                self.__playing = True
-                player = discord.FFmpegPCMAudio(source, **self.FFMPEG_OPTIONS)
-                self.__vc.play(player, after=lambda e: self.__play_next())
-                break
-            else:
-                self.__playing = False
-                await self.__vc.disconnect()
-                break
+        player = discord.FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
+        self.__vc.play(player, after=lambda e: self.__play_next(e, ctx))
+
+        await ctx.invoke(self.__bot.get_command('np'))
+
+        songs = self.__playlist.songs_to_preload
+        await self.__downloader.preload(songs)
 
     @commands.command(name="play", help="Toca música - YouTube/Spotify/Título", aliases=['p', 'tocar'])
     async def play(self, ctx, *args):
         user_input = " ".join(args)
 
         try:
-            if self.__vc == "" or not self.__vc.is_connected() or self.__vc == None:
+            if len(self.__bot.voice_clients) == 0:
                 voice_channel = ctx.author.voice.channel
                 self.__vc = await voice_channel.connect()
         except Exception as e:
-            # If voice_channel is None:
             print(e)
             await self.__send_embed(ctx, title='Para tocar música, primeiro se conecte a um canal de voz.', colour_name='grey')
             return
         else:
             songs_quant = 0
-            musics_names, provider = self.__searcher.search(user_input)
-            for music in musics_names:
-                music_info = self.__downloader.download_urls(music, provider)
+            musics_identifiers, provider = self.__searcher.search(user_input)
+            
+            if provider == Provider.Unknown: # If type not identified 
+                await self.__send_embed(ctx, description='Entrada inválida, tente algo melhor', colour_name='blue')
+                return
 
-                for music in music_info:
-                    self.__playlist.add_song(music)
-                    songs_quant += 1
+            if provider == Provider.YouTube: # If youtube source
+                musics_identifiers = self.__downloader.extract_youtube_link(musics_identifiers[0])
 
-            if songs_quant == 1:
-                await self.__send_embed(ctx, description=f"Você adicionou a música **{music_info[0]['title']}** à fila!", colour_name='green')
+            for identifier in musics_identifiers: # Creating songs
+                last_song = self.__playlist.add_song(identifier)
+                songs_quant += 1
+
+            songs_preload = self.__playlist.songs_to_preload
+            await self.__downloader.preload(songs_preload)
+            
+            if songs_quant == 1: # If only one music downloaded
+                song = self.__downloader.download_one(last_song) # Download the new music
+
+                if song == None: # If song not downloaded
+                    await self.__send_embed(ctx, description='Houve um problema no download dessa música, tente novamente', colour_name='blue')
+                
+                elif not self.__playing : # If not playing
+                    await self.__send_embed(ctx, description=f'Você adicionou a música **{song.title}** à playlist', colour_name='blue')
+                
+                else: # If playing
+                    await ctx.send(embed=song.embed(title='Song added to Queue'))
             else:
-                await self.__send_embed(ctx, description=f"Você adicionou {songs_quant} músicas à fila!", colour_name='green')
+                await self.__send_embed(ctx, description=f"Você adicionou {songs_quant} músicas à fila!", colour_name='blue')
 
             if not self.__playing:
-                await self.__play_music()
+                first = self.__playlist.songs_to_preload[0]
+                self.__downloader.download_one(first)
+                first_song = self.__playlist.next_song()
+
+                await self.__play_music(ctx, first_song)
 
     @commands.command(name="queue", help="Mostra as atuais músicas da fila.", aliases=['q', 'fila'])
     async def queue(self, ctx):
-        if self.__playlist.looping_one:  # If Repeting one
-            # Send the current song with this title
-            await self.this(ctx)
+        if self.__playlist.looping_one:  # If Repeating one
+            await self.now_playing(ctx)
             return
 
-        fila = self.__playlist.queue()
-        total = len(fila)
-        text = f'Total musics: {total}\n\n'
+        songs_preload = self.__playlist.songs_to_preload 
+        await self.__downloader.preload(songs_preload)        
+        total_time = format_time(sum([int(song.duration if song.duration else 0) for song in songs_preload])) # Sum the duration
+        total_songs = len(self.__playlist)
+        text = f'Total musics: {total_songs} | Duration: `{total_time}` downloaded  \n\n'
 
-        # Create the string to description
-        for pos, song in enumerate(fila):
-            if pos >= config.MAX_QUEUE_LENGTH:  # Max songs to apper in queue list
-                break
+        for pos, song in enumerate(songs_preload, start=1):
+            title = song.title if song.title else 'Downloading...'
+            text += f"**`{pos}` - ** {title} - `{format_time(song.duration)}`\n"
 
-            text += f"**{pos+1} - ** {song}\n"
-
-        if text != "":
-            if self.__playlist.looping_all:  # If repeting all
-                await self.__send_embed(ctx, title='Repeating all', description=text, colour_name='green')
-            else:  # Repeting off
-                await self.__send_embed(ctx, title='Queue', description=text, colour_name='green')
+        if len(songs_preload) > 0:
+            if self.__playlist.looping_all:  # If repeating all
+                await self.__send_embed(ctx, title='Repeating all', description=text, colour_name='blue')
+            else:  # Repeating off
+                await self.__send_embed(ctx, title='Songs in Queue', description=text, colour_name='blue')
         else:  # No music
             await self.__send_embed(ctx, description='There is not musics in queue.', colour_name='red')
 
     @commands.command(name="skip", help="Pula a atual música que está tocando.", aliases=['pular'])
     async def skip(self, ctx):
-        if self.__vc != '' and self.__vc:
-            print('Skip')
+        if len(self.__bot.voice_clients) > 0:
             self.__vc.stop()
 
     @commands.command(name='stop', help='Para de tocar músicas')
@@ -135,7 +146,7 @@ class Music(commands.Cog):
             self.__vc.pause()
             await self.__send_embed(ctx, description='Música pausada', colour_name='green')
 
-    @commands.command(name='resume', help='Despausa a música atual')
+    @commands.command(name='resume', help='Solta a música atual')
     async def resume(self, ctx):
         if self.__vc == '':
             return
@@ -157,6 +168,19 @@ class Music(commands.Cog):
 
         await self.__send_embed(ctx, description=description, colour_name='grey')
 
+    @commands.command(name='clear', help='Limpa a fila de músicas a tocar')
+    async def clear(self, ctx):
+        self.__playlist.clear()
+
+    @commands.command(name='np', help='Mostra a música que está tocando no instante')
+    async def now_playing(self, ctx):
+        if self.__playlist.looping_one:
+            title = 'Song Looping Now'
+        else:
+            title = 'Song Playing Now'
+
+        current_song = self.__playlist.current
+        await ctx.send(embed=current_song.embed(title=title))
 
     async def __send_embed(self, ctx, title='', description='', colour_name='grey'):
         try:
@@ -169,43 +193,6 @@ class Music(commands.Cog):
             description=description,
             colour=colour
         )
-        await ctx.send(embed=embedvc)
-
-    @commands.command(name='clear', help='Limpa a fila de músicas a tocar')
-    async def clear(self, ctx):
-        self.__playlist.clear()
-
-    @commands.command(name='this', help='Mostra a música que está tocando no instante')
-    async def this(self, ctx):
-        if self.__playlist.looping_one:
-            title = 'Music Looping Now'
-        else:
-            title = 'Music Playing Now'
-
-        info = self.__playlist.get_current()
-        embedvc = discord.Embed(
-            title=title,
-            description=f"[{info['title']}]({info['url']})",
-            color=config.COLOURS['grey']
-        )
-
-        embedvc.add_field(name=config.SONGINFO_UPLOADER,
-                          value=info['uploader'],
-                          inline=False)
-
-        if 'thumbnail' in info.keys():
-            embedvc.set_thumbnail(url=info['thumbnail'])
-
-        if 'duration' in info.keys():
-            duration = str(datetime.timedelta(seconds=info['duration']))
-            embedvc.add_field(name=config.SONGINFO_DURATION,
-                              value=f"{duration}",
-                              inline=False)
-        else:
-            embedvc.add_field(name=config.SONGINFO_DURATION,
-                              value=config.SONGINFO_UNKNOWN_DURATION,
-                              inline=False)
-
         await ctx.send(embed=embedvc)
 
 
