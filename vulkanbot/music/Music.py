@@ -86,6 +86,7 @@ class Music(commands.Cog):
                     await self.__send_embed(ctx, description='Houve um problema no download dessa música, tente novamente', colour_name='blue')
                 
                 elif not self.__playing : # If not playing
+
                     await self.__send_embed(ctx, description=f'Você adicionou a música **{song.title}** à playlist', colour_name='blue')
                 
                 else: # If playing
@@ -194,6 +195,15 @@ class Music(commands.Cog):
             colour=colour
         )
         await ctx.send(embed=embedvc)
+
+    @commands.command(name='shuffle', help='Altera aleatoriamente a ordem das músicas')
+    async def shuffle(self, ctx):
+        self.__playlist.shuffle()
+        songs = self.__playlist.songs_to_preload
+        
+        await self.__downloader.preload(songs)
+
+        await self.__send_embed(ctx, description='Musicas embaralhadas', colour_name='blue')
 
 
 def setup(bot):
