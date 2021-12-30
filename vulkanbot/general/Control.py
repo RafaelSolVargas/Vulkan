@@ -10,10 +10,11 @@ class Control(commands.Cog):
     def __init__(self, bot):
         self.__bot = bot
         self.__comandos = {
-            'MUSIC': ['this', 'resume', 'pause', 'loop', 'stop', 'skip', 'play', 'queue', 'clear', 'np'],
+            'MUSIC': ['resume', 'pause', 'loop', 'stop', 'skip', 'play', 'queue', 'clear', 'np', 'shuffle', 'move'],
+            'WARFRAME': ['warframe'],
             'RANDOM': ['escolha', 'cara', 'random'],
             'HELP': ['help'],
-            'OTHERS': ['cetus', 'frase']
+            'OTHERS': ['frase']
         }
 
     @property
@@ -44,6 +45,7 @@ class Control(commands.Cog):
         helptxt = ''
         help_music = '-- MUSIC\n'
         help_random = '-- RANDOM\n'
+        help_warframe = '-- WARFRAME\n'
         help_help = '-- HELP\n'
         help_others = '-- OTHERS\n'
 
@@ -54,10 +56,12 @@ class Control(commands.Cog):
                 help_help += f'**{command}** - {command.help}\n'
             elif command.name in self.__comandos['OTHERS']:
                 help_others += f'**{command}** - {command.help}\n'
+            elif command.name in self.__comandos['WARFRAME']:
+                help_warframe += f'**{command}** - {command.help}\n'
             else:
                 help_random += f'**{command}** - {command.help}\n'
 
-        helptxt = f'{help_music}\n{help_random}\n{help_others}\n{help_help}'
+        helptxt = f'{help_music}\n{help_warframe}\n{help_random}\n{help_others}\n{help_help}'
 
         embedhelp = discord.Embed(
             colour=config.COLOURS['grey'],
@@ -67,10 +71,6 @@ class Control(commands.Cog):
 
         embedhelp.set_thumbnail(url=self.__bot.user.avatar_url)
         await ctx.send(embed=embedhelp)
-
-    @commands.Cog.listener()
-    async def on_error(self, error):
-        print('On Error')
 
 
 def setup(bot):
