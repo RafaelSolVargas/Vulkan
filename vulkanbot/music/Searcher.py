@@ -1,6 +1,6 @@
-import re
 from vulkanbot.music.Types import Provider
 from vulkanbot.music.Spotify import SpotifySearch
+from vulkanbot.music.utils import is_url
 
 
 class Searcher():
@@ -11,9 +11,10 @@ class Searcher():
         print(f'Spotify Connected: {self.__Spotify.connect()}')
 
     def search(self, music: str) -> list:
-        """Return a list with the track name of a music or playlist
+        """Return a list with the song names or an URL
 
-        Return -> A list of musics names
+        Arg -> User Input, a string with the 
+        Return -> A list of musics names and Provider Type
         """
         url_type = self.__identify_source(music)
 
@@ -26,10 +27,13 @@ class Searcher():
 
         elif url_type == Provider.Name:
             return [music], Provider.Name
+        
+        elif url_type == Provider.Unknown:
+            return None, Provider.Unknown
 
     def __identify_source(self, music) -> Provider:
         """Identify the provider of a music"""
-        if not self.__is_url(music):
+        if not is_url(music):
             return Provider.Name
 
         if "https://www.youtu" in music or "https://youtu.be" in music:
@@ -41,12 +45,3 @@ class Searcher():
         # If no match
         return Provider.Unknown
 
-    def __is_url(self, string) -> bool:
-        """Verify if a string is a url"""
-        regex = re.compile(
-            "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
-
-        if re.search(regex, string):
-            return True
-        else:
-            return False

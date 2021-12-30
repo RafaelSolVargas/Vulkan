@@ -10,7 +10,7 @@ class Control(commands.Cog):
     def __init__(self, bot):
         self.__bot = bot
         self.__comandos = {
-            'MUSIC': ['this', 'resume', 'pause', 'loop', 'stop', 'skip', 'play', 'queue', 'clear'],
+            'MUSIC': ['this', 'resume', 'pause', 'loop', 'stop', 'skip', 'play', 'queue', 'clear', 'np'],
             'RANDOM': ['escolha', 'cara', 'random'],
             'HELP': ['help'],
             'OTHERS': ['cetus', 'frase']
@@ -27,13 +27,13 @@ class Control(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(config.STARTUP_MESSAGE)
-        await self.__bot.change_presence(status=discord.Status.online, activity=discord.Game(name=f"Vulkan | type {config.BOT_PREFIX}help"))
+        await self.__bot.change_presence(status=discord.Status.online, activity=discord.Game(name=f"Vulkan | {config.BOT_PREFIX}help"))
         print(config.STARTUP_COMPLETE_MESSAGE)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, MissingRequiredArgument):
-            await ctx.channel.send(f'Falta argumentos. Digite {config.BOT_PREFIX}help para ver os comandos')
+            await ctx.channel.send(f'Falta argumentos. Digite {config.BOT_PREFIX}help para ver todos os comandos\n\nOu tente {config.BOT_PREFIX}command help para mais informações')
         elif isinstance(error, CommandNotFound):
             await ctx.channel.send(f'O comando não existe')
         else:

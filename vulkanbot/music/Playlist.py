@@ -1,14 +1,16 @@
 from collections import deque
 import random
+from config import config
+
+from vulkanbot.music.Interfaces import IPlaylist
 from vulkanbot.music.Song import Song
-from vulkanbot.music.Downloader import Downloader
 
 
-class Playlist():
+
+class Playlist(IPlaylist):
     """Class to manage and control the songs to play and played"""
 
     def __init__(self) -> None:
-        self.__down = Downloader()
         self.__queue = deque()  # Store the musics to play
         self.__songs_history = deque()  # Store the musics played
         self.__name_history = deque()  # Store the name of musics played
@@ -16,7 +18,7 @@ class Playlist():
         self.__looping_one = False
         self.__looping_all = False
 
-        self.__current = None
+        self.__current: Song = None
 
     @property
     def looping_one(self):
@@ -26,19 +28,22 @@ class Playlist():
     def looping_all(self):
         return self.__looping_all
 
+    @property
+    def current(self):
+        return self.__current
+
+    @property
+    def songs_to_preload(self) -> list:
+        return list(self.__queue)[:config.MAX_PRELOAD_SONGS]
+
     def __len__(self):
-        if self.__looping_one == True or self.__looping_all == True:
-            return 1
-        else:
             return len(self.__queue)
 
-    def next_song(self):
-        """Return the source of the next song to play"""
-        if self.__current == None:  # If not playing
-            if len(self.__queue) == 0:  # If nothing to play
-                return None
-            else:  # If there is music to play
-                return self.__start()
+    def next_song(self) -> Song:
+        """Return the next song to play"""
+        if self.__current == None and len(self.__queue) == 0:   
+            # If not playing and nothing to play
+            return None
 
         # If playing
         played_song = self.__current
@@ -54,55 +59,15 @@ class Playlist():
             if len(self.__queue) == 0:  # If no more song to play, return None
                 return None
 
-            # If there is more to play
-            # Finish download of the next song
-            source = self.__prepare_next(self.__queue[0])
-            if source == None:  # If there is a problem in the download
-                self.__queue.popleft()  # Remove the music with problems
+            self.__current = self.__queue[0]  # Att the current with the first one
+            self.__queue.popleft()  # Remove the current from queue
+            if self.__current.source == None: # Try until find one source
                 continue
-
-            return source
-
-    def get_current(self):
-        """Return current music embed"""
-        if self.__current:
-            return self.__current.embed()
-        else:
-            return 'Nenhuma música tocando'
-
-    def __prepare_next(self, next_song: Song) -> str:
-        """Finish the download of the music and return the source"""
-        if next_song.source == None:  # Check if source has already downloaded
-            url = next_song.url  # Get the URL
-            info = self.__down.download_source(url)  # Download the source
-            if info == None:  # If there is a problem in the download
-                return None
-
-            next_song.finish_down(info)  # Updating the info of song
-
-        # Att the Playlist info
-        self.__current = next_song  # Att the current
-        self.__queue.popleft()  # Remove the current from queue
-        self.__name_history.append(self.__current.title)  # Add to name history
-        self.__songs_history.append(self.__current)  # Add to song history
-
-        return self.__current.source  # Return the source of current
-
-    def __start(self) -> None:
-        """Start the play of the first musics and return his source"""
-        # Finish download of the next song
-        url = self.__queue[0].url  # Get the URL
-        info = self.__down.download_source(url)  # Download the source
-
-        self.__queue[0].finish_down(info)  # Att the song
-
-        # Att Playlist info
-        self.__current = self.__queue[0]  # Att the current
-        self.__queue.popleft()  # Remove the current from queue
-        self.__name_history.append(self.__current.title)  # Add to name history
-        self.__songs_history.append(self.__current)  # Add to song history
-
-        return self.__current.source  # Return the source of current
+            
+            else:
+                self.__name_history.append(self.__current.title)  # Add to name history
+                self.__songs_history.append(self.__current)  # Add to song history
+                return self.__current
 
     def prev_song(self):
         """Return the source of the last song played
@@ -114,14 +79,11 @@ class Playlist():
         else:
             return self.__songs_history[0].source
 
-    def add_song(self, music: dict) -> None:
-        """Receives a music object and store to the play queue"""
-        if (not 'title' in music.keys()) or (not 'url' in music.keys()):
-            print('Music without necessary keys')
-            return
-
-        song = Song(title=music['title'], url=music['url'])  # Cria a musica
+    def add_song(self, identifier: str) -> Song:
+        """Create a song object, add to queue and return it"""
+        song = Song(identifier, self)  # Cria a musica com o identificador
         self.__queue.append(song)
+        return song
 
     def shuffle(self) -> None:
         """Shuffle the order of the songs to play"""
@@ -171,9 +133,9 @@ class Playlist():
         self.__looping_one = False
         return 'Loop disable'
 
-    def queue(self) -> list:
-        list_songs = []
+    def destroy_song(self, song_destroy: Song) -> None:
+        """Destroy a song object from the queue"""
         for song in self.__queue:
-            title = song.title
-            list_songs.append(title)
-        return list_songs
+            if song == song_destroy:
+                self.__queue.remove(song)
+                break
