@@ -139,3 +139,23 @@ class Playlist(IPlaylist):
             if song == song_destroy:
                 self.__queue.remove(song)
                 break
+
+    def move_songs(self, pos1, pos2) -> tuple:
+        """Receive two position and try to chance the songs in those positions
+        
+        Positions: First music is 1
+        Return (Error bool, string) with the status of the function, to show to user
+        """
+        if pos2 not in range(1, len(self.__queue)) or pos1 not in range(1, len(self.__queue)):
+            return (False, 'Numbers need to be more than 0 and less than the queue length')
+
+        try:
+            song1 = self.__queue[pos1-1]
+            song2 = self.__queue[pos2-1]
+
+            self.__queue[pos1-1] = song2
+            self.__queue[pos2-1] = song1
+            return (True, 'Songs moved with successfully')
+        except Exception as e:
+            print(e)
+            return (False, 'There was a problem with the moving of songs')

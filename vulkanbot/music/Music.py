@@ -205,6 +205,25 @@ class Music(commands.Cog):
 
         await self.__send_embed(ctx, description='Musicas embaralhadas', colour_name='blue')
 
+    @commands.command(name='move', help='Manda uma música de uma posição para outra <from> <to>')
+    async def move(self, ctx, pos1, pos2='1'): 
+        try:
+            pos1 = int(pos1)
+            pos2 = int(pos2)
+
+        except Exception as e:
+            print(e)
+            await ctx.send('This command require a number')
+            return
+
+        success, reason = self.__playlist.move_songs(pos1, pos2)
+
+        if not success: 
+            songs = self.__playlist.songs_to_preload
+            await self.__downloader.preload(songs)
+            await ctx.send(reason)
+        else:
+            await ctx.send(reason)
 
 def setup(bot):
     bot.add_cog(Music(bot))
