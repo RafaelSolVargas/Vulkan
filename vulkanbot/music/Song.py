@@ -11,6 +11,7 @@ class Song(ISong):
         """Create a song with only the URL to the youtube song"""
         self.__identifier = identifier
         self.__info = {}
+        self.__problematic = False
         self.__playlist: IPlaylist = playlist
 
     def finish_down(self, info: dict) -> None:
@@ -54,11 +55,15 @@ class Song(ISong):
     @property
     def identifier(self) -> str:
         return self.__identifier
+    
+    @property
+    def problematic(self) -> bool:
+        return self.__problematic
 
     def destroy(self) -> None:
-        """Destroy the song from the playlist due to any type of error"""
+        """Mark this song with problems and removed from the playlist due to any type of error"""
+        self.__problematic = True        
         self.__playlist.destroy_song(self)
-        del self
         
     def embed(self, title: str) -> Embed:
         """Configure the embed to show the song information"""
