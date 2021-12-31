@@ -95,11 +95,27 @@ class Music(commands.Cog):
                 await self.__send_embed(ctx, description=f"Você adicionou {songs_quant} músicas à fila!", colour_name='blue')
 
             if not self.__playing:
-                first = self.__playlist.songs_to_preload[0]
-                self.__downloader.download_one(first)
-                first_song = self.__playlist.next_song()
+                try_another = True
+                
+                while try_another:
+                    first = self.__playlist.next_song()
+                    if first == None:
+                        await self.__send_embed(ctx, description='Houve um problema no download dessa música, tente novamente', colour_name='blue')
+                        break
+                    
+                    while True:
+                        if first.source != None: # If song got downloaded
+                            try_another = False
+                            break 
 
-                await self.__play_music(ctx, first_song)
+                        if first.problematic: # If song got any error, try another one
+                            break
+
+                        else: # The song is downloading, checking another time
+                            continue
+
+                if first != None:
+                    await self.__play_music(ctx, first)
 
     @commands.command(name="queue", help="Mostra as atuais músicas da fila.", aliases=['q', 'fila'])
     async def queue(self, ctx):
