@@ -60,14 +60,11 @@ class Playlist(IPlaylist):
                 return None
 
             self.__current = self.__queue[0]  # Att the current with the first one
-            self.__queue.popleft()  # Remove the current from queue
-            if self.__current.source == None: # Try until find one source
-                continue
+            self.__queue.popleft()  # Remove the current from queue            
+            self.__name_history.append(self.__current.identifier)  # Add to name history
+            self.__songs_history.append(self.__current)  # Add to song history
             
-            else:
-                self.__name_history.append(self.__current.title)  # Add to name history
-                self.__songs_history.append(self.__current)  # Add to song history
-                return self.__current
+            return self.__current
 
     def prev_song(self):
         """Return the source of the last song played
