@@ -3,14 +3,13 @@ import discord
 from discord.ext import commands
 from config import config
 
-
 class Random(commands.Cog):
     """Deal with returning random things"""
 
     def __init__(self, bot):
         self.__bot = bot
 
-    @commands.command(name='random', help='Número aleatório de 1 a X')
+    @commands.command(name='random', help=config.HELP_RANDOM)
     async def random(self, ctx, arg: str):
         try:
             arg = int(arg)
@@ -38,7 +37,7 @@ class Random(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @commands.command(name='cara', help='coroa')
+    @commands.command(name='cara', help=config.HELP_CARA)
     async def cara(self, ctx):
         x = random()
         if x < 0.5:
@@ -53,7 +52,7 @@ class Random(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @commands.command(name='escolha', help='Escolhe um dos itens, separador: Vírgula')
+    @commands.command(name='escolha', help=config.HELP_ESCOLHA)
     async def escolher(self, ctx, *args: str):
         try:
             user_input = " ".join(args)

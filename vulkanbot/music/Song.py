@@ -1,7 +1,8 @@
 from discord import Embed
-import datetime
-from vulkanbot.music.Interfaces import ISong, IPlaylist
 from config import config
+import datetime
+
+from vulkanbot.music.Interfaces import ISong, IPlaylist
 
 
 class Song(ISong):
@@ -15,18 +16,18 @@ class Song(ISong):
         self.__playlist: IPlaylist = playlist
 
     def finish_down(self, info: dict) -> None:
-        """Get and store the full information of the song"""        
+        """Get and store the full information of the song"""
         self.__usefull_keys = ['url', 'duration',
                                'title', 'webpage_url',
                                'channel', 'id', 'uploader',
                                'thumbnail', 'original_url']
-        
+
         for key in self.__usefull_keys:
             try:
                 self.__info[key] = info[key]
             except Exception as e:
                 print(e)
-                raise e  
+                raise e
 
     @property
     def source(self) -> str:
@@ -55,19 +56,19 @@ class Song(ISong):
     @property
     def identifier(self) -> str:
         return self.__identifier
-    
+
     @property
     def problematic(self) -> bool:
         return self.__problematic
 
     def destroy(self) -> None:
         """Mark this song with problems and removed from the playlist due to any type of error"""
-        self.__problematic = True        
+        self.__problematic = True
         self.__playlist.destroy_song(self)
-        
+
     def embed(self, title: str) -> Embed:
         """Configure the embed to show the song information"""
-        
+
         embedvc = Embed(
             title=title,
             description=f"[{self.__info['title']}]({self.__info['original_url']})",

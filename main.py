@@ -22,7 +22,7 @@ if __name__ == '__main__':
         print("Error: No bot token!")
         exit()
 
-    bot.log_error = ErrorHandler('errors')  # Creating the error handler
+    bot.log_error = ErrorHandler('errors')
 
     for extension in config.INITIAL_EXTENSIONS:
         try:

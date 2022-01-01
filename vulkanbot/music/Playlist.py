@@ -1,10 +1,9 @@
 from collections import deque
-import random
 from config import config
+import random
 
 from vulkanbot.music.Interfaces import IPlaylist
 from vulkanbot.music.Song import Song
-
 
 
 class Playlist(IPlaylist):
@@ -21,27 +20,27 @@ class Playlist(IPlaylist):
         self.__current: Song = None
 
     @property
-    def looping_one(self):
+    def looping_one(self) -> bool:
         return self.__looping_one
 
     @property
-    def looping_all(self):
+    def looping_all(self) -> bool:
         return self.__looping_all
 
     @property
-    def current(self):
+    def current(self) -> Song:
         return self.__current
 
     @property
     def songs_to_preload(self) -> list:
         return list(self.__queue)[:config.MAX_PRELOAD_SONGS]
 
-    def __len__(self):
-            return len(self.__queue)
+    def __len__(self) -> int:
+        return len(self.__queue)
 
     def next_song(self) -> Song:
         """Return the next song to play"""
-        if self.__current == None and len(self.__queue) == 0:   
+        if self.__current == None and len(self.__queue) == 0:
             # If not playing and nothing to play
             return None
 
@@ -59,14 +58,16 @@ class Playlist(IPlaylist):
             if len(self.__queue) == 0:  # If no more song to play, return None
                 return None
 
-            self.__current = self.__queue[0]  # Att the current with the first one
-            self.__queue.popleft()  # Remove the current from queue            
-            self.__name_history.append(self.__current.identifier)  # Add to name history
+            # Att the current with the first one
+            self.__current = self.__queue[0]
+            self.__queue.popleft()  # Remove the current from queue
+            self.__name_history.append(
+                self.__current.identifier)  # Add to name history
             self.__songs_history.append(self.__current)  # Add to song history
-            
+
             return self.__current
 
-    def prev_song(self):
+    def prev_song(self) -> Song:
         """Return the source of the last song played
 
         Return None or the source of the prev song
@@ -139,7 +140,7 @@ class Playlist(IPlaylist):
 
     def move_songs(self, pos1, pos2) -> tuple:
         """Receive two position and try to chance the songs in those positions
-        
+
         Positions: First music is 1
         Return (Error bool, string) with the status of the function, to show to user
         """

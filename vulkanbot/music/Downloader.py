@@ -8,6 +8,7 @@ from yt_dlp.utils import ExtractorError, DownloadError
 from vulkanbot.music.Song import Song
 from vulkanbot.music.utils import is_url
 
+
 class Downloader():
     """Download musics direct URL and title or Source from Youtube using a music name or Youtube URL"""
 
@@ -25,18 +26,18 @@ class Downloader():
             print('Invalid song identifier type')
             return
 
-        if is_url(song.identifier): # Youtube URL
+        if is_url(song.identifier):  # Youtube URL
             song_info = self.__download_url(song.identifier)
-        else: # Song name
+        else:  # Song name
             song_info = self.__download_title(song.identifier)
 
         if song_info == None:
-            song.destroy() # Destroy the music with problems
+            song.destroy()  # Destroy the music with problems
             return None
         else:
             song.finish_down(song_info)
             return song
-        
+
     def extract_youtube_link(self, playlist_url: str) -> list:
         """Extract all songs direct URL from a Youtube Link
 
@@ -54,7 +55,8 @@ class Downloader():
 
                     if result.get('entries'):  # If got a dict of musics
                         for entry in result['entries']:
-                            songs_identifiers.append(f"https://www.youtube.com/watch?v={entry['id']}")
+                            songs_identifiers.append(
+                                f"https://www.youtube.com/watch?v={entry['id']}")
 
                     else:  # Or a single music
                         songs_identifiers.append(result['original_url'])
@@ -71,7 +73,7 @@ class Downloader():
         """Download the full info of the song object"""
         for song in songs:
             asyncio.ensure_future(self.__download_songs(song))
-  
+
     def __download_url(self, url) -> dict:
         """Download musics full info and source from Music URL
 
@@ -89,28 +91,29 @@ class Downloader():
             except (ExtractorError, DownloadError) as e:  # Any type of error in download
                 print(e)
 
-    async def __download_songs(self, song: Song):
-        if song.source != None: # If Music already preloaded
+    async def __download_songs(self, song: Song) -> None:
+        """Download a music object asynchronously"""
+        if song.source != None:  # If Music already preloaded
             return
-        
+
         def download_song(song):
-            if is_url(song.identifier): # Youtube URL
+            if is_url(song.identifier):  # Youtube URL
                 song_info = self.__download_url(song.identifier)
-            else: # Song name
+            else:  # Song name
                 song_info = self.__download_title(song.identifier)
 
-            if song_info == None:                    
-                song.destroy() # Remove the song with problems from the playlist
+            if song_info == None:
+                song.destroy()  # Remove the song with problems from the playlist
             else:
                 song.finish_down(song_info)
 
-        # Creating a loop task to download each song        
+        # Creating a loop task to download each song
         loop = asyncio.get_event_loop()
         executor = concurrent.futures.ThreadPoolExecutor(
             max_workers=config.MAX_PRELOAD_SONGS
         )
-        await asyncio.wait(fs={loop.run_in_executor(executor, download_song, song)}, 
-            return_when=asyncio.ALL_COMPLETED)
+        await asyncio.wait(fs={loop.run_in_executor(executor, download_song, song)},
+                           return_when=asyncio.ALL_COMPLETED)
 
     def __download_title(self, title: str) -> dict:
         """Download a music full information using his name.
@@ -118,9 +121,9 @@ class Downloader():
         Arg: Music Name
         Return: A dict containing the song information
         """
-        if type(title) != str:  
+        if type(title) != str:
             print('Invalid music identifier type')
-            return            
+            return
 
         config = self.__YDL_OPTIONS
         config['extract_flat'] = False
@@ -131,9 +134,9 @@ class Downloader():
                 result = ydl.extract_info(search, download=False)
 
                 if result == None:
-                    return 
-                
+                    return
+
                 # Return a dict with the full info of first music
-                return result['entries'][0]  
+                return result['entries'][0]
             except Exception as e:
                 print(e)

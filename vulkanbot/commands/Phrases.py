@@ -1,3 +1,4 @@
+from discord.client import Client
 import requests
 import json
 from config import config
@@ -8,20 +9,12 @@ from random import random as rand
 class Phrases(commands.Cog):
     """Deal with the generation of motivational phrases"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Client):
         self.__bot = bot
 
-    @property
-    def bot(self):
-        return self.__bot
-
-    @bot.setter
-    def bot(self, newBot):
-        self.__bot = newBot
-
-    @commands.command(name='frase', help='Envia uma frase pica, talvez a braba')
+    @commands.command(name='frase', help=config.HELP_FRASE)
     async def phrase(self, ctx):
-        # There is a chance that the phrase will be send for the dev
+        """Send some phrase to the requester"""
         secret = await self.__calculate_rgn()
         if secret != None:
             await ctx.send(secret)
@@ -30,6 +23,7 @@ class Phrases(commands.Cog):
             await ctx.send(phrase)
 
     async def __calculate_rgn(self):
+        """Calculate the chance from the phrase function return a secret custom message"""
         x = rand()
         if x < 0.15:
             return config.SECRET_MESSAGE
@@ -37,6 +31,7 @@ class Phrases(commands.Cog):
             return None
 
     async def __get_phrase(self):
+        """Get the phrase from the server"""
         tries = 0
         while True:
             tries += 1
@@ -50,7 +45,7 @@ class Phrases(commands.Cog):
                 phrase = data['quoteText']
                 author = data['quoteAuthor']
 
-                if phrase == '' or author == '':  # Don't accept incomplete phrases
+                if phrase == '' or author == '':
                     continue
 
                 text = f'{phrase} \nBy: {author}'

@@ -17,12 +17,12 @@ class Music(commands.Cog):
         self.__bot: discord.Client = bot
 
         self.__playing = False
-        self.__ffmpeg = 'C:/ffmpeg/bin/ffmpeg.exe'
-        self.__vc = ""  # Objeto voice_bot do discord
+        self.__vc = ""
 
         self.YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
-        self.FFMPEG_OPTIONS = {'executable': self.__ffmpeg,
-                               'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+        self.FFMPEG_OPTIONS = {'executable': config.FFMPEG_PATH,
+                               'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                               'options': '-vn'}
 
     def __play_next(self, error, ctx):
         while True:
@@ -30,7 +30,7 @@ class Music(commands.Cog):
                 source = self.__playlist.next_song()
                 if source == None:  # If there is not a source for the song
                     continue
-                    
+
                 coro = self.__play_music(ctx, source)
                 self.__bot.loop.create_task(coro)
                 break
@@ -49,7 +49,7 @@ class Music(commands.Cog):
         songs = self.__playlist.songs_to_preload
         await self.__downloader.preload(songs)
 
-    @commands.command(name="play", help="Toca música - YouTube/Spotify/Título", aliases=['p', 'tocar'])
+    @commands.command(name="play", help=config.HELP_PLAY, aliases=['p', 'tocar'])
     async def play(self, ctx, *args):
         user_input = " ".join(args)
 
@@ -64,68 +64,71 @@ class Music(commands.Cog):
         else:
             songs_quant = 0
             musics_identifiers, provider = self.__searcher.search(user_input)
-            
-            if provider == Provider.Unknown: # If type not identified 
+
+            if provider == Provider.Unknown:  # If type not identified
                 await self.__send_embed(ctx, description='Entrada inválida, tente algo melhor', colour_name='blue')
                 return
 
-            if provider == Provider.YouTube: # If youtube source
-                musics_identifiers = self.__downloader.extract_youtube_link(musics_identifiers[0])
+            if provider == Provider.YouTube:  # If youtube source
+                musics_identifiers = self.__downloader.extract_youtube_link(
+                    musics_identifiers[0])
 
-            for identifier in musics_identifiers: # Creating songs
+            for identifier in musics_identifiers:  # Creating songs
                 last_song = self.__playlist.add_song(identifier)
                 songs_quant += 1
 
             songs_preload = self.__playlist.songs_to_preload
             await self.__downloader.preload(songs_preload)
-            
-            if songs_quant == 1: # If only one music downloaded
-                song = self.__downloader.download_one(last_song) # Download the new music
 
-                if song == None: # If song not downloaded
+            if songs_quant == 1:  # If only one music downloaded
+                song = self.__downloader.download_one(
+                    last_song)  # Download the new music
+
+                if song == None:  # If song not downloaded
                     await self.__send_embed(ctx, description='Houve um problema no download dessa música, tente novamente', colour_name='blue')
-                
-                elif not self.__playing : # If not playing
+
+                elif not self.__playing:  # If not playing
 
                     await self.__send_embed(ctx, description=f'Você adicionou a música **{song.title}** à playlist', colour_name='blue')
-                
-                else: # If playing
+
+                else:  # If playing
                     await ctx.send(embed=song.embed(title='Song added to Queue'))
             else:
                 await self.__send_embed(ctx, description=f"Você adicionou {songs_quant} músicas à fila!", colour_name='blue')
 
             if not self.__playing:
                 try_another = True
-                
+
                 while try_another:
                     first = self.__playlist.next_song()
                     if first == None:
                         await self.__send_embed(ctx, description='Houve um problema no download dessa música, tente novamente', colour_name='blue')
                         break
-                    
-                    while True:
-                        if first.source != None: # If song got downloaded
-                            try_another = False
-                            break 
 
-                        if first.problematic: # If song got any error, try another one
+                    while True:
+                        if first.source != None:  # If song got downloaded
+                            try_another = False
                             break
 
-                        else: # The song is downloading, checking another time
+                        if first.problematic:  # If song got any error, try another one
+                            break
+
+                        else:  # The song is downloading, checking another time
                             continue
 
                 if first != None:
                     await self.__play_music(ctx, first)
 
-    @commands.command(name="queue", help="Mostra as atuais músicas da fila.", aliases=['q', 'fila'])
+    @commands.command(name="queue", help=config.HELP_QUEUE, aliases=['q', 'fila'])
     async def queue(self, ctx):
         if self.__playlist.looping_one:  # If Repeating one
             await self.now_playing(ctx)
             return
 
-        songs_preload = self.__playlist.songs_to_preload 
-        await self.__downloader.preload(songs_preload)        
-        total_time = format_time(sum([int(song.duration if song.duration else 0) for song in songs_preload])) # Sum the duration
+        songs_preload = self.__playlist.songs_to_preload
+        await self.__downloader.preload(songs_preload)
+        total_time = format_time(sum([int(song.duration if song.duration else 0)
+                                 for song in songs_preload]))  # Sum the duration
         total_songs = len(self.__playlist)
         text = f'Total musics: {total_songs} | Duration: `{total_time}` downloaded  \n\n'
 
@@ -141,12 +144,12 @@ class Music(commands.Cog):
         else:  # No music
             await self.__send_embed(ctx, description='There is not musics in queue.', colour_name='red')
 
-    @commands.command(name="skip", help="Pula a atual música que está tocando.", aliases=['pular'])
+    @commands.command(name="skip", help=config.HELP_SKIP, aliases=['pular'])
     async def skip(self, ctx):
         if len(self.__bot.voice_clients) > 0:
             self.__vc.stop()
 
-    @commands.command(name='stop', help='Para de tocar músicas')
+    @commands.command(name='stop', help=config.HELP_STOP)
     async def stop(self, ctx):
         if self.__vc == '':
             return
@@ -155,7 +158,7 @@ class Music(commands.Cog):
             self.__vc.stop()
             await self.__vc.disconnect()
 
-    @commands.command(name='pause', help='Pausa a música')
+    @commands.command(name='pause', help=config.HELP_PAUSE)
     async def pause(self, ctx):
         if self.__vc == '':
             return
@@ -163,7 +166,7 @@ class Music(commands.Cog):
             self.__vc.pause()
             await self.__send_embed(ctx, description='Música pausada', colour_name='green')
 
-    @commands.command(name='resume', help='Solta a música atual')
+    @commands.command(name='resume', help=config.HELP_RESUME)
     async def resume(self, ctx):
         if self.__vc == '':
             return
@@ -171,7 +174,7 @@ class Music(commands.Cog):
             self.__vc.resume()
             await self.__send_embed(ctx, description='Música tocando', colour_name='green')
 
-    @commands.command(name='loop', help='Controla a repetição de músicas')
+    @commands.command(name='loop', help=config.HELP_LOOP)
     async def loop(self, ctx, args: str):
         args = args.lower()
         if args == 'one':
@@ -185,11 +188,11 @@ class Music(commands.Cog):
 
         await self.__send_embed(ctx, description=description, colour_name='grey')
 
-    @commands.command(name='clear', help='Limpa a fila de músicas a tocar')
+    @commands.command(name='clear', help=config.HELP_CLEAR)
     async def clear(self, ctx):
         self.__playlist.clear()
 
-    @commands.command(name='np', help='Mostra a música que está tocando no instante')
+    @commands.command(name='np', help=config.HELP_NP)
     async def now_playing(self, ctx):
         if self.__playlist.looping_one:
             title = 'Song Looping Now'
@@ -198,6 +201,35 @@ class Music(commands.Cog):
 
         current_song = self.__playlist.current
         await ctx.send(embed=current_song.embed(title=title))
+
+    @commands.command(name='shuffle', help=config.HELP_SHUFFLE)
+    async def shuffle(self, ctx):
+        self.__playlist.shuffle()
+        songs = self.__playlist.songs_to_preload
+
+        await self.__downloader.preload(songs)
+
+        await self.__send_embed(ctx, description='Musicas embaralhadas', colour_name='blue')
+
+    @commands.command(name='move', help=config.HELP_MOVE)
+    async def move(self, ctx, pos1, pos2='1'):
+        try:
+            pos1 = int(pos1)
+            pos2 = int(pos2)
+
+        except Exception as e:
+            print(e)
+            await ctx.send('This command require a number')
+            return
+
+        success, reason = self.__playlist.move_songs(pos1, pos2)
+
+        if not success:
+            songs = self.__playlist.songs_to_preload
+            await self.__downloader.preload(songs)
+            await ctx.send(reason)
+        else:
+            await ctx.send(reason)
 
     async def __send_embed(self, ctx, title='', description='', colour_name='grey'):
         try:
@@ -212,34 +244,6 @@ class Music(commands.Cog):
         )
         await ctx.send(embed=embedvc)
 
-    @commands.command(name='shuffle', help='Altera aleatoriamente a ordem das músicas')
-    async def shuffle(self, ctx):
-        self.__playlist.shuffle()
-        songs = self.__playlist.songs_to_preload
-        
-        await self.__downloader.preload(songs)
-
-        await self.__send_embed(ctx, description='Musicas embaralhadas', colour_name='blue')
-
-    @commands.command(name='move', help='Manda uma música de uma posição para outra <from> <to>')
-    async def move(self, ctx, pos1, pos2='1'): 
-        try:
-            pos1 = int(pos1)
-            pos2 = int(pos2)
-
-        except Exception as e:
-            print(e)
-            await ctx.send('This command require a number')
-            return
-
-        success, reason = self.__playlist.move_songs(pos1, pos2)
-
-        if not success: 
-            songs = self.__playlist.songs_to_preload
-            await self.__downloader.preload(songs)
-            await ctx.send(reason)
-        else:
-            await ctx.send(reason)
 
 def setup(bot):
     bot.add_cog(Music(bot))

@@ -1,4 +1,5 @@
 import discord
+from discord import Client
 from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument
 from discord.ext import commands
 from config import config
@@ -7,23 +8,15 @@ from config import config
 class Control(commands.Cog):
     """Control the flow of the Bot"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Client):
         self.__bot = bot
         self.__comandos = {
             'MUSIC': ['resume', 'pause', 'loop', 'stop', 'skip', 'play', 'queue', 'clear', 'np', 'shuffle', 'move'],
             'WARFRAME': ['warframe'],
             'RANDOM': ['escolha', 'cara', 'random'],
             'HELP': ['help'],
-            'OTHERS': ['frase']
+            'OTHERS': ['frase', 'drop']
         }
-
-    @property
-    def bot(self):
-        return self.__bot
-
-    @bot.setter
-    def bot(self, newBot):
-        self.__bot = newBot
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -38,9 +31,10 @@ class Control(commands.Cog):
         elif isinstance(error, CommandNotFound):
             await ctx.channel.send(f'O comando não existe')
         else:
+            await ctx.channel.send(f'Teve um erro aí bicho')
             raise error
 
-    @commands.command(name="help", alisases=['ajuda'], help="Comando de ajuda")
+    @commands.command(name="help", alisases=['ajuda'], help=config.HELP_HELP)
     async def help_msg(self, ctx):
         helptxt = ''
         help_music = '-- MUSIC\n'

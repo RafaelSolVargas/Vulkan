@@ -8,8 +8,8 @@ MAXIMUM_TRIES = 10
 class ErrorHandler():
     """Receive errors to write into a log file
 
-        Arg:
-        folder_path = Relative path from root to where the logs should be create
+    Arg:
+    folder_path = Relative path from root to where the logs should be create
     """
 
     def __init__(self, folder_path='') -> None:

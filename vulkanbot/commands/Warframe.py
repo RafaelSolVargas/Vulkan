@@ -13,13 +13,14 @@ class Warframe(commands.Cog):
         self.__bot = bot
         self.__open_functions = ['cetus', 'cambion', 'fissures']
 
-    @commands.command(name='warframe', help='<x> - Retorna informações de x')
-    async def warframe(self, ctx, arg):                
+    @commands.command(name='warframe', help=config.HELP_WARFRAME)
+    async def warframe(self, ctx, arg) -> Embed:
         if arg in self.__open_functions:
-            function = getattr(Warframe, f'_Warframe__{arg}') # Get the required function
-            embed = await function(self) # Execute the function passing self
+            # Get the required function
+            function = getattr(Warframe, f'_Warframe__{arg}')
+            embed = await function(self)  # Execute the function passing self
 
-            await ctx.send(embed=embed) # Return the result
+            await ctx.send(embed=embed)  # Return the result
         else:
             info = f'Warframe commands: {self.__open_functions}'
 
@@ -29,7 +30,7 @@ class Warframe(commands.Cog):
                 colour=config.COLOURS['blue']
             )
             await ctx.send(embed=embed)
-    
+
     async def __cetus(self) -> Embed:
         description = await self.__get_cetus()
         embed = discord.Embed(
@@ -39,7 +40,7 @@ class Warframe(commands.Cog):
         )
         return embed
 
-    async def __get_cetus(self):
+    async def __get_cetus(self) -> str:
         """Return the information of the Warframe API"""
         tries = 0
         while True:
@@ -56,7 +57,7 @@ class Warframe(commands.Cog):
 
             except Exception as e:
                 continue
-  
+
     async def __cambion(self) -> Embed:
         description = await self.__get_cambion()
         embed = discord.Embed(
@@ -66,7 +67,7 @@ class Warframe(commands.Cog):
         )
         return embed
 
-    async def __get_cambion(self):
+    async def __get_cambion(self) -> str:
         """Return the information of the Warframe API"""
         tries = 0
         while True:
@@ -79,7 +80,7 @@ class Warframe(commands.Cog):
                 data = json.loads(response.content)
 
                 info = f'**Active:** {data["active"]}\n**Time Left:** {data["timeLeft"]}'
-                
+
                 return info
             except Exception as e:
                 print(e)
@@ -94,7 +95,7 @@ class Warframe(commands.Cog):
         )
         return embed
 
-    async def __get_fissures(self):
+    async def __get_fissures(self) -> str:
         """Return the information of the Warframe API"""
         tries = 0
         while True:
@@ -105,11 +106,11 @@ class Warframe(commands.Cog):
             try:
                 response = requests.get(config.FISSURES_API)
                 data = json.loads(response.content)
-                
+
                 info = ''
                 for pos, fissure in enumerate(data, start=1):
                     info += f'`{pos}` - **Mission:** {fissure["missionType"]} | **Type:** {fissure["tier"]} | **Timing:** {fissure["eta"]} | **Storm:** {fissure["isStorm"]}\n'
-                
+
                 return info
             except Exception as e:
                 print(e)

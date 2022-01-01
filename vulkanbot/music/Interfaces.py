@@ -4,7 +4,6 @@ from abc import ABC, abstractproperty, abstractmethod
 class IPlaylist(ABC):
     """Class to manage and control the songs to play and played"""
 
-
     @abstractproperty
     def looping_one(self):
         pass
@@ -75,17 +74,16 @@ class ISong(ABC):
 
     @abstractmethod
     def title(self) -> str:
-       pass
+        pass
 
     @abstractmethod
     def duration(self) -> str:
         pass
 
     @abstractmethod
-    def identifier(self) -> str:        
+    def identifier(self) -> str:
         pass
 
     @abstractmethod
     def destroy(self) -> None:
         pass
-        
