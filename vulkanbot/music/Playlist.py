@@ -143,7 +143,7 @@ class Playlist(IPlaylist):
         Positions: First music is 1
         Return (Error bool, string) with the status of the function, to show to user
         """
-        if pos2 not in range(1, len(self.__queue)) or pos1 not in range(1, len(self.__queue)):
+        if pos2 not in range(1, len(self.__queue) + 1) or pos1 not in range(1, len(self.__queue) + 1):
             return (False, 'Numbers need to be more than 0 and less than the queue length')
 
         try:
