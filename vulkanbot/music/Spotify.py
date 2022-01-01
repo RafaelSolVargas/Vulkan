@@ -1,33 +1,6 @@
 import spotipy
-import re
 from spotipy.oauth2 import SpotifyClientCredentials
-from bs4 import BeautifulSoup
 from config import config
-import aiohttp
-
-
-class Browser():
-    def __init__(self) -> None:
-        self.__url_regex = re.compile(
-            "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
-        self.__session = aiohttp.ClientSession(
-            headers={'User-Agent': 'python-requests/2.20.0'})
-
-    async def search(self, url) -> str:
-        """Convert the external_url link to the title of music using browser"""
-        if re.search(self.__url_regex, url):
-            result = self.__url_regex.search(url)
-            url = result.group(0)
-
-        async with self.__session.get(url) as response:
-            page = await response.text()
-            soup = BeautifulSoup(page, 'html.parser')
-
-            title = soup.find('title')
-            title = title.string
-            title = title.replace('- song by', '')
-            title = title.replace('| Spotify', '')
-            return title
 
 
 class SpotifySearch():
@@ -35,7 +8,6 @@ class SpotifySearch():
 
     def __init__(self) -> None:
         self.__connected = False
-        self.__browser = Browser()
 
     def connect(self) -> bool:
         try:
@@ -141,9 +113,4 @@ class SpotifySearch():
         for artist in music['artists']:
             title += f'{artist["name"]} '
 
-        return title
-
-    async def __convert_spotify(self, url) -> str:
-        """(Experimental) - Convert the external_url link to the title of music using browser"""
-        title = self.__browser(url)
         return title

@@ -1,19 +1,12 @@
+from discord import Client
 from discord.ext import commands
 
 
 class Filter(commands.Cog):
     """Deal with filtering of discord messages"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Client):
         self.__bot = bot
-
-    @property
-    def bot(self):
-        return self.__bot
-
-    @bot.setter
-    def bot(self, newBot):
-        self.__bot = newBot
 
     @commands.Cog.listener()
     async def on_message(self, message):

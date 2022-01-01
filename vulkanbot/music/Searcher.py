@@ -27,7 +27,7 @@ class Searcher():
 
         elif url_type == Provider.Name:
             return [music], Provider.Name
-        
+
         elif url_type == Provider.Unknown:
             return None, Provider.Unknown
 
@@ -44,4 +44,3 @@ class Searcher():
 
         # If no match
         return Provider.Unknown
-

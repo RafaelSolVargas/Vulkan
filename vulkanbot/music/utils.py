@@ -1,5 +1,6 @@
 import re
 
+
 def format_time(duration):
     if not duration:
         return "00:00"
