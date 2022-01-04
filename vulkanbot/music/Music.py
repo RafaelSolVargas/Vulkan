@@ -25,18 +25,12 @@ class Music(commands.Cog):
                                'options': '-vn'}
 
     def __play_next(self, error, ctx):
-        while True:
-            if len(self.__playlist) > 0:
-                source = self.__playlist.next_song()
-                if source == None:  # If there is not a source for the song
-                    continue
-
-                coro = self.__play_music(ctx, source)
-                self.__bot.loop.create_task(coro)
-                break
-            else:
-                self.__playing = False
-                break
+        source = self.__playlist.next_song()
+        if source != None:  # If there is not a source for the song
+            coro = self.__play_music(ctx, source)
+            self.__bot.loop.create_task(coro)
+        else:
+            self.__playing = False
 
     async def __play_music(self, ctx, song):
         self.__playing = True
@@ -200,6 +194,7 @@ class Music(commands.Cog):
             title = 'Song Playing Now'
 
         current_song = self.__playlist.current
+        await self.__clean_messages(ctx)
         await ctx.send(embed=current_song.embed(title=title))
 
     @commands.command(name='shuffle', help=config.HELP_SHUFFLE)
@@ -243,6 +238,21 @@ class Music(commands.Cog):
             colour=colour
         )
         await ctx.send(embed=embedvc)
+
+    async def __clean_messages(self, ctx):
+        """Clear Bot messages if send recently"""
+        last_messages = await ctx.channel.history(limit=5).flatten()
+
+        for message in last_messages:
+            try:
+                if message.author == self.__bot.user:
+                    if len(message.embeds) > 0:
+                        embed = message.embeds[0]
+                        if embed.title == 'Song Playing Now':
+                            await message.delete()
+            except Exception as e:
+                print(e)
+                continue
 
 
 def setup(bot):
