@@ -44,12 +44,13 @@ HELP_PAUSE = 'Pauses the song player'
 HELP_SHUFFLE = 'Shuffle the songs playing'
 HELP_PLAY = '(title/youtube/spotify) - Plays a song'
 HELP_MOVE = '(x, y) - Moves a song from position x to y in queue'
-HELP_WARFRAME = f'({BOT_PREFIX}warframe help for more) - Return warframe information'
+HELP_REMOVE = '(x, -1) - Remove a song in the position x or -1 for the last song'
+HELP_WARFRAME = f'({BOT_PREFIX}warframe help for more)'
 HELP_RANDOM = '(x) - Return a random number between 1 and x'
-HELP_ESCOLHA = '(x, y, z...) - Choose randomly one item passed in the command'
+HELP_ESCOLHA = '(x, y, z...) - Choose randomly one item passed'
 HELP_CARA = 'Return cara or coroa'
 HELP_DROP = '(user_name) - Try to remove the user from the current voice channel'
-HELP_FRASE = "Send a randomly phrase, there's a chance of getting the braba"
+HELP_FRASE = "Send a randomly phrase, perhaps you get the braba"
 HELP_HELP = 'This command :)'
 
 ABSOLUTE_PATH = ''

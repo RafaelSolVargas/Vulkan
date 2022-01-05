@@ -20,8 +20,7 @@ class Music(commands.Cog):
         self.__vc = ""
 
         self.YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
-        self.FFMPEG_OPTIONS = {'executable': config.FFMPEG_PATH,
-                               'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+        self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
 
     def __play_next(self, error, ctx):
@@ -217,14 +216,25 @@ class Music(commands.Cog):
             await ctx.send('This command require a number')
             return
 
-        success, reason = self.__playlist.move_songs(pos1, pos2)
+        result = self.__playlist.move_songs(pos1, pos2)
 
-        if not success:
-            songs = self.__playlist.songs_to_preload
-            await self.__downloader.preload(songs)
-            await ctx.send(reason)
-        else:
-            await ctx.send(reason)
+        songs = self.__playlist.songs_to_preload
+        await self.__downloader.preload(songs)
+        await ctx.send(result)
+
+    @commands.command(name='remove', help=config.HELP_MOVE)
+    async def remove(self, ctx, position):
+        """Remove a song from the queue in the position"""
+        try:
+            position = int(position)
+
+        except Exception as e:
+            print(e)
+            await ctx.send('This command require a number')
+            return
+
+        result = self.__playlist.remove_song(position)
+        await ctx.send(result)
 
     async def __send_embed(self, ctx, title='', description='', colour_name='grey'):
         try:

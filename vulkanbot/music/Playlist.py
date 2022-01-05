@@ -138,14 +138,19 @@ class Playlist(IPlaylist):
                 self.__queue.remove(song)
                 break
 
-    def move_songs(self, pos1, pos2) -> tuple:
-        """Receive two position and try to chance the songs in those positions
+    def move_songs(self, pos1, pos2) -> str:
+        """Receive two position and try to change the songs in those positions, -1 is the last
 
         Positions: First music is 1
         Return (Error bool, string) with the status of the function, to show to user
         """
+        if pos1 == -1:
+            pos1 = len(self.__queue)
+        if pos2 == -1:
+            pos2 = len(self.__queue)
+
         if pos2 not in range(1, len(self.__queue) + 1) or pos1 not in range(1, len(self.__queue) + 1):
-            return (False, 'Numbers need to be more than 0 and less than the queue length')
+            return 'Numbers must be between 1 and queue length, or -1 for the last song'
 
         try:
             song1 = self.__queue[pos1-1]
@@ -153,7 +158,22 @@ class Playlist(IPlaylist):
 
             self.__queue[pos1-1] = song2
             self.__queue[pos2-1] = song1
-            return (True, 'Songs moved with successfully')
+
+            song1_name = song1.title if song1.title else song1.identifier
+            song2_name = song2.title if song2.title else song2.identifier
+
+            return f'Song `{song1_name}` in position `{pos1}` moved with `{song2_name}` in position `{pos2}` successfully'
         except Exception as e:
             print(e)
-            return (False, 'There was a problem with the moving of songs')
+            return 'There was a problem with the moving of songs'
+
+    def remove_song(self, position) -> tuple:
+        if position not in range(1, len(self.__queue) + 1) and position != -1:
+            return 'Numbers must be between 1 and queue length, or -1 for the last song'
+        else:
+            song = self.__queue[position-1]
+            self.__queue.remove(song)
+
+            song_name = song.title if song.title else song.identifier
+
+            return f'Song `{song_name}` removed successfully'
