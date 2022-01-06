@@ -16,11 +16,10 @@ class Warframe(commands.Cog):
     @commands.command(name='warframe', help=config.HELP_WARFRAME)
     async def warframe(self, ctx, arg) -> Embed:
         if arg in self.__open_functions:
-            # Get the required function
             function = getattr(Warframe, f'_Warframe__{arg}')
-            embed = await function(self)  # Execute the function passing self
+            embed = await function(self)
 
-            await ctx.send(embed=embed)  # Return the result
+            await ctx.send(embed=embed)
         else:
             info = f'Warframe commands: {self.__open_functions}'
 
@@ -82,8 +81,7 @@ class Warframe(commands.Cog):
                 info = f'**Active:** {data["active"]}\n**Time Left:** {data["timeLeft"]}'
 
                 return info
-            except Exception as e:
-                print(e)
+            except:
                 continue
 
     async def __fissures(self) -> Embed:
@@ -113,7 +111,6 @@ class Warframe(commands.Cog):
 
                 return info
             except Exception as e:
-                print(e)
                 continue
 
 

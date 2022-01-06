@@ -8,7 +8,6 @@ class Searcher():
 
     def __init__(self) -> None:
         self.__Spotify = SpotifySearch()
-        print(f'Spotify Connected: {self.__Spotify.connect()}')
 
     def search(self, music: str) -> list:
         """Return a list with the song names or an URL
@@ -22,8 +21,11 @@ class Searcher():
             return [music], Provider.YouTube
 
         elif url_type == Provider.Spotify:
-            musics = self.__Spotify.search(music)
-            return musics, Provider.Name
+            if self.__Spotify.connected == True:
+                musics = self.__Spotify.search(music)
+                return musics, Provider.Name
+            else:
+                return [], Provider.Unknown
 
         elif url_type == Provider.Name:
             return [music], Provider.Name

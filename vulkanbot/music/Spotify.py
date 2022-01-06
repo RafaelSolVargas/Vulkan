@@ -8,8 +8,13 @@ class SpotifySearch():
 
     def __init__(self) -> None:
         self.__connected = False
+        self.__connect()
 
-    def connect(self) -> bool:
+    @property
+    def connected(self):
+        return self.__connected
+
+    def __connect(self) -> bool:
         try:
             # Initialize the connection with Spotify API
             self.__api = spotipy.Spotify(auth_manager=SpotifyClientCredentials(

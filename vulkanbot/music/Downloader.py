@@ -23,8 +23,7 @@ class Downloader():
     def download_one(self, song: Song) -> Song:
         """Receives a song object, finish his download and return it"""
         if song.identifier == None:
-            print('Invalid song identifier type')
-            return
+            return None
 
         if is_url(song.identifier):  # Youtube URL
             song_info = self.__download_url(song.identifier)
@@ -63,7 +62,6 @@ class Downloader():
 
                     return songs_identifiers  # Return a list
                 except (ExtractorError, DownloadError) as e:
-                    print(e)
                     return None
         else:
             print('Invalid type of playlist URL')
@@ -89,7 +87,7 @@ class Downloader():
 
                 return result
             except (ExtractorError, DownloadError) as e:  # Any type of error in download
-                print(e)
+                return None
 
     async def __download_songs(self, song: Song) -> None:
         """Download a music object asynchronously"""
@@ -122,8 +120,7 @@ class Downloader():
         Return: A dict containing the song information
         """
         if type(title) != str:
-            print('Invalid music identifier type')
-            return
+            return None
 
         config = self.__YDL_OPTIONS
         config['extract_flat'] = False
@@ -134,9 +131,9 @@ class Downloader():
                 result = ydl.extract_info(search, download=False)
 
                 if result == None:
-                    return
+                    return None
 
                 # Return a dict with the full info of first music
                 return result['entries'][0]
             except Exception as e:
-                print(e)
+                return None
