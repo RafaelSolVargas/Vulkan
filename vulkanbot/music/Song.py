@@ -1,7 +1,3 @@
-from discord import Embed
-from config import config
-import datetime
-
 from vulkanbot.music.Interfaces import ISong, IPlaylist
 
 
@@ -66,30 +62,6 @@ class Song(ISong):
         self.__problematic = True
         self.__playlist.destroy_song(self)
 
-    def embed(self, title: str) -> Embed:
-        """Configure the embed to show the song information"""
-
-        embedvc = Embed(
-            title=title,
-            description=f"[{self.__info['title']}]({self.__info['original_url']})",
-            color=config.COLOURS['blue']
-        )
-
-        embedvc.add_field(name=config.SONGINFO_UPLOADER,
-                          value=self.__info['uploader'],
-                          inline=False)
-
-        if 'thumbnail' in self.__info.keys():
-            embedvc.set_thumbnail(url=self.__info['thumbnail'])
-
-        if 'duration' in self.__info.keys():
-            duration = str(datetime.timedelta(seconds=self.__info['duration']))
-            embedvc.add_field(name=config.SONGINFO_DURATION,
-                              value=f"{duration}",
-                              inline=False)
-        else:
-            embedvc.add_field(name=config.SONGINFO_DURATION,
-                              value=config.SONGINFO_UNKNOWN_DURATION,
-                              inline=False)
-
-        return embedvc
+    @property
+    def info(self):
+        return self.__info
