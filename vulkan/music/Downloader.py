@@ -5,8 +5,8 @@ from config import config
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import ExtractorError, DownloadError
 
-from vulkanbot.music.Song import Song
-from vulkanbot.music.utils import is_url
+from vulkan.music.Song import Song
+from vulkan.music.utils import is_url
 
 
 class Downloader():

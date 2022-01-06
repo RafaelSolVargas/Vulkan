@@ -1,4 +1,4 @@
-from vulkanbot.music.Interfaces import ISong, IPlaylist
+from vulkan.music.Interfaces import ISong, IPlaylist
 
 
 class Song(ISong):

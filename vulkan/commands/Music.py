@@ -2,8 +2,8 @@ import discord
 from discord.ext import commands
 
 from config import config
-from vulkanbot.music.Player import Player
-from vulkanbot.music.utils import *
+from vulkan.music.Player import Player
+from vulkan.music.utils import *
 
 
 class Music(commands.Cog):

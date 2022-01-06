@@ -3,11 +3,11 @@ from discord.ext import commands
 from config import config
 import datetime
 
-from vulkanbot.music.Downloader import Downloader
-from vulkanbot.music.Playlist import Playlist
-from vulkanbot.music.Searcher import Searcher
-from vulkanbot.music.Types import Provider
-from vulkanbot.music.utils import *
+from vulkan.music.Downloader import Downloader
+from vulkan.music.Playlist import Playlist
+from vulkan.music.Searcher import Searcher
+from vulkan.music.Types import Provider
+from vulkan.music.utils import *
 
 
 class Player(commands.Cog):

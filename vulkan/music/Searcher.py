@@ -1,6 +1,6 @@
-from vulkanbot.music.Types import Provider
-from vulkanbot.music.Spotify import SpotifySearch
-from vulkanbot.music.utils import is_url
+from vulkan.music.Types import Provider
+from vulkan.music.Spotify import SpotifySearch
+from vulkan.music.utils import is_url
 
 
 class Searcher():

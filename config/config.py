@@ -1,19 +1,15 @@
-from dotenv import dotenv_values
+from decouple import config
 
-CETUS_API = dotenv_values('.env')['CETUS_API']
-CAMBION_API = dotenv_values('.env')['CAMBION_API']
-FISSURES_API = dotenv_values('.env')['FISSURES_API']
-BOT_TOKEN = dotenv_values('.env')['BOT_TOKEN']
-SPOTIFY_ID = dotenv_values('.env')['SPOTIFY_ID']
-SPOTIFY_SECRET = dotenv_values('.env')['SPOTIFY_SECRET']
-SECRET_MESSAGE = dotenv_values('.env')['SECRET_MESSAGE']
-PHRASES_API = dotenv_values('.env')['PHRASES_API']
+CETUS_API = config('CETUS_API')
+CAMBION_API = config('CAMBION_API')
+FISSURES_API = config('FISSURES_API')
+BOT_TOKEN = config('BOT_TOKEN')
+SPOTIFY_ID = config('SPOTIFY_ID')
+SPOTIFY_SECRET = config('SPOTIFY_SECRET')
+SECRET_MESSAGE = config('SECRET_MESSAGE')
+PHRASES_API = config('PHRASES_API')
 
 BOT_PREFIX = '!'
-INITIAL_EXTENSIONS = {'vulkanbot.commands.Phrases', 'vulkanbot.commands.Warframe',
-                      'vulkanbot.general.Filter', 'vulkanbot.general.Control', 'vulkanbot.music.Music',
-                      'vulkanbot.commands.Random', 'vulkanbot.general.Admin'}
-
 
 STARTUP_MESSAGE = 'Starting Vulkan...'
 STARTUP_COMPLETE_MESSAGE = 'Vulkan is now operating.'
@@ -27,11 +23,8 @@ MAX_API_CAMBION_TRIES = 10
 MAX_API_FISSURES_TRIES = 10
 MAX_PRELOAD_SONGS = 10
 
-TRASH_CHANNEL_ID = 919961802140450837
-
 SONGINFO_UPLOADER = "Uploader: "
 SONGINFO_DURATION = "Duration: "
-
 
 HELP_SKIP = 'Skip the current playing song'
 HELP_RESUME = 'Resumes the song player'
@@ -59,24 +52,9 @@ INVALID_INPUT = 'This type of input was too strange, try something better'
 DOWNLOADING_ERROR = 'An error occurred while downloading'
 SONG_ADDED = 'Song added to the Queue'
 
-ABSOLUTE_PATH = ''
-COOKIE_PATH = '/config/cookies/cookies.txt'
-
-
 COLOURS = {
     'red': 0xDC143C,
     'green': 0x58D68D,
     'grey': 0x708090,
     'blue': 0x3498DB
-}
-
-MEMBERS_MAXIMUM_DROPS = {
-    'RafaelV': 1,
-    'Gassu': 2,
-    'LopesZ3R4': 4,
-    'BABIGIRL': 4,
-    'Hijãomi': 2,
-    'Jillian': 4,
-    'Maxymuns': 2
-
 }

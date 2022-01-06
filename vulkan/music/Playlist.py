@@ -2,8 +2,8 @@ from collections import deque
 from config import config
 import random
 
-from vulkanbot.music.Interfaces import IPlaylist
-from vulkanbot.music.Song import Song
+from vulkan.music.Interfaces import IPlaylist
+from vulkan.music.Song import Song
 
 
 class Playlist(IPlaylist):
