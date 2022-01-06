@@ -1,6 +1,14 @@
 import re
 
 
+def is_connected(ctx):
+    try:
+        voice_channel = ctx.guild.voice_client.channel
+        return voice_channel
+    except:
+        return None
+
+
 def format_time(duration):
     if not duration:
         return "00:00"
