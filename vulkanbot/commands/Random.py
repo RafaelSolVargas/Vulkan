@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from config import config
 
+
 class Random(commands.Cog):
     """Deal with returning random things"""
 

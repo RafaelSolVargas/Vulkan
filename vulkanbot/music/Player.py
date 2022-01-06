@@ -59,22 +59,29 @@ class Player(commands.Cog):
             if self.__guild.voice_client == None:
                 voice_channel = ctx.author.voice.channel
                 await voice_channel.connect()
-        except Exception as e:
-            print(e)
-            return config.NO_CHANNEL
+        except:
+            embed = discord.Embed(
+                description=config.NO_CHANNEL, colour=config.COLOURS['red'])
+            await ctx.send(embed=embed)
         else:
             songs_quant = 0
-            musics_identifiers, provider = self.__searcher.search(user_input)
+            try:
+                musics_identifiers, provider = self.__searcher.search(
+                    user_input)
+            except:
+                return config.INVALID_INPUT
 
             if provider == Provider.Unknown:
                 return config.INVALID_INPUT
 
             if provider == Provider.YouTube:
-                musics_identifiers = self.__downloader.extract_youtube_link(
-                    musics_identifiers[0])
+                try:
+                    musics_identifiers = self.__downloader.extract_youtube_link(
+                        musics_identifiers[0])
+                except:
+                    await ctx.send('Problema com o download do Youtube')
 
             for identifier in musics_identifiers:  # Creating songs
-                print('Creating Song')
                 last_song = self.__playlist.add_song(identifier)
                 songs_quant += 1
 
@@ -253,8 +260,7 @@ class Player(commands.Cog):
         try:
             position = int(position)
 
-        except Exception as e:
-            print(e)
+        except:
             return 'This command require a number'
 
         result = self.__playlist.remove_song(position)

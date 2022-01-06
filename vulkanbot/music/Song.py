@@ -22,7 +22,6 @@ class Song(ISong):
             try:
                 self.__info[key] = info[key]
             except Exception as e:
-                print(e)
                 raise e
 
     @property

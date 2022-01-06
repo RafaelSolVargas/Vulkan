@@ -3,7 +3,6 @@ import discord
 
 from config import config
 from discord.ext import commands
-from vulkanbot.ErrorHandler import ErrorHandler
 
 
 intents = discord.Intents.default()
@@ -21,8 +20,6 @@ if __name__ == '__main__':
     if config.BOT_TOKEN == "":
         print("Error: No bot token!")
         exit()
-
-    bot.log_error = ErrorHandler('errors')
 
     for extension in config.INITIAL_EXTENSIONS:
         try:

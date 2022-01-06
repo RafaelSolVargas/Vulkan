@@ -161,8 +161,7 @@ class Music(commands.Cog):
                         embed = message.embeds[0]
                         if embed.title == 'Song Playing Now' or embed.title == 'Song Looping Now':
                             await message.delete()
-            except Exception as e:
-                print(e)
+            except:
                 continue
 
     def __get_player(self, ctx):
