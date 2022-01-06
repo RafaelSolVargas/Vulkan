@@ -11,7 +11,7 @@ class Control(commands.Cog):
     def __init__(self, bot: Client):
         self.__bot = bot
         self.__comandos = {
-            'MUSIC': ['resume', 'pause', 'loop', 'stop', 'skip', 'play', 'queue', 'clear', 'np', 'shuffle', 'move', 'remove'],
+            'MUSIC': ['resume', 'pause', 'loop', 'stop', 'skip', 'play', 'queue', 'clear', 'np', 'shuffle', 'move', 'remove', 'reset'],
             'WARFRAME': ['warframe'],
             'RANDOM': ['escolha', 'cara', 'random'],
             'HELP': ['help'],
