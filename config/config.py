@@ -14,8 +14,6 @@ BOT_PREFIX = '!'
 STARTUP_MESSAGE = 'Starting Vulkan...'
 STARTUP_COMPLETE_MESSAGE = 'Vulkan is now operating.'
 
-FFMPEG_PATH = 'C:/ffmpeg/bin/ffmpeg.exe'
-
 MAX_PLAYLIST_LENGTH = 50
 MAX_API_PHRASES_TRIES = 10
 MAX_API_CETUS_TRIES = 10
@@ -48,6 +46,7 @@ HELP_FRASE = "Send a randomly phrase, perhaps you get the braba"
 HELP_HELP = 'This command :)'
 
 NO_CHANNEL = 'To play some music, connect to any voice channel first.'
+NO_GUILD = 'This guild are not connected to Vulkan'
 INVALID_INPUT = 'This type of input was too strange, try something better'
 DOWNLOADING_ERROR = 'An error occurred while downloading'
 SONG_ADDED = 'Song added to the Queue'

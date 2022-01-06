@@ -11,14 +11,19 @@ class Music(commands.Cog):
         self.__guilds = {}
         self.__bot: discord.Client = bot
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        for guild in self.__bot.guilds:
+            self.__guilds[guild] = Player(self.__bot, guild)
+
     @commands.command(name="play", help=config.HELP_PLAY, aliases=['p', 'tocar'])
     async def play(self, ctx, *args):
         user_input = " ".join(args)
 
         player = self.__get_player(ctx)
         if player == None:
-            player = Player(self.__bot, ctx.guild)
-            self.__guilds[ctx.guild] = player
+            await self.__send_embed(ctx, description=config.NO_GUILD, colour_name='red')
+            return
 
         if is_connected(ctx) == None:
             result = await player.connect(ctx)
