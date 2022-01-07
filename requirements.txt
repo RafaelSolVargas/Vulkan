@@ -1,5 +1,5 @@
-discord.py
+discord.py==1.7.3
 discord.py[voice]
-yt_dlp
-spotipy
-python-decouple
+python-decouple==3.5
+spotipy==2.19.0
+yt-dlp==2021.12.1
