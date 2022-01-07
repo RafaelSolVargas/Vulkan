@@ -1,4 +1,6 @@
 import re
+import asyncio
+from config import config
 
 
 def is_connected(ctx):
@@ -34,3 +36,16 @@ def is_url(string) -> bool:
         return True
     else:
         return False
+
+
+class Timer:
+    def __init__(self, callback):
+        self.__callback = callback
+        self.__task = asyncio.create_task(self.__executor())
+
+    async def __executor(self):
+        await asyncio.sleep(config.VC_TIMEOUT)
+        await self.__callback()
+
+    def cancel(self):
+        self.__task.cancel()

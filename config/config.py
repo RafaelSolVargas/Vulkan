@@ -10,6 +10,7 @@ SECRET_MESSAGE = config('SECRET_MESSAGE')
 PHRASES_API = config('PHRASES_API')
 
 BOT_PREFIX = '!'
+VC_TIMEOUT = 600
 
 STARTUP_MESSAGE = 'Starting Vulkan...'
 STARTUP_COMPLETE_MESSAGE = 'Vulkan is now operating.'
