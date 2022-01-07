@@ -18,6 +18,7 @@ class Player(commands.Cog):
         self.__bot: discord.Client = bot
         self.__guild: discord.Guild = guild
 
+        self.__timer = Timer(self.__timeout_handler)
         self.__playing = False
 
         self.YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
@@ -46,6 +47,9 @@ class Player(commands.Cog):
         player = discord.FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
         self.__guild.voice_client.play(
             player, after=lambda e: self.__play_next(e, ctx))
+
+        self.__timer.cancel()
+        self.__timer = Timer(self.__timeout_handler)
 
         await ctx.invoke(self.__bot.get_command('np'))
 
@@ -292,3 +296,15 @@ class Player(commands.Cog):
                               inline=False)
 
         return embedvc
+
+    async def __timeout_handler(self) -> None:
+        if self.__guild.voice_client == None:
+            return
+
+        if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
+            self.__timer = Timer(self.__timeout_handler)
+
+        elif self.__guild.voice_client.is_connected():
+            self.__playlist.clear()
+            self.__playlist.loop_off()
+            await self.__guild.voice_client.disconnect()
