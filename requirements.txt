@@ -1,0 +1,7 @@
+discord.py
+discord.py[voice]
+yt_dlp
+spotipy
+python-decouple
+requests
+json
