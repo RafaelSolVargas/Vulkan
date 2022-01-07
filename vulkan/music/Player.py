@@ -13,7 +13,7 @@ from vulkan.music.utils import *
 class Player(commands.Cog):
     def __init__(self, bot, guild):
         self.__searcher: Searcher = Searcher()
-        self.__downloader: Downloader = Downloader()
+        self.__down: Downloader = Downloader()
         self.__playlist: Playlist = Playlist()
         self.__bot: discord.Client = bot
         self.__guild: discord.Guild = guild
@@ -54,93 +54,87 @@ class Player(commands.Cog):
         await ctx.invoke(self.__bot.get_command('np'))
 
         songs = self.__playlist.songs_to_preload
-        await self.__downloader.preload(songs)
+        await self.__down.preload(songs)
 
-    async def play(self, ctx, *args) -> str:
-        user_input = " ".join(args)
-
+    async def play(self, ctx, track, requester) -> str:
         try:
-            if self.__guild.voice_client == None:
-                voice_channel = ctx.author.voice.channel
-                await voice_channel.connect()
-        except:
-            embed = discord.Embed(
-                description=config.NO_CHANNEL, colour=config.COLOURS['red'])
-            await ctx.send(embed=embed)
-        else:
-            songs_quant = 0
-            try:
-                musics_identifiers, provider = self.__searcher.search(
-                    user_input)
-            except:
-                return config.INVALID_INPUT
-
+            songs_names, provider = self.__searcher.search(track)
             if provider == Provider.Unknown:
-                return config.INVALID_INPUT
+                embed = discord.Embed(
+                    title=config.ERROR_TITLE,
+                    description=config.INVALID_INPUT,
+                    colours=config.COLOURS['blue'])
+                await ctx.send(embed=embed)
+                return
 
-            if provider == Provider.YouTube:
-                try:
-                    musics_identifiers = self.__downloader.extract_youtube_link(
-                        musics_identifiers[0])
-                except:
-                    await ctx.send('Problema com o download do Youtube')
+            elif provider == Provider.YouTube:
+                songs_names = self.__down.extract_youtube_link(songs_names[0])
 
-            for identifier in musics_identifiers:  # Creating songs
-                last_song = self.__playlist.add_song(identifier)
+            songs_quant = 0
+            for name in songs_names:
+                song = self.__playlist.add_song(name, requester)
                 songs_quant += 1
 
             songs_preload = self.__playlist.songs_to_preload
-            await self.__downloader.preload(songs_preload)
+            await self.__down.preload(songs_preload)
 
-            if songs_quant == 1:  # If only one music downloaded
-                song = self.__downloader.download_one(
-                    last_song)  # Download the new music
+        except:
+            embed = discord.Embed(
+                title=config.ERROR_TITLE,
+                description=config.DOWNLOADING_ERROR,
+                colours=config.COLOURS['blue'])
+            await ctx.send(embed=embed)
+            return
 
-                if song == None:  # If song not downloaded
-                    embed = discord.Embed(
-                        description=config.DOWNLOADING_ERROR, colour=config.COLOURS['blue'])
-                    await ctx.send(embed=embed)
+        if songs_quant == 1:
+            song = self.__down.download_one(song)
 
-                elif not self.__playing:  # If not playing
-                    text = f'You added the song **{song.title}** to the queue'
-                    embed = discord.Embed(
-                        description=text, colour=config.COLOURS['blue'])
-                    await ctx.send(embed=embed)
-
-                else:  # If playing
-                    title = config.SONG_ADDED
-                    embed = self.__format_embed(song.info, title=title)
-                    await ctx.send(embed=embed)
-            else:
-                text = f'You added {songs_quant} songs to the queue'
+            if song == None:
                 embed = discord.Embed(
-                    description=text, colour=config.COLOURS['blue'])
+                    title=config.ERROR_TITLE,
+                    description=config.DOWNLOADING_ERROR,
+                    colours=config.COLOURS['blue'])
                 await ctx.send(embed=embed)
+                return
+            elif not self.__playing:
+                embed = discord.Embed(
+                    title=config.SONG_QUEUE_TITLE,
+                    description=config.SONG_ADDED.format(song.title),
+                    colour=config.COLOURS['blue'])
+                await ctx.send(embed=embed)
+            else:
+                embed = self.__format_embed(song.info, config.SONG_ADDED)
+                await ctx.send(embed=embed)
+        else:
+            embed = discord.Embed(
+                title=config.SONG_QUEUE_TITLE,
+                description=config.SONGS_ADDED.format(songs_quant),
+                colour=config.COLOURS['blue'])
+            await ctx.send(embed=embed)
 
-            if not self.__playing:
-                try_another = True
+        if not self.__playing:
+            try_another = True
 
-                while try_another:
-                    first = self.__playlist.next_song()
-                    if first == None:
-                        embed = discord.Embed(
-                            description=config.DOWNLOADING_ERROR, colour=config.COLOURS['blue'])
-                        await ctx.send(embed=embed)
+            while try_another:  # This will ensure the first song source to be ready
+                first_song = self.__playlist.next_song()
+                if first_song == None:
+                    embed = discord.Embed(
+                        title=config.ERROR_TITLE,
+                        description=config.DOWNLOADING_ERROR,
+                        colour=config.COLOURS['blue'])
+                    await ctx.send(embed=embed)
+                    break
+
+                while True:
+                    if first_song.source != None:  # If song got downloaded
+                        try_another = False
                         break
 
-                    while True:
-                        if first.source != None:  # If song got downloaded
-                            try_another = False
-                            break
+                    if first_song.problematic:  # If song got any error, try another one
+                        break
 
-                        if first.problematic:  # If song got any error, try another one
-                            break
-
-                        else:  # The song is downloading, check again
-                            continue
-
-                if first != None:
-                    await self.__play_music(ctx, first)
+            if first_song != None:
+                await self.__play_music(ctx, first_song)
 
     async def queue(self) -> discord.Embed:
         if self.__playlist.looping_one:
@@ -149,7 +143,7 @@ class Player(commands.Cog):
             return self.__format_embed(info, title)
 
         songs_preload = self.__playlist.songs_to_preload
-        await self.__downloader.preload(songs_preload)
+        await self.__down.preload(songs_preload)
         total_time = format_time(sum([int(song.duration if song.duration else 0)
                                  for song in songs_preload]))  # Sum the duration
         total_songs = len(self.__playlist)
@@ -240,7 +234,7 @@ class Player(commands.Cog):
             self.__playlist.shuffle()
             songs = self.__playlist.songs_to_preload
 
-            await self.__downloader.preload(songs)
+            await self.__down.preload(songs)
             return 'Musics shuffled successfully'
         except:
             return 'An error ocurred :/'
@@ -256,7 +250,7 @@ class Player(commands.Cog):
         result = self.__playlist.move_songs(pos1, pos2)
 
         songs = self.__playlist.songs_to_preload
-        await self.__downloader.preload(songs)
+        await self.__down.preload(songs)
         return result
 
     async def remove(self, position) -> str:
@@ -293,11 +287,11 @@ class Player(commands.Cog):
             duration = str(datetime.timedelta(seconds=info['duration']))
             embedvc.add_field(name=config.SONGINFO_DURATION,
                               value=f"{duration}",
-                              inline=False)
+                              inline=True)
         else:
             embedvc.add_field(name=config.SONGINFO_DURATION,
                               value=config.SONGINFO_UNKNOWN_DURATION,
-                              inline=False)
+                              inline=True)
 
         return embedvc
 

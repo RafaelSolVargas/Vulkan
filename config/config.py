@@ -47,11 +47,16 @@ HELP_DROP = '(user_name) - Try to remove the user from the current voice channel
 HELP_FRASE = "Send a randomly phrase, perhaps you get the braba"
 HELP_HELP = 'This command :)'
 
+SONGS_ADDED = 'You added {} songs to the queue'
+SONG_ADDED = 'You added the song {} to the queue'
+SONG_QUEUE_TITLE = 'Songs Queue'
+
+ERROR_TITLE = 'Error :/'
 NO_CHANNEL = 'To play some music, connect to any voice channel first.'
 NO_GUILD = 'This guild are not connected to Vulkan'
 INVALID_INPUT = 'This type of input was too strange, try something better'
 DOWNLOADING_ERROR = 'An error occurred while downloading'
-SONG_ADDED = 'Song added to the Queue'
+EXTRACTING_ERROR = 'An error ocurred while searching for the songs'
 
 COLOURS = {
     'red': 0xDC143C,
