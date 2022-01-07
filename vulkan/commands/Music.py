@@ -19,6 +19,7 @@ class Music(commands.Cog):
     @commands.command(name="play", help=config.HELP_PLAY, aliases=['p', 'tocar'])
     async def play(self, ctx, *args):
         user_input = " ".join(args)
+        requester = ctx.author.name
 
         player = self.__get_player(ctx)
         if player == None:
@@ -31,7 +32,7 @@ class Music(commands.Cog):
                 await self.__send_embed(ctx, description=result['reason'], colour_name='red')
                 return
 
-        await player.play(ctx, user_input)
+        await player.play(ctx, user_input, requester)
 
     @commands.command(name="queue", help=config.HELP_QUEUE, aliases=['q', 'fila'])
     async def queue(self, ctx):

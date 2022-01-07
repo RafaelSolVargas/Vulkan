@@ -4,10 +4,10 @@ from vulkan.music.Interfaces import ISong, IPlaylist
 class Song(ISong):
     """Store the usefull information about a Song"""
 
-    def __init__(self, identifier: str, playlist: IPlaylist) -> None:
+    def __init__(self, identifier: str, playlist: IPlaylist, requester: str) -> None:
         """Create a song with only the URL to the youtube song"""
         self.__identifier = identifier
-        self.__info = {}
+        self.__info = {'requester': requester}
         self.__problematic = False
         self.__playlist: IPlaylist = playlist
 

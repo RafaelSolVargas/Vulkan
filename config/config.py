@@ -24,6 +24,7 @@ MAX_PRELOAD_SONGS = 10
 
 SONGINFO_UPLOADER = "Uploader: "
 SONGINFO_DURATION = "Duration: "
+SONGINFO_REQUESTER = 'Requester: '
 
 HELP_SKIP = 'Skip the current playing song'
 HELP_RESUME = 'Resumes the song player'

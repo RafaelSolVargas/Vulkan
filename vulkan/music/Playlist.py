@@ -77,9 +77,9 @@ class Playlist(IPlaylist):
         else:
             return self.__songs_history[0].source
 
-    def add_song(self, identifier: str) -> Song:
+    def add_song(self, identifier: str, requester: str) -> Song:
         """Create a song object, add to queue and return it"""
-        song = Song(identifier, self)  # Cria a musica com o identificador
+        song = Song(identifier=identifier, playlist=self, requester=requester)
         self.__queue.append(song)
         return song
 

@@ -280,7 +280,11 @@ class Player(commands.Cog):
 
         embedvc.add_field(name=config.SONGINFO_UPLOADER,
                           value=info['uploader'],
-                          inline=False)
+                          inline=True)
+
+        embedvc.add_field(name=config.SONGINFO_REQUESTER,
+                          value=info['requester'],
+                          inline=True)
 
         if 'thumbnail' in info.keys():
             embedvc.set_thumbnail(url=info['thumbnail'])
