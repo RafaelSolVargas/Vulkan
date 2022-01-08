@@ -1,5 +1,4 @@
 import discord
-from discord import colour
 from discord.ext import commands
 from config import config
 import datetime
@@ -7,6 +6,7 @@ import datetime
 from vulkan.music.Downloader import Downloader
 from vulkan.music.Playlist import Playlist
 from vulkan.music.Searcher import Searcher
+from vulkan.music.Song import Song
 from vulkan.music.Types import Provider
 from vulkan.music.utils import *
 
@@ -35,18 +35,20 @@ class Player(commands.Cog):
             return True
 
     def __play_next(self, error, ctx) -> None:
-        if error != None:
-            return
-
         song = self.__playlist.next_song()
+
         if song != None:
             coro = self.__play_music(ctx, song)
             self.__bot.loop.create_task(coro)
         else:
             self.__playing = False
 
-    async def __play_music(self, ctx, song) -> None:
+    async def __play_music(self, ctx, song: Song) -> None:
         try:
+            source = self.__ensure_source(song)
+            if source == None:
+                self.__play_next(None, ctx)
+
             self.__playing = True
 
             player = discord.FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
@@ -61,13 +63,7 @@ class Player(commands.Cog):
             songs = self.__playlist.songs_to_preload
             await self.__down.preload(songs)
         except:
-            embed = discord.Embed(
-                title=config.ERROR_TITLE,
-                description=config.ERROR_PLAYING,
-                colour=config.COLOURS['red']
-            )
-            await ctx.send(embed=embed)
-            return
+            self.__play_next(None, ctx)
 
     async def play(self, ctx, track=str, requester=str) -> str:
         try:
@@ -91,7 +87,7 @@ class Player(commands.Cog):
             songs_preload = self.__playlist.songs_to_preload
             await self.__down.preload(songs_preload)
 
-        except Exception as e:
+        except:
             embed = discord.Embed(
                 title=config.ERROR_TITLE,
                 description=config.DOWNLOADING_ERROR,
@@ -126,28 +122,8 @@ class Player(commands.Cog):
             await ctx.send(embed=embed)
 
         if not self.__playing:
-            try_another = True
-
-            while try_another:  # will ensure the first song source to be ready
-                first_song = self.__playlist.next_song()
-                if first_song == None:
-                    embed = discord.Embed(
-                        title=config.ERROR_TITLE,
-                        description=config.DOWNLOADING_ERROR,
-                        colour=config.COLOURS['blue'])
-                    await ctx.send(embed=embed)
-                    break
-
-                while True:
-                    if first_song.source != None:  # If song got downloaded
-                        try_another = False
-                        break
-
-                    if first_song.problematic:  # If song got any error, try another one
-                        break
-
-            if first_song != None:
-                await self.__play_music(ctx, first_song)
+            first_song = self.__playlist.next_song()
+            await self.__play_music(ctx, first_song)
 
     async def queue(self) -> discord.Embed:
         if self.__playlist.looping_one:
@@ -325,3 +301,11 @@ class Player(commands.Cog):
             self.__playlist.clear()
             self.__playlist.loop_off()
             await self.__guild.voice_client.disconnect()
+
+    def __ensure_source(self, song: Song) -> str:
+        while True:
+            if song.source != None:  # If song got downloaded
+                return song.source
+
+            if song.problematic:  # If song got any error
+                return None
