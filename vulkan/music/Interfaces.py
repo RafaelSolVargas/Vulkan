@@ -25,10 +25,6 @@ class IPlaylist(ABC):
         pass
 
     @abstractmethod
-    def prev_song(self):
-        pass
-
-    @abstractmethod
     def add_song(self, identifier: str) -> None:
         pass
 

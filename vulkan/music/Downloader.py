@@ -64,7 +64,6 @@ class Downloader():
                 except (ExtractorError, DownloadError) as e:
                     return None
         else:
-            print('Invalid type of playlist URL')
             return None
 
     async def preload(self, songs: list) -> None:

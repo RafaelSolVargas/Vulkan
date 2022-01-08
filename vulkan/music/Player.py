@@ -1,4 +1,5 @@
 import discord
+from discord import colour
 from discord.ext import commands
 from config import config
 import datetime
@@ -25,41 +26,53 @@ class Player(commands.Cog):
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
 
-    async def connect(self, ctx):
+    async def connect(self, ctx) -> None:
         if not ctx.author.voice:
-            return {'success': False, 'reason': config.NO_CHANNEL}
+            return False
 
         if self.__guild.voice_client == None:
             await ctx.author.voice.channel.connect(reconnect=True, timeout=None)
-            return {'success': True, 'reason': ''}
+            return True
 
-    def __play_next(self, error, ctx):
+    def __play_next(self, error, ctx) -> None:
+        if error != None:
+            return
+
         song = self.__playlist.next_song()
-        if song != None:  # If there is not a song for the song
+        if song != None:
             coro = self.__play_music(ctx, song)
             self.__bot.loop.create_task(coro)
         else:
             self.__playing = False
 
-    async def __play_music(self, ctx, song):
-        self.__playing = True
+    async def __play_music(self, ctx, song) -> None:
+        try:
+            self.__playing = True
 
-        player = discord.FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
-        self.__guild.voice_client.play(
-            player, after=lambda e: self.__play_next(e, ctx))
+            player = discord.FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
+            self.__guild.voice_client.play(
+                player, after=lambda e: self.__play_next(e, ctx))
 
-        self.__timer.cancel()
-        self.__timer = Timer(self.__timeout_handler)
+            self.__timer.cancel()
+            self.__timer = Timer(self.__timeout_handler)
 
-        await ctx.invoke(self.__bot.get_command('np'))
+            await ctx.invoke(self.__bot.get_command('np'))
 
-        songs = self.__playlist.songs_to_preload
-        await self.__down.preload(songs)
+            songs = self.__playlist.songs_to_preload
+            await self.__down.preload(songs)
+        except:
+            embed = discord.Embed(
+                title=config.ERROR_TITLE,
+                description=config.ERROR_PLAYING,
+                colour=config.COLOURS['red']
+            )
+            await ctx.send(embed=embed)
+            return
 
-    async def play(self, ctx, track, requester) -> str:
+    async def play(self, ctx, track=str, requester=str) -> str:
         try:
             songs_names, provider = self.__searcher.search(track)
-            if provider == Provider.Unknown:
+            if provider == Provider.Unknown or songs_names == None:
                 embed = discord.Embed(
                     title=config.ERROR_TITLE,
                     description=config.INVALID_INPUT,
@@ -78,7 +91,7 @@ class Player(commands.Cog):
             songs_preload = self.__playlist.songs_to_preload
             await self.__down.preload(songs_preload)
 
-        except:
+        except Exception as e:
             embed = discord.Embed(
                 title=config.ERROR_TITLE,
                 description=config.DOWNLOADING_ERROR,
@@ -98,16 +111,16 @@ class Player(commands.Cog):
                 return
             elif not self.__playing:
                 embed = discord.Embed(
-                    title=config.SONG_QUEUE_TITLE,
+                    title=config.SONG_PLAYER,
                     description=config.SONG_ADDED.format(song.title),
                     colour=config.COLOURS['blue'])
                 await ctx.send(embed=embed)
             else:
-                embed = self.__format_embed(song.info, config.SONG_ADDED)
+                embed = self.__format_embed(song.info, config.SONG_ADDED_TWO)
                 await ctx.send(embed=embed)
         else:
             embed = discord.Embed(
-                title=config.SONG_QUEUE_TITLE,
+                title=config.SONG_PLAYER,
                 description=config.SONGS_ADDED.format(songs_quant),
                 colour=config.COLOURS['blue'])
             await ctx.send(embed=embed)
@@ -115,7 +128,7 @@ class Player(commands.Cog):
         if not self.__playing:
             try_another = True
 
-            while try_another:  # This will ensure the first song source to be ready
+            while try_another:  # will ensure the first song source to be ready
                 first_song = self.__playlist.next_song()
                 if first_song == None:
                     embed = discord.Embed(
@@ -139,26 +152,32 @@ class Player(commands.Cog):
     async def queue(self) -> discord.Embed:
         if self.__playlist.looping_one:
             info = self.__playlist.current.info
-            title = 'Song Looping Now'
+            title = config.ONE_SONG_LOOPING
             return self.__format_embed(info, title)
 
         songs_preload = self.__playlist.songs_to_preload
-        await self.__down.preload(songs_preload)
-        total_time = format_time(sum([int(song.duration if song.duration else 0)
-                                 for song in songs_preload]))  # Sum the duration
-        total_songs = len(self.__playlist)
-        text = f'Total musics: {total_songs} | Duration: `{total_time}` downloaded  \n\n'
 
-        for pos, song in enumerate(songs_preload, start=1):
-            title = song.title if song.title else 'Downloading...'
-            text += f"**`{pos}` - ** {title} - `{format_time(song.duration)}`\n"
+        if len(songs_preload) == 0:
+            title = config.SONG_PLAYER
+            text = config.EMPTY_QUEUE
 
-        title = 'Songs in Queue'
-        if len(songs_preload) > 0:
-            if self.__playlist.looping_all:
-                title = 'Repeating All'
         else:
-            text = 'There is no musics in queue'
+            if self.__playlist.looping_all:
+                title = config.ALL_SONGS_LOOPING
+            else:
+                title = config.QUEUE_TITLE
+
+            await self.__down.preload(songs_preload)
+
+            total_time = format_time(sum([int(song.duration if song.duration else 0)
+                                          for song in songs_preload]))
+            total_songs = len(self.__playlist)
+
+            text = f'📜 Queue length: {total_songs} | ⌛ Duration: `{total_time}` downloaded  \n\n'
+
+            for pos, song in enumerate(songs_preload, start=1):
+                song_name = song.title if song.title else config.SONG_DOWNLOADING
+                text += f"**`{pos}` - ** {song_name} - `{format_time(song.duration)}`\n"
 
         embed = discord.Embed(
             title=title,
@@ -202,7 +221,7 @@ class Player(commands.Cog):
             self.__guild.voice_client.resume()
             return True
 
-    async def loop(self, args: str):
+    async def loop(self, args: str) -> str:
         args = args.lower()
         if args == 'one':
             description = self.__playlist.loop_one()
@@ -211,7 +230,7 @@ class Player(commands.Cog):
         elif args == 'off':
             description = self.__playlist.loop_off()
         else:
-            description = 'Comando Loop\nOne - Repete a música atual\nAll - Repete as músicas atuais\nOff - Desativa o loop'
+            description = config.HELP_LONG_LOOP
 
         return description
 
@@ -220,9 +239,9 @@ class Player(commands.Cog):
 
     async def now_playing(self) -> discord.Embed:
         if self.__playlist.looping_one:
-            title = 'Song Looping Now'
+            title = config.ONE_SONG_LOOPING
         else:
-            title = 'Song Playing Now'
+            title = config.SONG_PLAYING
 
         current_song = self.__playlist.current
         embed = self.__format_embed(current_song.info, title)
@@ -235,9 +254,9 @@ class Player(commands.Cog):
             songs = self.__playlist.songs_to_preload
 
             await self.__down.preload(songs)
-            return 'Musics shuffled successfully'
+            return config.SONGS_SHUFFLED
         except:
-            return 'An error ocurred :/'
+            return config.ERROR_SHUFFLING
 
     async def move(self, pos1, pos2='1') -> str:
         try:
@@ -245,7 +264,7 @@ class Player(commands.Cog):
             pos2 = int(pos2)
 
         except:
-            return 'This command require a number'
+            return config.ERROR_NUMBER
 
         result = self.__playlist.move_songs(pos1, pos2)
 
@@ -259,12 +278,12 @@ class Player(commands.Cog):
             position = int(position)
 
         except:
-            return 'This command require a number'
+            return config.ERROR_NUMBER
 
         result = self.__playlist.remove_song(position)
         return result
 
-    def __format_embed(self, info, title='') -> discord.Embed:
+    def __format_embed(self, info=dict, title='') -> discord.Embed:
         """Configure the embed to show the song information"""
         embedvc = discord.Embed(
             title=title,

@@ -24,7 +24,7 @@ class SpotifySearch():
         except:
             return False
 
-    def search(self, music) -> list:
+    def search(self, music=str) -> list:
         """Search and return the title of musics on Spotify"""
         type = music.split('/')[3].split('?')[0]
         code = music.split('/')[4].split('?')[0]
@@ -39,14 +39,13 @@ class SpotifySearch():
 
         return musics
 
-    def __get_album(self, code) -> list:
+    def __get_album(self, code=str) -> list:
         """Get the externals urls of a album
 
-            ARG: Spotify Code of the Album
+        ARG: Spotify Code of the Album
         """
         if self.__connected == True:
             try:
-                # Load all music objects
                 results = self.__api.album_tracks(code)
                 musics = results['items']
 
@@ -66,10 +65,10 @@ class SpotifySearch():
             except Exception as e:
                 raise e
 
-    def __get_playlist(self, code) -> list:
+    def __get_playlist(self, code=str) -> list:
         """Get the externals urls of a playlist
 
-            Arg: Spotify Code of the Playlist
+        Arg: Spotify Code of the Playlist
         """
         try:
             results = self.__api.playlist_items(code)
@@ -96,10 +95,10 @@ class SpotifySearch():
         except Exception as e:
             raise e
 
-    def __get_track(self, code) -> list:
+    def __get_track(self, code=str) -> list:
         """Convert a external_url track to the title of the music
 
-            ARG: Spotify Code of the Music
+        ARG: Spotify Code of the Music
         """
         results = self.__api.track(code)
         name = results['name']
@@ -112,7 +111,7 @@ class SpotifySearch():
     def __extract_title(self, music: dict) -> str:
         """Receive a spotify music object and return his title
 
-            ARG: music dict returned by Spotify
+        ARG: music dict returned by Spotify
         """
         title = f'{music["name"]} '
         for artist in music['artists']:
