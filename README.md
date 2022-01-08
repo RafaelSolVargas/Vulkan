@@ -100,4 +100,4 @@ To run your Bot in Heroku 24/7, you will need the Procfile located in root, then
 
 
 ## Acknowledgment
- - See the DingoLingo [project](https://github.com/Raptor123471/DingoLingo) from Raptor123471, it helped me a lot building Vulkan
+ - See the DingoLingo [project](https://github.com/Raptor123471/DingoLingo) from Raptor123471, it helped me a lot to build Vulkan.
