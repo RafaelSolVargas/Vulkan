@@ -11,7 +11,7 @@ def is_connected(ctx):
         return None
 
 
-def format_time(duration):
+def format_time(duration) -> str:
     if not duration:
         return "00:00"
 

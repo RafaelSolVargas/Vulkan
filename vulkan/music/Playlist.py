@@ -41,41 +41,26 @@ class Playlist(IPlaylist):
     def next_song(self) -> Song:
         """Return the next song to play"""
         if self.__current == None and len(self.__queue) == 0:
-            # If not playing and nothing to play
             return None
 
-        # If playing
         played_song = self.__current
 
-        # Check if need to repeat the played song
         if self.__looping_one:  # Insert the current song to play again
             self.__queue.appendleft(played_song)
 
         if self.__looping_all:  # Insert the current song in the end of queue
             self.__queue.append(played_song)
 
-        while True:  # Try to get the source of next song
-            if len(self.__queue) == 0:  # If no more song to play, return None
+        while True:
+            if len(self.__queue) == 0:
                 return None
 
-            # Att the current with the first one
             self.__current = self.__queue[0]
-            self.__queue.popleft()  # Remove the current from queue
-            self.__name_history.append(
-                self.__current.identifier)  # Add to name history
-            self.__songs_history.append(self.__current)  # Add to song history
+            self.__queue.popleft()
+            self.__name_history.append(self.__current.identifier)
+            self.__songs_history.append(self.__current)
 
             return self.__current
-
-    def prev_song(self) -> Song:
-        """Return the source of the last song played
-
-        Return None or the source of the prev song
-        """
-        if len(self.__songs_history) == 0:
-            return None
-        else:
-            return self.__songs_history[0].source
 
     def add_song(self, identifier: str, requester: str) -> Song:
         """Create a song object, add to queue and return it"""
@@ -102,12 +87,13 @@ class Playlist(IPlaylist):
         Return: Embed descrition to show to user
         """
         if self.__looping_all == True:
-            return 'Vulkan already looping one music, disable loop first'
+            return config.LOOP_ALL_ON
+
         elif self.__looping_one == True:
-            return "I'm already doing this, you dumb ass"
+            return config.LOOP_ONE_ALREADY_ON
         else:
             self.__looping_one = True
-            return 'Repeating the current song'
+            return config.LOOP_ONE_ACTIVATE
 
     def loop_all(self) -> str:
         """Try to start the loop of all songs
@@ -115,21 +101,23 @@ class Playlist(IPlaylist):
         Return: Embed descrition to show to user
         """
         if self.__looping_one == True:
-            return 'Vulkan already looping one music, disable loop first'
+            return config.LOOP_ONE_ON
+
         elif self.__looping_all == True:
-            return "I'm already doing this, you dumb ass"
+            return config.LOOP_ALL_ALREADY_ON
+
         else:
             self.__looping_all = True
-            return 'Repeating all songs in queue'
+            return config.LOOP_ALL_ACTIVATE
 
     def loop_off(self) -> str:
         """Disable both types of loop"""
         if self.__looping_all == False and self.__looping_one == False:
-            return "The loop is already off, you fucking dick head"
+            return config.LOOP_ALREADY_DISABLE
 
         self.__looping_all = False
         self.__looping_one = False
-        return 'Loop disable'
+        return config.LOOP_DISABLE
 
     def destroy_song(self, song_destroy: Song) -> None:
         """Destroy a song object from the queue"""
@@ -150,7 +138,7 @@ class Playlist(IPlaylist):
             pos2 = len(self.__queue)
 
         if pos2 not in range(1, len(self.__queue) + 1) or pos1 not in range(1, len(self.__queue) + 1):
-            return 'Numbers must be between 1 and queue length, or -1 for the last song'
+            return config.LENGTH_ERROR
 
         try:
             song1 = self.__queue[pos1-1]
@@ -162,18 +150,17 @@ class Playlist(IPlaylist):
             song1_name = song1.title if song1.title else song1.identifier
             song2_name = song2.title if song2.title else song2.identifier
 
-            return f'Song `{song1_name}` in position `{pos1}` moved with `{song2_name}` in position `{pos2}` successfully'
-        except Exception as e:
-            print(e)
-            return 'There was a problem with the moving of songs'
+            return config.SONG_MOVED_SUCCESSFULLY.format(song1_name, pos1, song2_name, pos2)
+        except:
+            return config.ERROR_MOVING
 
-    def remove_song(self, position) -> tuple:
+    def remove_song(self, position) -> str:
         if position not in range(1, len(self.__queue) + 1) and position != -1:
-            return 'Numbers must be between 1 and queue length, or -1 for the last song'
+            return config.LENGTH_ERROR
         else:
             song = self.__queue[position-1]
             self.__queue.remove(song)
 
             song_name = song.title if song.title else song.identifier
 
-            return f'Song `{song_name}` removed successfully'
+            return config.SONG_REMOVED_SUCCESSFULLY.format(song_name)

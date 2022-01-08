@@ -24,7 +24,7 @@ class SpotifySearch():
         except:
             return False
 
-    def search(self, music) -> list:
+    def search(self, music=str) -> list:
         """Search and return the title of musics on Spotify"""
         type = music.split('/')[3].split('?')[0]
         code = music.split('/')[4].split('?')[0]
@@ -34,19 +34,20 @@ class SpotifySearch():
             musics = self.__get_playlist(code)
         elif type == 'track':
             musics = self.__get_track(code)
+        elif type == 'artist':
+            musics = self.__get_artist(code)
         else:
             return None
 
         return musics
 
-    def __get_album(self, code) -> list:
-        """Get the externals urls of a album
+    def __get_album(self, code=str) -> list:
+        """Convert a album ID to list of songs names
 
-            ARG: Spotify Code of the Album
+        ARG: Spotify Code of the Album
         """
         if self.__connected == True:
             try:
-                # Load all music objects
                 results = self.__api.album_tracks(code)
                 musics = results['items']
 
@@ -66,10 +67,10 @@ class SpotifySearch():
             except Exception as e:
                 raise e
 
-    def __get_playlist(self, code) -> list:
-        """Get the externals urls of a playlist
+    def __get_playlist(self, code=str) -> list:
+        """Convert a playlist ID to list of songs names
 
-            Arg: Spotify Code of the Playlist
+        Arg: Spotify Code of the Playlist
         """
         try:
             results = self.__api.playlist_items(code)
@@ -96,10 +97,10 @@ class SpotifySearch():
         except Exception as e:
             raise e
 
-    def __get_track(self, code) -> list:
-        """Convert a external_url track to the title of the music
+    def __get_track(self, code=str) -> list:
+        """Convert a track ID to the title of the music
 
-            ARG: Spotify Code of the Music
+        ARG: Spotify Code of the Track
         """
         results = self.__api.track(code)
         name = results['name']
@@ -109,10 +110,24 @@ class SpotifySearch():
 
         return [f'{name} {artists}']
 
+    def __get_artist(self, code=str) -> list:
+        """Convert a external_url track to the title of the music
+
+        ARG: Spotify Code of the Music
+        """
+        results = self.__api.artist_top_tracks(code, country='BR')
+
+        musics_titles = []
+        for music in results['tracks']:
+            title = self.__extract_title(music)
+            musics_titles.append(title)
+
+        return musics_titles
+
     def __extract_title(self, music: dict) -> str:
         """Receive a spotify music object and return his title
 
-            ARG: music dict returned by Spotify
+        ARG: music dict returned by Spotify
         """
         title = f'{music["name"]} '
         for artist in music['artists']:

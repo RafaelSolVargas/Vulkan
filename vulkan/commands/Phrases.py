@@ -36,6 +36,7 @@ class Phrases(commands.Cog):
         while True:
             tries += 1
             if tries > config.MAX_API_PHRASES_TRIES:
+                return config.ERROR_WHILE_REQUEST
                 return 'O banco de dados dos cara tá off, bando de vagabundo, tenta depois aí bicho'
 
             try:
@@ -51,7 +52,7 @@ class Phrases(commands.Cog):
                 text = f'{phrase} \nBy: {author}'
 
                 return text
-            except Exception as e:
+            except:
                 continue
 
 
