@@ -34,13 +34,15 @@ class SpotifySearch():
             musics = self.__get_playlist(code)
         elif type == 'track':
             musics = self.__get_track(code)
+        elif type == 'artist':
+            musics = self.__get_artist(code)
         else:
             return None
 
         return musics
 
     def __get_album(self, code=str) -> list:
-        """Get the externals urls of a album
+        """Convert a album ID to list of songs names
 
         ARG: Spotify Code of the Album
         """
@@ -66,7 +68,7 @@ class SpotifySearch():
                 raise e
 
     def __get_playlist(self, code=str) -> list:
-        """Get the externals urls of a playlist
+        """Convert a playlist ID to list of songs names
 
         Arg: Spotify Code of the Playlist
         """
@@ -96,9 +98,9 @@ class SpotifySearch():
             raise e
 
     def __get_track(self, code=str) -> list:
-        """Convert a external_url track to the title of the music
+        """Convert a track ID to the title of the music
 
-        ARG: Spotify Code of the Music
+        ARG: Spotify Code of the Track
         """
         results = self.__api.track(code)
         name = results['name']
@@ -107,6 +109,20 @@ class SpotifySearch():
             artists += f'{artist["name"]} '
 
         return [f'{name} {artists}']
+
+    def __get_artist(self, code=str) -> list:
+        """Convert a external_url track to the title of the music
+
+        ARG: Spotify Code of the Music
+        """
+        results = self.__api.artist_top_tracks(code, country='BR')
+
+        musics_titles = []
+        for music in results['tracks']:
+            title = self.__extract_title(music)
+            musics_titles.append(title)
+
+        return musics_titles
 
     def __extract_title(self, music: dict) -> str:
         """Receive a spotify music object and return his title
