@@ -49,7 +49,7 @@ class Control(commands.Cog):
             )
             await ctx.send(embed=embed)
 
-    @commands.command(name="help", help=config.HELP_HELP, alisases=['h', 'ajuda'])
+    @commands.command(name="help", help=config.HELP_HELP, aliases=['h', 'ajuda'])
     async def help_msg(self, ctx):
         helptxt = ''
         help_music = '🎧 `MUSIC`\n'
