@@ -1,12 +1,53 @@
 # **Vulkan**
 
-A multi-purpose Discord bot, including music, written in Python and supports Youtube and Spotify sources for playing. Vulkan was designed so that everyone could fork this project and use it, including a 24/7 host on Heroku.
+A Music Discord bot, written in Python, that supports Youtube and Spotify sources for playing. Vulkan was designed so that anyone can fork this project, follow the instructions and use it in their own way, Vulkan can also be configured in Heroku to work 24/7.
 
 
-Vulkan is also able to get data from Warframe and send it to users, get random phrases and handle random operations to help users decide what to do.
+#  **Music**
+- Play musics from Youtube and Spotify Playlists
+- Control loop of one or all musics
+- Allow moving and removing musics in the queue
+- Play musics in queue randomly
+- Store played songs and allow bidirectional flow
+
+### Commands
+```!play [title, spotify_url, youtube_url]``` - Start playing song
+
+```!resume``` - Resume the song player
+
+```!pause``` - Pause the song player
+
+```!skip``` - Skip the currently playing song
+
+```!prev``` - Return to play the previous song
+
+```!stop``` - Stop the playing of musics
+
+```!queue``` - Show the musics list in queue
+
+```!history``` - Show the played songs list
+
+```!loop [one, all, off]``` - Control the loop of songs 
+
+```!shuffle``` - Shuffle the songs in queue
+
+```!remove [x]``` - Remove the song in position x
+
+```!move [x, y]``` - Change the musics in position x and y in Queue
+
+```!np``` - Show information of the currently song 
+
+```!clear``` - Clear the songs in queue, doesn't stop the player 
+
+```!reset``` - Reset the player, recommended if any error happen 
+
+```!invite``` - Send the URL to invite Vulkan to your server
+
+```!help [command]``` - Show more info about the command selected
 
 
-## **Prerequisites:** 
+
+# **Usage:** 
 
 ### **API Keys**
  * Your Discord Application - [Discord](https://discord.com/developers)
@@ -26,17 +67,11 @@ pip install -r requirements.txt
     *FFMPEG must be configured in the PATH for Windows users. Check this [YoutubeVideo](https://www.youtube.com/watch?v=r1AtmY-RMyQ&t=114s&ab_channel=TroubleChute).*
 
 ### **.Env File Example**
-This is an example of how your .env file (located in root) should look like, those API url could be the same.
+This is an example of how your .env file (located in root) should look like.
 ```
-CETUS_API=https://api.warframestat.us/pc/cetusCycle
-CAMBION_API=https://api.warframestat.us/pc/cambionCycle
-FISSURES_API=https://api.warframestat.us/pc/fissures
-PHRASES_API='http://api.forismatic.com/api/1.0/?method=getQuote&key=457653&format=json&lang=en'
-
 BOT_TOKEN=Your_Own_Bot_Token
 SPOTIFY_ID=Your_Own_Spotify_ID
 SPOTIFY_SECRET=Your_Own_Spotify_Secret
-SECRET_MESSAGE=Your_Own_Secret_Message
 
 ```
 
@@ -55,40 +90,6 @@ To run your Bot in Heroku 24/7, you will need the Procfile located in root, then
     - https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git
 
     - https://github.com/xrisk/heroku-opus.git
-
-
-#  **Music**
-- Play musics from Youtube and Spotify Playlists
-- Controll loop of one or all musics
-- Allow realocating musics in the queue
-- Play musics in queue randomly
-
-### Commands
-```!play [title, spotify_url, youtube_url]``` - Start playing song in Discord
-
-```!resume``` - Resume the song player
-
-```!pause``` - Pause the song player
-
-```!move [x, y]``` - Change the musics in position x and y in Queue
-
-```!skip``` - Skip the currently playing song
-
-```!stop``` - Stop the playing of musics
-
-```!queue``` - Show the musics list in queue
-
-```!shuffle``` - Shuffle the songs in queue
-
-```!remove [x]``` - Remove the song in position x
-
-```!reset``` - Reset the player, recommended if any error happen 
-
-```!loop [one, all, off]``` - Control the loop of songs 
-
-```!np``` - Show information of the currently song 
-
-```!clear``` - Clear the songs in queue, doesn't stop the player 
 
 
 ## License
