@@ -21,6 +21,7 @@ MAX_API_CETUS_TRIES = 10
 MAX_API_CAMBION_TRIES = 10
 MAX_API_FISSURES_TRIES = 10
 MAX_PRELOAD_SONGS = 10
+MAX_SONGS_HISTORY = 10
 
 SONGINFO_UPLOADER = "Uploader: "
 SONGINFO_DURATION = "Duration: "
@@ -34,8 +35,10 @@ HELP_LOOP = '(one/all/off) - Control the loop of songs.'
 HELP_NP = 'Show the info of the current song.'
 HELP_QUEUE = f'Show the first {MAX_PRELOAD_SONGS} songs in queue.'
 HELP_PAUSE = 'Pauses the song player.'
+HELP_PREV = 'Return to play the previous song.'
 HELP_SHUFFLE = 'Shuffle the songs playing.'
 HELP_PLAY = '(title/youtube/spotify) - Plays a song.'
+HELP_HISTORY = f'Show the last {MAX_SONGS_HISTORY} played songs history'
 HELP_MOVE = '(x, y) - Moves a song from position x to y in queue.'
 HELP_REMOVE = '(x, -1) - Remove a song in the position x or -1 for the last song.'
 HELP_RESET = 'Reset the Player of a server.'
@@ -61,6 +64,10 @@ SONG_RESUMED = '▶️ Song playing'
 EMPTY_QUEUE = f'❌ Song queue is empty, use {BOT_PREFIX}play to add new songs'
 SONG_DOWNLOADING = '📥 Downloading...'
 
+HISTORY_TITLE = '🎧 Played Songs'
+HISTORY_EMPTY = '❌ There is no musics in history'
+
+
 SONGS_SHUFFLED = '🔀 Songs shuffled successfully'
 ERROR_SHUFFLING = '❌ Error while shuffling the songs'
 ERROR_MOVING = '❌ Error while moving the songs'
@@ -71,6 +78,8 @@ COMMAND_NOT_FOUND = f'❌ Command not found, type {BOT_PREFIX}help to see all co
 UNKNOWN_ERROR = '❌ Unknown Error'
 ERROR_MISSING_ARGUMENTS = f'❌ Missing arguments in this function. Type {BOT_PREFIX}help to see all commands'
 ERROR_WHILE_REQUESTING = 'O banco de dados dos cara tá off, bando de vagabundo, tenta depois aí bicho'
+NOT_PREVIOUS = '❌ There is none previous song to play'
+PLAYER_NOT_PLAYING = f'❌ No song playing. Use {BOT_PREFIX}play to start the player'
 
 SONG_MOVED_SUCCESSFULLY = 'Song `{}` in position `{}` moved with `{}` in position `{}` successfully'
 SONG_REMOVED_SUCCESSFULLY = 'Song `{}` removed successfully'
@@ -83,6 +92,7 @@ LOOP_ALL_ACTIVATE = '🔁 Looping all songs'
 LOOP_ONE_ACTIVATE = '🔂 Looping the current song'
 LOOP_DISABLE = '➡️ Loop disabled'
 LOOP_ALREADY_DISABLE = '❌ Loop is already disabled'
+LOOP_ON = f'❌ This command cannot be invoked with any loop activated. Use {BOT_PREFIX}loop off to disable loop'
 
 SONGS_PLAYING_TITLES = [ONE_SONG_LOOPING, ALL_SONGS_LOOPING, SONG_PLAYING]
 
