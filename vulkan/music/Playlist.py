@@ -100,7 +100,6 @@ class Playlist(IPlaylist):
     def clear(self) -> None:
         """Clear the songs to play song history"""
         self.__queue.clear()
-        self.__songs_history.clear()
 
     def loop_one(self) -> str:
         """Try to start the loop of the current song

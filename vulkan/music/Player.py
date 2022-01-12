@@ -271,7 +271,7 @@ class Player(commands.Cog):
         elif args == 'off':
             description = self.__playlist.loop_off()
         else:
-            description = config.HELP_LONG_LOOP
+            description = help.HELP_LONG_LOOP
 
         return description
 

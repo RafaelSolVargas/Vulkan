@@ -201,10 +201,10 @@ class Music(commands.Cog):
                 if message.author == self.__bot.user:
                     if len(message.embeds) > 0:
                         embed = message.embeds[0]
-                        fields = embed.fields
+                        if len(embed.fields) > 0:
+                            if embed.fields[0].name == 'Uploader:':
+                                await message.delete()
 
-                        if fields != discord.Embed.EmptyEmbed:
-                            await message.delete()
             except:
                 continue
 
