@@ -49,7 +49,7 @@ class Music(commands.Cog):
         if player == None:
             return
         else:
-            await player.skip()
+            await player.skip(ctx)
 
     @commands.command(name='stop', help=config.HELP_STOP, aliases=['parar'])
     async def stop(self, ctx) -> None:
@@ -78,6 +78,29 @@ class Music(commands.Cog):
             success = await player.resume()
             if success:
                 await self.__send_embed(ctx, config.SONG_PLAYER, config.SONG_RESUMED, 'blue')
+
+    @commands.command(name='prev', help=config.HELP_PREV, aliases=['anterior'])
+    async def prev(self, ctx) -> None:
+        player = self.__get_player(ctx)
+        if player == None:
+            return
+
+        if is_connected(ctx) == None:
+            success = await player.connect(ctx)
+            if success == False:
+                await self.__send_embed(ctx, config.ERROR_TITLE, config.NO_CHANNEL, 'red')
+                return
+
+        await player.play_prev(ctx)
+
+    @commands.command(name='history', help=config.HELP_HISTORY, aliases=['historico'])
+    async def history(self, ctx) -> None:
+        player = self.__get_player(ctx)
+        if player == None:
+            return
+        else:
+            embed = player.history()
+            await ctx.send(embed=embed)
 
     @commands.command(name='loop', help=config.HELP_LOOP, aliases=['l', 'repeat'])
     async def loop(self, ctx, args: str) -> None:
