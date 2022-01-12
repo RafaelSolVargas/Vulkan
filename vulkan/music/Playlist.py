@@ -12,12 +12,15 @@ class Playlist(IPlaylist):
     def __init__(self) -> None:
         self.__queue = deque()  # Store the musics to play
         self.__songs_history = deque()  # Store the musics played
-        self.__name_history = deque()  # Store the name of musics played
 
         self.__looping_one = False
         self.__looping_all = False
 
         self.__current: Song = None
+
+    @property
+    def songs_history(self) -> deque:
+        return self.__songs_history
 
     @property
     def looping_one(self) -> bool:
@@ -39,28 +42,46 @@ class Playlist(IPlaylist):
         return len(self.__queue)
 
     def next_song(self) -> Song:
-        """Return the next song to play"""
+        """Return the next song to play in a normal playlist flow"""
         if self.__current == None and len(self.__queue) == 0:
             return None
 
         played_song = self.__current
 
-        if self.__looping_one:  # Insert the current song to play again
-            self.__queue.appendleft(played_song)
+        # Att played song info
+        if played_song != None:
+            if not self.__looping_one and not self.__looping_all:
+                if played_song.problematic == False:
+                    self.__songs_history.appendleft(played_song)
 
-        if self.__looping_all:  # Insert the current song in the end of queue
-            self.__queue.append(played_song)
+                if len(self.__songs_history) > config.MAX_SONGS_HISTORY:
+                    self.__songs_history.pop()  # Remove the older
 
-        while True:
-            if len(self.__queue) == 0:
-                return None
+            elif self.__looping_one:  # Insert the current song to play again
+                self.__queue.appendleft(played_song)
 
-            self.__current = self.__queue[0]
-            self.__queue.popleft()
-            self.__name_history.append(self.__current.identifier)
-            self.__songs_history.append(self.__current)
+            elif self.__looping_all:  # Insert the current song in the end of queue
+                self.__queue.append(played_song)
 
-            return self.__current
+        # Get the new song
+        if len(self.__queue) == 0:
+            return None
+
+        self.__current = self.__queue.popleft()
+
+        return self.__current
+
+    def prev_song(self) -> Song:
+        """If playing return it to queue and return the previous song to play"""
+        if len(self.__songs_history) == 0:
+            return None
+        else:
+            if self.__current != None:
+                self.__queue.appendleft(self.__current)
+
+            last_song = self.__songs_history.popleft()  # Get the last song
+            self.__current = last_song
+            return self.__current  # return the song
 
     def add_song(self, identifier: str, requester: str) -> Song:
         """Create a song object, add to queue and return it"""
@@ -79,7 +100,6 @@ class Playlist(IPlaylist):
     def clear(self) -> None:
         """Clear the songs to play song history"""
         self.__queue.clear()
-        self.__songs_history.clear()
 
     def loop_one(self) -> str:
         """Try to start the loop of the current song
@@ -164,3 +184,12 @@ class Playlist(IPlaylist):
             song_name = song.title if song.title else song.identifier
 
             return config.SONG_REMOVED_SUCCESSFULLY.format(song_name)
+
+    def history(self) -> list:
+        """Return a list with the song title of all played songs"""
+        titles = []
+        for song in self.__songs_history:
+            title = song.title if song.title else 'Unknown'
+            titles.append(title)
+
+        return titles

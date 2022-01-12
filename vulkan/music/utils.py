@@ -6,7 +6,11 @@ from config import config
 def is_connected(ctx):
     try:
         voice_channel = ctx.guild.voice_client.channel
-        return voice_channel
+
+        if not ctx.guild.voice_client.is_connected():
+            return None
+        else:
+            return voice_channel
     except:
         return None
 

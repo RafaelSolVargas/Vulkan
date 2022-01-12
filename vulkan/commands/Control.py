@@ -3,6 +3,7 @@ from discord import Client
 from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument
 from discord.ext import commands
 from config import config
+from config import help
 
 
 class Control(commands.Cog):
@@ -11,11 +12,12 @@ class Control(commands.Cog):
     def __init__(self, bot: Client):
         self.__bot = bot
         self.__comandos = {
-            'MUSIC': ['resume', 'pause', 'loop', 'stop', 'skip', 'play', 'queue', 'clear', 'np', 'shuffle', 'move', 'remove', 'reset'],
-            'WARFRAME': ['warframe'],
-            'RANDOM': ['escolha', 'cara', 'random'],
-            'HELP': ['help'],
-            'OTHERS': ['frase']
+            'MUSIC': ['resume', 'pause', 'loop', 'stop',
+                      'skip', 'play', 'queue', 'clear',
+                      'np', 'shuffle', 'move', 'remove',
+                      'reset', 'prev', 'history'],
+            'RANDOM': ['choose', 'cara', 'random']
+
         }
 
     @commands.Cog.listener()
@@ -42,6 +44,7 @@ class Control(commands.Cog):
             )
             await ctx.send(embed=embed)
         else:
+            print(error)
             embed = discord.Embed(
                 title=config.ERROR_TITLE,
                 description=config.UNKNOWN_ERROR,
@@ -49,37 +52,70 @@ class Control(commands.Cog):
             )
             await ctx.send(embed=embed)
 
-    @commands.command(name="help", help=config.HELP_HELP, aliases=['h', 'ajuda'])
-    async def help_msg(self, ctx):
-        helptxt = ''
-        help_music = '🎧 `MUSIC`\n'
-        help_random = '🎲 `RANDOM`\n'
-        help_warframe = '🎮 `WARFRAME`\n'
-        help_help = '👾 `HELP`\n'
-        help_others = '🕹️ `OTHERS`\n'
+    @commands.command(name="help", help=help.HELP_HELP, description=help.HELP_HELP_LONG, aliases=['h', 'ajuda'])
+    async def help_msg(self, ctx, command_help=''):
+        if command_help != '':
+            for command in self.__bot.commands:
+                if command.name == command_help:
+                    txt = command.description if command.description else command.help
 
-        for command in self.__bot.commands:
-            if command.name in self.__comandos['MUSIC']:
-                help_music += f'**{command}** - {command.help}\n'
-            elif command.name in self.__comandos['HELP']:
-                help_help += f'**{command}** - {command.help}\n'
-            elif command.name in self.__comandos['OTHERS']:
-                help_others += f'**{command}** - {command.help}\n'
-            elif command.name in self.__comandos['WARFRAME']:
-                help_warframe += f'**{command}** - {command.help}\n'
-            else:
-                help_random += f'**{command}** - {command.help}\n'
+                    embedhelp = discord.Embed(
+                        title=f'**Description of {command_help}** command',
+                        description=txt,
+                        colour=config.COLOURS['blue']
+                    )
 
-        helptxt = f'{help_music}\n{help_warframe}\n{help_random}\n{help_others}\n{help_help}'
+                    await ctx.send(embed=embedhelp)
+                    return
 
-        embedhelp = discord.Embed(
-            title=f'**Available Commands of {self.__bot.user.name}**',
-            description=helptxt,
+            embedhelp = discord.Embed(
+                title='Command Help',
+                description=f'Command {command_help} Not Found',
+                colour=config.COLOURS['red']
+            )
+
+            await ctx.send(embed=embedhelp)
+        else:
+
+            helptxt = ''
+            help_music = '🎧 `MUSIC`\n'
+            help_random = '🎲 `RANDOM`\n'
+            help_help = '👾 `HELP`\n'
+
+            for command in self.__bot.commands:
+                if command.name in self.__comandos['MUSIC']:
+                    help_music += f'**{command}** - {command.help}\n'
+
+                elif command.name in self.__comandos['RANDOM']:
+                    help_random += f'**{command}** - {command.help}\n'
+
+                else:
+                    help_help += f'**{command}** - {command.help}\n'
+
+            helptxt = f'\n{help_music}\n{help_help}\n{help_random}'
+
+            embedhelp = discord.Embed(
+                title=f'**Available Commands of {self.__bot.user.name}**',
+                description=helptxt,
+                colour=config.COLOURS['blue']
+            )
+
+            embedhelp.set_thumbnail(url=self.__bot.user.avatar_url)
+            await ctx.send(embed=embedhelp)
+
+    @commands.command(name='invite', help=help.HELP_INVITE, description=help.HELP_INVITE_LONG)
+    async def invite_bot(self, ctx):
+        invite_url = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(
+            self.__bot.user.id)
+        txt = config.INVITE_MESSAGE.format(invite_url)
+
+        embed = discord.Embed(
+            title="Invite Vulkan",
+            description=txt,
             colour=config.COLOURS['blue']
         )
 
-        embedhelp.set_thumbnail(url=self.__bot.user.avatar_url)
-        await ctx.send(embed=embedhelp)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

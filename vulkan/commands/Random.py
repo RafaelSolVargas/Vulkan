@@ -2,6 +2,7 @@ from random import randint, random
 import discord
 from discord.ext import commands
 from config import config
+from config import help
 
 
 class Random(commands.Cog):
@@ -10,14 +11,14 @@ class Random(commands.Cog):
     def __init__(self, bot):
         self.__bot = bot
 
-    @commands.command(name='random', help=config.HELP_RANDOM)
-    async def random(self, ctx, arg: str):
+    @commands.command(name='random', help=help.HELP_RANDOM, description=help.HELP_RANDOM_LONG)
+    async def random(self, ctx, arg: str) -> None:
         try:
             arg = int(arg)
 
-        except Exception as e:
+        except:
             embed = discord.Embed(
-                description='Manda um número aí ow animal',
+                description=config.ERROR_NUMBER,
                 colour=config.COLOURS['red']
             )
             await ctx.send(embed=embed)
@@ -32,14 +33,14 @@ class Random(commands.Cog):
 
         x = randint(a, b)
         embed = discord.Embed(
-            title=f'Número Aleatório entre {a, b}',
+            title=f'Random number between [{a, b}]',
             description=x,
             colour=config.COLOURS['green']
         )
         await ctx.send(embed=embed)
 
-    @commands.command(name='cara', help=config.HELP_CARA)
-    async def cara(self, ctx):
+    @commands.command(name='cara', help=help.HELP_CARA, description=help.HELP_CARA_LONG)
+    async def cara(self, ctx) -> None:
         x = random()
         if x < 0.5:
             result = 'cara'
@@ -48,13 +49,13 @@ class Random(commands.Cog):
 
         embed = discord.Embed(
             title='Cara Cora',
-            description=f'Resultado: {result}',
+            description=f'Result: {result}',
             colour=config.COLOURS['green']
         )
         await ctx.send(embed=embed)
 
-    @commands.command(name='escolha', help=config.HELP_ESCOLHA)
-    async def escolher(self, ctx, *args: str):
+    @commands.command(name='choose', help=help.HELP_CHOOSE, description=help.HELP_CHOOSE_LONG)
+    async def choose(self, ctx, *args: str) -> None:
         try:
             user_input = " ".join(args)
             itens = user_input.split(sep=',')
@@ -62,16 +63,16 @@ class Random(commands.Cog):
             index = randint(0, len(itens)-1)
 
             embed = discord.Embed(
-                title='Escolha de algo',
+                title='Choose something',
                 description=itens[index],
                 colour=config.COLOURS['green']
             )
             await ctx.send(embed=embed)
-        except Exception as e:
+        except:
             embed = discord.Embed(
-                title='Escolha de algo',
-                description='Erro: Envie várias coisas separadas por vírgula',
-                colour=config.COLOURS['green']
+                title='Choose something.',
+                description=f'Error: Use {config.BOT_PREFIX}help choose to understand this command.',
+                colour=config.COLOURS['red']
             )
             await ctx.send(embed=embed)
 

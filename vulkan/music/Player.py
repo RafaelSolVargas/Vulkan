@@ -22,11 +22,14 @@ class Player(commands.Cog):
         self.__timer = Timer(self.__timeout_handler)
         self.__playing = False
 
+        # Flag to control if the player should stop totally the playing
+        self.__force_stop = False
+
         self.YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
 
-    async def connect(self, ctx) -> None:
+    async def connect(self, ctx) -> bool:
         if not ctx.author.voice:
             return False
 
@@ -35,6 +38,10 @@ class Player(commands.Cog):
             return True
 
     def __play_next(self, error, ctx) -> None:
+        if self.__force_stop:  # If it's forced to stop player
+            self.__force_stop = False
+            return
+
         song = self.__playlist.next_song()
 
         if song != None:
@@ -125,6 +132,34 @@ class Player(commands.Cog):
             first_song = self.__playlist.next_song()
             await self.__play_music(ctx, first_song)
 
+    async def play_prev(self, ctx) -> None:
+        """Stop the currently playing cycle, load the previous song and play"""
+        if self.__playlist.looping_one or self.__playlist.looping_all:  # Do not allow play if loop
+            embed = discord.Embed(
+                title=config.SONG_PLAYER,
+                description=config.LOOP_ON,
+                colour=config.COLOURS['blue']
+            )
+            await ctx.send(embed=embed)
+            return
+
+        song = self.__playlist.prev_song()  # Prepare the prev song to play again
+        if song == None:
+            embed = discord.Embed(
+                title=config.SONG_PLAYER,
+                description=config.NOT_PREVIOUS,
+                colour=config.COLOURS['blue']
+            )
+            await ctx.send(embed=embed)
+        else:
+            if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
+                # Will forbidden next_song to execute after stopping current player
+                self.__force_stop = True
+                self.__guild.voice_client.stop()
+                self.__playing = False
+
+            await self.__play_music(ctx, song)
+
     async def queue(self) -> discord.Embed:
         if self.__playlist.looping_one:
             info = self.__playlist.current.info
@@ -163,12 +198,39 @@ class Player(commands.Cog):
 
         return embed
 
-    async def skip(self) -> bool:
+    async def skip(self, ctx) -> bool:
+        if self.__playlist.looping_one:
+            embed = discord.Embed(
+                title=config.SONG_PLAYER,
+                description=config.LOOP_ON,
+                colour=config.COLOURS['blue']
+            )
+            await ctx.send(embed=embed)
+            return False
+
         if self.__guild.voice_client != None:
             self.__guild.voice_client.stop()
             return True
         else:
             return False
+
+    def history(self) -> discord.Embed:
+        history = self.__playlist.songs_history
+
+        if len(history) == 0:
+            text = config.HISTORY_EMPTY
+
+        else:
+            text = f'\n📜 History Length: {len(history)} | Max: {config.MAX_SONGS_HISTORY}\n'
+            for pos, song in enumerate(history, start=1):
+                text += f"**`{pos}` - ** {song.title} - `{format_time(song.duration)}`\n"
+
+        embed = discord.Embed(
+            title=config.HISTORY_TITLE,
+            description=text,
+            colour=config.COLOURS['blue']
+        )
+        return embed
 
     async def stop(self) -> bool:
         if self.__guild.voice_client == None:
@@ -199,6 +261,9 @@ class Player(commands.Cog):
 
     async def loop(self, args: str) -> str:
         args = args.lower()
+        if self.__playlist.current == None:
+            return config.PLAYER_NOT_PLAYING
+
         if args == 'one':
             description = self.__playlist.loop_one()
         elif args == 'all':
@@ -206,7 +271,7 @@ class Player(commands.Cog):
         elif args == 'off':
             description = self.__playlist.loop_off()
         else:
-            description = config.HELP_LONG_LOOP
+            description = help.HELP_LONG_LOOP
 
         return description
 
@@ -214,6 +279,14 @@ class Player(commands.Cog):
         self.__playlist.clear()
 
     async def now_playing(self) -> discord.Embed:
+        if not self.__playing:
+            embed = discord.Embed(
+                title=config.SONG_PLAYER,
+                description=config.PLAYER_NOT_PLAYING,
+                colour=config.COLOURS['blue']
+            )
+            return embed
+
         if self.__playlist.looping_one:
             title = config.ONE_SONG_LOOPING
         else:
@@ -235,6 +308,9 @@ class Player(commands.Cog):
             return config.ERROR_SHUFFLING
 
     async def move(self, pos1, pos2='1') -> str:
+        if not self.__playing:
+            return config.PLAYER_NOT_PLAYING
+
         try:
             pos1 = int(pos1)
             pos2 = int(pos2)
@@ -250,6 +326,9 @@ class Player(commands.Cog):
 
     async def remove(self, position) -> str:
         """Remove a song from the queue in the position"""
+        if not self.__playing:
+            return config.PLAYER_NOT_PLAYING
+
         try:
             position = int(position)
 
