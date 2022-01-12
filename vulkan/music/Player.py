@@ -279,6 +279,14 @@ class Player(commands.Cog):
         self.__playlist.clear()
 
     async def now_playing(self) -> discord.Embed:
+        if not self.__playing:
+            embed = discord.Embed(
+                title=config.SONG_PLAYER,
+                description=config.PLAYER_NOT_PLAYING,
+                colour=config.COLOURS['blue']
+            )
+            return embed
+
         if self.__playlist.looping_one:
             title = config.ONE_SONG_LOOPING
         else:
@@ -300,6 +308,9 @@ class Player(commands.Cog):
             return config.ERROR_SHUFFLING
 
     async def move(self, pos1, pos2='1') -> str:
+        if not self.__playing:
+            return config.PLAYER_NOT_PLAYING
+
         try:
             pos1 = int(pos1)
             pos2 = int(pos2)
@@ -315,6 +326,9 @@ class Player(commands.Cog):
 
     async def remove(self, position) -> str:
         """Remove a song from the queue in the position"""
+        if not self.__playing:
+            return config.PLAYER_NOT_PLAYING
+
         try:
             position = int(position)
 

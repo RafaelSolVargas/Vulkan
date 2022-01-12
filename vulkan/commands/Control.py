@@ -105,7 +105,7 @@ class Control(commands.Cog):
 
     @commands.command(name='invite', help=help.HELP_INVITE, description=help.HELP_INVITE_LONG)
     async def invite_bot(self, ctx):
-        invite_url = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>)'.format(
+        invite_url = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(
             self.__bot.user.id)
         txt = config.INVITE_MESSAGE.format(invite_url)
 
