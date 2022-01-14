@@ -175,7 +175,10 @@ class Playlist(IPlaylist):
             return config.ERROR_MOVING
 
     def remove_song(self, position) -> str:
-        if position not in range(1, len(self.__queue) + 1) and position != -1:
+        if position == -1:
+            position = len(self.__queue)
+
+        if position not in range(1, len(self.__queue) + 1):
             return config.LENGTH_ERROR
         else:
             song = self.__queue[position-1]
