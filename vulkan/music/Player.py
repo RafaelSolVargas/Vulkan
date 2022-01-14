@@ -271,7 +271,7 @@ class Player(commands.Cog):
         elif args == 'off':
             description = self.__playlist.loop_off()
         else:
-            description = help.HELP_LONG_LOOP
+            raise commands.CommandInvokeError('Invalid Arguments in Command')
 
         return description
 

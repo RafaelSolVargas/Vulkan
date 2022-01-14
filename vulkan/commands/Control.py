@@ -1,6 +1,6 @@
 import discord
 from discord import Client
-from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument
+from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument, CommandInvokeError
 from discord.ext import commands
 from config import config
 from config import help
@@ -32,7 +32,7 @@ class Control(commands.Cog):
             embed = discord.Embed(
                 title=config.ERROR_TITLE,
                 description=config.ERROR_MISSING_ARGUMENTS,
-                colour=config.COLOURS['red']
+                colour=config.COLOURS['black']
             )
             await ctx.send(embed=embed)
 
@@ -40,9 +40,17 @@ class Control(commands.Cog):
             embed = discord.Embed(
                 title=config.ERROR_TITLE,
                 description=config.COMMAND_NOT_FOUND,
-                colour=config.COLOURS['red']
+                colour=config.COLOURS['black']
             )
             await ctx.send(embed=embed)
+        elif isinstance(error, CommandInvokeError):
+            embed = discord.Embed(
+                title=config.BAD_COMMAND_TITLE,
+                description=config.BAD_COMMAND,
+                colour=config.COLOURS['black']
+            )
+            await ctx.send(embed=embed)
+
         else:
             print(error)
             embed = discord.Embed(
@@ -93,7 +101,7 @@ class Control(commands.Cog):
                     help_help += f'**{command}** - {command.help}\n'
 
             helptxt = f'\n{help_music}\n{help_help}\n{help_random}'
-
+            helptxt += f'\n\nType {config.BOT_PREFIX}help "command" for more information about the command chosen'
             embedhelp = discord.Embed(
                 title=f'**Available Commands of {self.__bot.user.name}**',
                 description=helptxt,

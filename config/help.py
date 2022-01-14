@@ -9,8 +9,10 @@ HELP_CLEAR_LONG = 'Clear the songs queue and songs history. \n\nArguments: None.
 HELP_STOP = 'Stop the song player.'
 HELP_STOP_LONG = 'Stop the song player, clear queue and history and remove Vulkan from voice channel.\n\nArguments: None.'
 HELP_LOOP = 'Control the loop of songs.'
-HELP_LOOP_LONG = 'Controll the loop of songs.\n\n Require: A song being played.\nArguments:\nOne - Start looping the current song. \
-    \nAll - Start looping all songs in queue.\nOff - Disable loop.'
+HELP_LOOP_LONG = """Control the loop of songs.\n\n Require: A song being played.\nArguments:
+    One - Start looping the current song.
+    All - Start looping all songs in queue.
+    Off - Disable loop."""
 HELP_NP = 'Show the info of the current song.'
 HELP_NP_LONG = 'Show the information of the song being played.\n\nRequire: A song being played.\nArguments: None.'
 HELP_QUEUE = f'Show the first {MAX_PRELOAD_SONGS} songs in queue.'

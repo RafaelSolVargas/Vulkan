@@ -57,7 +57,7 @@ ERROR_NUMBER = '❌ This command require a number'
 ERROR_PLAYING = '❌ Error while playing songs'
 COMMAND_NOT_FOUND = f'❌ Command not found, type {BOT_PREFIX}help to see all commands'
 UNKNOWN_ERROR = f'❌ Unknown Error, if needed, use {BOT_PREFIX}reset to reset the player of your server'
-ERROR_MISSING_ARGUMENTS = f'❌ Missing arguments in this function. Type {BOT_PREFIX}help to see all commands'
+ERROR_MISSING_ARGUMENTS = f'❌ Missing arguments in this command. Type {BOT_PREFIX}help "command" to see more info about this command'
 NOT_PREVIOUS = '❌ There is none previous song to play'
 PLAYER_NOT_PLAYING = f'❌ No song playing. Use {BOT_PREFIX}play to start the player'
 IMPOSSIBLE_MOVE = 'That is impossible :('
@@ -68,9 +68,13 @@ INVALID_INPUT = f'This type of input was too strange, try something better or ty
 DOWNLOADING_ERROR = '❌ An error occurred while downloading'
 EXTRACTING_ERROR = '❌ An error ocurred while searching for the songs'
 
+BAD_COMMAND_TITLE = 'Misuse of command'
+BAD_COMMAND = f'❌ Bad usage of this command, type {BOT_PREFIX}help "command" to understand the command better'
+
 COLOURS = {
     'red': 0xDC143C,
-    'green': 0x58D68D,
+    'green': 0x1F8B4C,
     'grey': 0x708090,
-    'blue': 0x3498DB
+    'blue': 0x206694,
+    'black': 0x23272A
 }
