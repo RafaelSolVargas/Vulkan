@@ -19,6 +19,7 @@ INVITE_MESSAGE = 'To invite Vulkan to your own server, click [here]({})'
 SONGINFO_UPLOADER = "Uploader: "
 SONGINFO_DURATION = "Duration: "
 SONGINFO_REQUESTER = 'Requester: '
+SONGINFO_POSITION = 'Position: '
 
 SONGS_ADDED = 'You added {} songs to the queue'
 SONG_ADDED = 'You added the song `{}` to the queue'
@@ -36,7 +37,7 @@ SONG_DOWNLOADING = '📥 Downloading...'
 HISTORY_TITLE = '🎧 Played Songs'
 HISTORY_EMPTY = '📜 There is no musics in history'
 
-SONG_MOVED_SUCCESSFULLY = 'Song `{}` in position `{}` moved with `{}` in position `{}` successfully'
+SONG_MOVED_SUCCESSFULLY = 'Song `{}` in position `{}` moved to the position `{}` successfully'
 SONG_REMOVED_SUCCESSFULLY = 'Song `{}` removed successfully'
 
 LOOP_ALL_ON = f'❌ Vulkan is looping all songs, use {BOT_PREFIX}loop off to disable this loop first'
@@ -68,6 +69,7 @@ INVALID_INPUT = f'This type of input was too strange, try something better or ty
 DOWNLOADING_ERROR = '❌ An error occurred while downloading'
 EXTRACTING_ERROR = '❌ An error ocurred while searching for the songs'
 
+MY_ERROR_BAD_COMMAND = 'This string serves to verify if some error was raised by myself on purpose'
 BAD_COMMAND_TITLE = 'Misuse of command'
 BAD_COMMAND = f'❌ Bad usage of this command, type {BOT_PREFIX}help "command" to understand the command better'
 

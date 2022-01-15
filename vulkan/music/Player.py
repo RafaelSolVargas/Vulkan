@@ -104,6 +104,7 @@ class Player(commands.Cog):
 
         if songs_quant == 1:
             song = self.__down.download_one(song)
+            pos = len(self.__playlist)
 
             if song == None:
                 embed = discord.Embed(
@@ -119,7 +120,7 @@ class Player(commands.Cog):
                     colour=config.COLOURS['blue'])
                 await ctx.send(embed=embed)
             else:
-                embed = self.__format_embed(song.info, config.SONG_ADDED_TWO)
+                embed = self.__format_embed(song.info, config.SONG_ADDED_TWO, pos)
                 await ctx.send(embed=embed)
         else:
             embed = discord.Embed(
@@ -271,7 +272,7 @@ class Player(commands.Cog):
         elif args == 'off':
             description = self.__playlist.loop_off()
         else:
-            raise commands.CommandInvokeError('Invalid Arguments in Command')
+            raise commands.UserInputError(config.MY_ERROR_BAD_COMMAND)
 
         return description
 
@@ -338,7 +339,7 @@ class Player(commands.Cog):
         result = self.__playlist.remove_song(position)
         return result
 
-    def __format_embed(self, info=dict, title='') -> discord.Embed:
+    def __format_embed(self, info=dict, title='', position='Playing Now') -> discord.Embed:
         """Configure the embed to show the song information"""
         embedvc = discord.Embed(
             title=title,
@@ -348,7 +349,7 @@ class Player(commands.Cog):
 
         embedvc.add_field(name=config.SONGINFO_UPLOADER,
                           value=info['uploader'],
-                          inline=True)
+                          inline=False)
 
         embedvc.add_field(name=config.SONGINFO_REQUESTER,
                           value=info['requester'],
@@ -366,6 +367,10 @@ class Player(commands.Cog):
             embedvc.add_field(name=config.SONGINFO_DURATION,
                               value=config.SONGINFO_UNKNOWN_DURATION,
                               inline=True)
+
+        embedvc.add_field(name=config.SONGINFO_POSITION,
+                          value=position,
+                          inline=True)
 
         return embedvc
 

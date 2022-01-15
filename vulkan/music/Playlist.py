@@ -147,10 +147,10 @@ class Playlist(IPlaylist):
                 break
 
     def move_songs(self, pos1, pos2) -> str:
-        """Receive two position and try to change the songs in those positions, -1 is the last
+        """Try to move the song in pos1 to pos2, -1 is the last
 
         Positions: First music is 1
-        Return (Error bool, string) with the status of the function, to show to user
+        Return: String with the status of the function, to show to user
         """
         if pos1 == -1:
             pos1 = len(self.__queue)
@@ -161,16 +161,13 @@ class Playlist(IPlaylist):
             return config.LENGTH_ERROR
 
         try:
-            song1 = self.__queue[pos1-1]
-            song2 = self.__queue[pos2-1]
+            song = self.__queue[pos1-1]
+            self.__queue.remove(song)
+            self.__queue.insert(pos2-1, song)
 
-            self.__queue[pos1-1] = song2
-            self.__queue[pos2-1] = song1
+            song1_name = song.title if song.title else song.identifier
 
-            song1_name = song1.title if song1.title else song1.identifier
-            song2_name = song2.title if song2.title else song2.identifier
-
-            return config.SONG_MOVED_SUCCESSFULLY.format(song1_name, pos1, song2_name, pos2)
+            return config.SONG_MOVED_SUCCESSFULLY.format(song1_name, pos1, pos2)
         except:
             return config.ERROR_MOVING
 

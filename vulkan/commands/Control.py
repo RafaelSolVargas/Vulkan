@@ -1,6 +1,6 @@
 import discord
 from discord import Client
-from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument, CommandInvokeError
+from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument, UserInputError
 from discord.ext import commands
 from config import config
 from config import help
@@ -43,14 +43,21 @@ class Control(commands.Cog):
                 colour=config.COLOURS['black']
             )
             await ctx.send(embed=embed)
-        elif isinstance(error, CommandInvokeError):
-            embed = discord.Embed(
-                title=config.BAD_COMMAND_TITLE,
-                description=config.BAD_COMMAND,
-                colour=config.COLOURS['black']
-            )
-            await ctx.send(embed=embed)
-
+        elif isinstance(error, UserInputError):
+            my_error = False
+            if len(error.args) > 0:
+                for arg in error.args:
+                    if arg == config.MY_ERROR_BAD_COMMAND:
+                        embed = discord.Embed(
+                            title=config.BAD_COMMAND_TITLE,
+                            description=config.BAD_COMMAND,
+                            colour=config.COLOURS['black']
+                        )
+                        await ctx.send(embed=embed)
+                        my_error = True
+                        break
+            if not my_error:
+                raise error
         else:
             print(error)
             embed = discord.Embed(
