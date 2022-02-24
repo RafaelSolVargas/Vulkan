@@ -183,9 +183,9 @@ class Music(commands.Cog):
             await player.stop()
             self.__guilds[ctx.guild] = Player(self.__bot, ctx.guild)
             player = self.__get_player(ctx)
-            player.force_stop()
+            await player.force_stop()
         except Exception as e:
-            print('Reset Error: {e}')
+            print(f'Reset Error: {e}')
 
         self.__guilds[ctx.guild] = Player(self.__bot, ctx.guild)
         player = self.__get_player(ctx)
