@@ -244,6 +244,15 @@ class Player(commands.Cog):
             await self.__guild.voice_client.disconnect()
             return True
 
+    async def force_stop(self) -> None:
+        try:
+            self.__guild.voice_client.stop()
+            await self.__guild.voice_client.disconnect()
+            self.__playlist.clear()
+            self.__playlist.loop_off()
+        except Exception as e:
+            print(f'Force Stop Error: {e}')
+
     async def pause(self) -> bool:
         if self.__guild.voice_client == None:
             return False
@@ -339,7 +348,7 @@ class Player(commands.Cog):
         result = self.__playlist.remove_song(position)
         return result
 
-    def __format_embed(self, info=dict, title='', position='Playing Now') -> discord.Embed:
+    def __format_embed(self, info: dict, title='', position='Playing Now') -> discord.Embed:
         """Configure the embed to show the song information"""
         embedvc = discord.Embed(
             title=title,

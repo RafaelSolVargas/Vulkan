@@ -16,7 +16,10 @@ class Music(commands.Cog):
     async def on_ready(self) -> None:
         """Load a player for each guild that the Bot are"""
         for guild in self.__bot.guilds:
-            self.__guilds[guild] = Player(self.__bot, guild)
+            player = Player(self.__bot, guild)
+            await player.force_stop()
+            self.__guilds[guild] = player
+
             print(f'Player for guild {guild.name} created')
 
     @commands.Cog.listener()
@@ -175,10 +178,18 @@ class Music(commands.Cog):
     @commands.command(name='reset', help=help.HELP_RESET, description=help.HELP_RESET_LONG, aliases=['resetar'])
     async def reset(self, ctx) -> None:
         player = self.__get_player(ctx)
-        if player != None:
+        try:
+            await player.force_stop()
             await player.stop()
+            self.__guilds[ctx.guild] = Player(self.__bot, ctx.guild)
+            player = self.__get_player(ctx)
+            player.force_stop()
+        except Exception as e:
+            print('Reset Error: {e}')
 
         self.__guilds[ctx.guild] = Player(self.__bot, ctx.guild)
+        player = self.__get_player(ctx)
+        print(f'Player for guild {ctx.guild} created')
 
     async def __send_embed(self, ctx, title='', description='', colour='grey') -> None:
         try:
