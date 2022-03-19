@@ -1,4 +1,5 @@
 from collections import deque
+from typing import List
 from config import config
 import random
 
@@ -35,7 +36,7 @@ class Playlist(IPlaylist):
         return self.__current
 
     @property
-    def songs_to_preload(self) -> list:
+    def songs_to_preload(self) -> List[Song]:
         return list(self.__queue)[:config.MAX_PRELOAD_SONGS]
 
     def __len__(self) -> int:
@@ -68,7 +69,6 @@ class Playlist(IPlaylist):
             return None
 
         self.__current = self.__queue.popleft()
-
         return self.__current
 
     def prev_song(self) -> Song:

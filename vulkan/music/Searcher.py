@@ -15,22 +15,22 @@ class Searcher():
         Arg -> User Input, a string with the 
         Return -> A list of musics names and Provider Type
         """
-        url_type = self.__identify_source(music)
+        provider = self.__identify_source(music)
 
-        if url_type == Provider.YouTube:
+        if provider == Provider.YouTube:
             return [music], Provider.YouTube
 
-        elif url_type == Provider.Spotify:
+        elif provider == Provider.Spotify:
             if self.__Spotify.connected == True:
                 musics = self.__Spotify.search(music)
                 return musics, Provider.Name
             else:
                 return [], Provider.Unknown
 
-        elif url_type == Provider.Name:
+        elif provider == Provider.Name:
             return [music], Provider.Name
 
-        elif url_type == Provider.Unknown:
+        elif provider == Provider.Unknown:
             return None, Provider.Unknown
 
     def __identify_source(self, music) -> Provider:
@@ -38,11 +38,10 @@ class Searcher():
         if not is_url(music):
             return Provider.Name
 
-        if "https://www.youtu" in music or "https://youtu.be" in music:
+        if "https://www.youtu" in music or "https://youtu.be" in music or "https://music.youtube" in music:
             return Provider.YouTube
 
         if "https://open.spotify.com" in music:
             return Provider.Spotify
 
-        # If no match
         return Provider.Unknown

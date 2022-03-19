@@ -1,75 +1,111 @@
 import asyncio
-import concurrent.futures
-
+from typing import List
 from config import config
 from yt_dlp import YoutubeDL
-from yt_dlp.utils import ExtractorError, DownloadError
-
+from concurrent.futures import ThreadPoolExecutor
 from vulkan.music.Song import Song
-from vulkan.music.utils import is_url
+from vulkan.music.utils import is_url, run_async
 
 
 class Downloader():
     """Download musics direct URL and title or Source from Youtube using a music name or Youtube URL"""
+    __YDL_OPTIONS = {'format': 'bestaudio/best',
+                     'default_search': 'auto',
+                     'playliststart': 0,
+                     'extract_flat': False,
+                     'playlistend': config.MAX_PLAYLIST_LENGTH,
+                     'quiet': True
+                     }
+    __YDL_OPTIONS_EXTRACT = {'format': 'bestaudio/best',
+                             'default_search': 'auto',
+                             'playliststart': 0,
+                             'extract_flat': True,
+                             'playlistend': config.MAX_PLAYLIST_LENGTH,
+                             'quiet': True
+                             }
+    __YDL_OPTIONS_FORCE_EXTRACT = {'format': 'bestaudio/best',
+                                   'default_search': 'auto',
+                                   'playliststart': 0,
+                                   'extract_flat': False,
+                                   'playlistend': config.MAX_PLAYLIST_LENGTH,
+                                   'quiet': True
+                                   }
+    __BASE_URL = 'https://www.youtube.com/watch?v={}'
 
     def __init__(self) -> None:
-        self.__YDL_OPTIONS = {'format': 'bestaudio/best',
-                              'default_search': 'auto',
-                              'playliststart': 0,
-                              'extract_flat': True,
-                              'playlistend': config.MAX_PLAYLIST_LENGTH,
-                              }
+        self.__music_keys_only = ['resolution', 'fps', 'quality']
+        self.__not_extracted_keys_only = ['ie_key']
+        self.__not_extracted_not_keys = ['entries']
+        self.__playlist_keys = ['entries']
 
-    def download_one(self, song: Song) -> Song:
+    async def finish_one_song(self, song: Song) -> Song:
         """Receives a song object, finish his download and return it"""
         if song.identifier == None:
             return None
 
-        if is_url(song.identifier):  # Youtube URL
+        if is_url(song.identifier):
             song_info = self.__download_url(song.identifier)
-        else:  # Song name
-            song_info = self.__download_title(song.identifier)
-
-        if song_info == None:
-            song.destroy()  # Destroy the music with problems
-            return None
         else:
-            song.finish_down(song_info)
-            return song
+            song_info = await self.__download_title(song.identifier)
 
-    def extract_youtube_link(self, playlist_url: str) -> list:
+        song.finish_down(song_info)
+        return song
+
+    async def preload(self, songs: List[Song]) -> None:
+        """Download the full info of the songs objects"""
+        for song in songs:
+            asyncio.ensure_future(self.__download_song(song))
+
+    @run_async
+    def extract_info(self, url: str) -> List[dict]:
         """Extract all songs direct URL from a Youtube Link
 
         Arg: Url String
         Return: List with the direct youtube URL of each song
         """
-        if is_url(playlist_url):  # If Url
-            options = self.__YDL_OPTIONS
-            options['extract_flat'] = True
-
+        if is_url(url):  # If Url
+            options = Downloader.__YDL_OPTIONS_EXTRACT
+            options['extract_flat'] = False
             with YoutubeDL(options) as ydl:
                 try:
-                    result = ydl.extract_info(playlist_url, download=False)
-                    songs_identifiers = []
+                    print('Normal Extraction')
+                    print('A')
+                    extracted_info = ydl.extract_info(url, download=False)
+                    print('B')
+                    if self.__failed_to_extract(extracted_info):
+                        print('Forcing Extraction')
+                        extracted_info = self.__get_forced_extracted_info(url)
 
-                    if result.get('entries'):  # If got a dict of musics
-                        for entry in result['entries']:
-                            songs_identifiers.append(
-                                f"https://www.youtube.com/watch?v={entry['id']}")
+                    if self.__is_music(extracted_info):
+                        print('Is Music')
+                        return [extracted_info['original_url']]
 
-                    else:  # Or a single music
-                        songs_identifiers.append(result['original_url'])
+                    elif self.__is_multiple_musics(extracted_info):
+                        print('Multiple Musics')
+                        songs = []
+                        for song in extracted_info['entries']:
+                            songs.append(self.__BASE_URL.format(song['id']))
+                        return songs
 
-                    return songs_identifiers  # Return a list
-                except (ExtractorError, DownloadError) as e:
+                    else:  # Failed to extract the songs
+                        print(f'DEVELOPER NOTE -> Failed to Extract URL {url}')
+                        return []
+                except Exception as e:
+                    print(f'DEVELOPER NOTE -> Error Extracting Music: {e}')
                     return None
         else:
-            return None
+            return []
 
-    async def preload(self, songs: list) -> None:
-        """Download the full info of the song object"""
-        for song in songs:
-            asyncio.ensure_future(self.__download_songs(song))
+    def __get_forced_extracted_info(self, url: str) -> list:
+        options = Downloader.__YDL_OPTIONS_FORCE_EXTRACT
+        with YoutubeDL(options) as ydl:
+            try:
+                extracted_info = ydl.extract_info(url, download=False)
+                return extracted_info
+
+            except Exception as e:
+                print(f'DEVELOPER NOTE -> Error Forcing Extract Music: {e}')
+                return []
 
     def __download_url(self, url) -> dict:
         """Download musics full info and source from Music URL
@@ -77,62 +113,79 @@ class Downloader():
         Arg: URL from Youtube 
         Return: Dict with the full youtube information of the music, including source to play it
         """
-        options = self.__YDL_OPTIONS
-        options['extract_flat'] = False
-
+        options = Downloader.__YDL_OPTIONS
         with YoutubeDL(options) as ydl:
             try:
                 result = ydl.extract_info(url, download=False)
 
                 return result
-            except (ExtractorError, DownloadError) as e:  # Any type of error in download
+            except Exception as e:  # Any type of error in download
+                print(f'DEVELOPER NOTE -> Error Downloading URL {e}')
                 return None
 
-    async def __download_songs(self, song: Song) -> None:
+    async def __download_song(self, song: Song) -> None:
         """Download a music object asynchronously"""
-        if song.source != None:  # If Music already preloaded
-            return
+        if song.source is not None:  # If Music already preloaded
+            return None
 
-        def download_song(song):
-            if is_url(song.identifier):  # Youtube URL
+        def __download_func(song: Song) -> None:
+            if is_url(song.identifier):
                 song_info = self.__download_url(song.identifier)
-            else:  # Song name
-                song_info = self.__download_title(song.identifier)
-
-            if song_info == None:
-                song.destroy()  # Remove the song with problems from the playlist
             else:
-                song.finish_down(song_info)
+                song_info = self.__download_title(song.identifier)
+            song.finish_down(song_info)
 
         # Creating a loop task to download each song
         loop = asyncio.get_event_loop()
-        executor = concurrent.futures.ThreadPoolExecutor(
-            max_workers=config.MAX_PRELOAD_SONGS
-        )
-        await asyncio.wait(fs={loop.run_in_executor(executor, download_song, song)},
-                           return_when=asyncio.ALL_COMPLETED)
+        executor = ThreadPoolExecutor(max_workers=config.MAX_PRELOAD_SONGS)
+        fs = {loop.run_in_executor(executor, __download_func, song)}
+        await asyncio.wait(fs=fs, return_when=asyncio.ALL_COMPLETED)
 
+    @run_async
     def __download_title(self, title: str) -> dict:
         """Download a music full information using his name.
 
         Arg: Music Name
         Return: A dict containing the song information
         """
-        if type(title) != str:
-            return None
-
-        config = self.__YDL_OPTIONS
-        config['extract_flat'] = False
-
-        with YoutubeDL(self.__YDL_OPTIONS) as ydl:
+        options = Downloader.__YDL_OPTIONS
+        with YoutubeDL(options) as ydl:
             try:
-                search = f"ytsearch:{title}"
-                result = ydl.extract_info(search, download=False)
+                search = f'ytsearch:{title}'
+                extracted_info = ydl.extract_info(search, download=False)
 
-                if result == None:
-                    return None
+                if self.__failed_to_extract(extracted_info):
+                    self.__get_forced_extracted_info(extracted_info)
 
-                # Return a dict with the full info of first music
-                return result['entries'][0]
+                if self.__is_multiple_musics(extracted_info):
+                    return extracted_info['entries'][0]
+                else:
+                    print(f'DEVELOPER NOTE -> Failed to extract title {title}')
+                    return {}
             except Exception as e:
-                return None
+                print(f'DEVELOPER NOTE -> Error downloading title {title}: {e}')
+                return {}
+
+    def __is_music(self, extracted_info: dict) -> bool:
+        for key in self.__music_keys_only:
+            if key not in extracted_info.keys():
+                return False
+        return True
+
+    def __is_multiple_musics(self, extracted_info: dict) -> bool:
+        for key in self.__playlist_keys:
+            if key not in extracted_info.keys():
+                return False
+        return True
+
+    def __failed_to_extract(self, extracted_info: dict) -> bool:
+        if type(extracted_info) is not dict:
+            return False
+
+        for key in self.__not_extracted_keys_only:
+            if key not in extracted_info.keys():
+                return False
+        for key in self.__not_extracted_not_keys:
+            if key in extracted_info.keys():
+                return False
+        return True

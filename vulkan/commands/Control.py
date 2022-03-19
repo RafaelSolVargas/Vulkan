@@ -59,7 +59,7 @@ class Control(commands.Cog):
             if not my_error:
                 raise error
         else:
-            print(error)
+            print(f'DEVELOPER NOTE -> Comand Error: {error}')
             embed = discord.Embed(
                 title=config.ERROR_TITLE,
                 description=config.UNKNOWN_ERROR,

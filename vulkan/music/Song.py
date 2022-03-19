@@ -13,16 +13,24 @@ class Song(ISong):
 
     def finish_down(self, info: dict) -> None:
         """Get and store the full information of the song"""
-        self.__usefull_keys = ['url', 'duration',
+        self.__usefull_keys = ['duration',
                                'title', 'webpage_url',
                                'channel', 'id', 'uploader',
                                'thumbnail', 'original_url']
+        self.__required_keys = ['url']
+
+        for key in self.__required_keys:
+            if key in info:
+                self.__info[key] = info[key]
+            else:
+                print(f'DEVELOPER NOTE -> {key} not found in info of music: {self.identifier}')
+                self.destroy()
 
         for key in self.__usefull_keys:
-            try:
+            if key in info:
                 self.__info[key] = info[key]
-            except Exception as e:
-                raise e
+            else:
+                print(f'DEVELOPER NOTE -> {key} not found in info of music: {self.identifier}')
 
     @property
     def source(self) -> str:
@@ -58,6 +66,7 @@ class Song(ISong):
 
     def destroy(self) -> None:
         """Mark this song with problems and removed from the playlist due to any type of error"""
+        print(f'DEVELOPER NOTE -> Music self destroying {self.__identifier}')
         self.__problematic = True
         self.__playlist.destroy_song(self)
 

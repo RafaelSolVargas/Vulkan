@@ -1,8 +1,8 @@
-import discord
 from discord.ext import commands
 from config import config
-import datetime
-
+from discord import Client, Guild, FFmpegPCMAudio, Embed
+from discord.ext.commands import Context
+from datetime import timedelta
 from vulkan.music.Downloader import Downloader
 from vulkan.music.Playlist import Playlist
 from vulkan.music.Searcher import Searcher
@@ -12,24 +12,22 @@ from vulkan.music.utils import *
 
 
 class Player(commands.Cog):
-    def __init__(self, bot, guild):
+    def __init__(self, bot: Client, guild: Guild):
         self.__searcher: Searcher = Searcher()
         self.__down: Downloader = Downloader()
         self.__playlist: Playlist = Playlist()
-        self.__bot: discord.Client = bot
-        self.__guild: discord.Guild = guild
+        self.__bot: Client = bot
+        self.__guild: Guild = guild
 
         self.__timer = Timer(self.__timeout_handler)
         self.__playing = False
 
         # Flag to control if the player should stop totally the playing
         self.__force_stop = False
-
-        self.YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
 
-    async def connect(self, ctx) -> bool:
+    async def connect(self, ctx: Context) -> bool:
         if not ctx.author.voice:
             return False
 
@@ -37,10 +35,10 @@ class Player(commands.Cog):
             await ctx.author.voice.channel.connect(reconnect=True, timeout=None)
             return True
 
-    def __play_next(self, error, ctx) -> None:
+    def __play_next(self, error, ctx: Context) -> None:
         if self.__force_stop:  # If it's forced to stop player
             self.__force_stop = False
-            return
+            return None
 
         song = self.__playlist.next_song()
 
@@ -50,7 +48,7 @@ class Player(commands.Cog):
         else:
             self.__playing = False
 
-    async def __play_music(self, ctx, song: Song) -> None:
+    async def __play_music(self, ctx: Context, song: Song) -> None:
         try:
             source = self.__ensure_source(song)
             if source == None:
@@ -58,7 +56,7 @@ class Player(commands.Cog):
 
             self.__playing = True
 
-            player = discord.FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
+            player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
             self.__guild.voice_client.play(
                 player, after=lambda e: self.__play_next(e, ctx))
 
@@ -72,30 +70,29 @@ class Player(commands.Cog):
         except:
             self.__play_next(None, ctx)
 
-    async def play(self, ctx, track=str, requester=str) -> str:
+    async def play(self, ctx: Context, track: str, requester: str) -> str:
         try:
-            songs_names, provider = self.__searcher.search(track)
-            if provider == Provider.Unknown or songs_names == None:
-                embed = discord.Embed(
+            links, provider = self.__searcher.search(track)
+            if provider == Provider.Unknown or links == None:
+                embed = Embed(
                     title=config.ERROR_TITLE,
                     description=config.INVALID_INPUT,
                     colours=config.COLOURS['blue'])
                 await ctx.send(embed=embed)
-                return
+                return None
 
-            elif provider == Provider.YouTube:
-                songs_names = self.__down.extract_youtube_link(songs_names[0])
+            if provider == Provider.YouTube:
+                links = await self.__down.extract_info(links[0])
 
-            songs_quant = 0
-            for name in songs_names:
-                song = self.__playlist.add_song(name, requester)
-                songs_quant += 1
+            songs_quant = len(links)
+            for info in links:
+                song = self.__playlist.add_song(info, requester)
 
             songs_preload = self.__playlist.songs_to_preload
             await self.__down.preload(songs_preload)
-
-        except:
-            embed = discord.Embed(
+        except Exception as e:
+            print(f'DEVELOPER NOTE -> Error while Downloading in Player: {e}')
+            embed = Embed(
                 title=config.ERROR_TITLE,
                 description=config.DOWNLOADING_ERROR,
                 colours=config.COLOURS['blue'])
@@ -103,18 +100,18 @@ class Player(commands.Cog):
             return
 
         if songs_quant == 1:
-            song = self.__down.download_one(song)
+            song = await self.__down.finish_one_song(song)
             pos = len(self.__playlist)
 
-            if song == None:
-                embed = discord.Embed(
+            if song.problematic:
+                embed = Embed(
                     title=config.ERROR_TITLE,
                     description=config.DOWNLOADING_ERROR,
                     colours=config.COLOURS['blue'])
                 await ctx.send(embed=embed)
-                return
+                return None
             elif not self.__playing:
-                embed = discord.Embed(
+                embed = Embed(
                     title=config.SONG_PLAYER,
                     description=config.SONG_ADDED.format(song.title),
                     colour=config.COLOURS['blue'])
@@ -123,7 +120,7 @@ class Player(commands.Cog):
                 embed = self.__format_embed(song.info, config.SONG_ADDED_TWO, pos)
                 await ctx.send(embed=embed)
         else:
-            embed = discord.Embed(
+            embed = Embed(
                 title=config.SONG_PLAYER,
                 description=config.SONGS_ADDED.format(songs_quant),
                 colour=config.COLOURS['blue'])
@@ -133,20 +130,20 @@ class Player(commands.Cog):
             first_song = self.__playlist.next_song()
             await self.__play_music(ctx, first_song)
 
-    async def play_prev(self, ctx) -> None:
+    async def play_prev(self, ctx: Context) -> None:
         """Stop the currently playing cycle, load the previous song and play"""
         if self.__playlist.looping_one or self.__playlist.looping_all:  # Do not allow play if loop
-            embed = discord.Embed(
+            embed = Embed(
                 title=config.SONG_PLAYER,
                 description=config.LOOP_ON,
                 colour=config.COLOURS['blue']
             )
             await ctx.send(embed=embed)
-            return
+            return None
 
         song = self.__playlist.prev_song()  # Prepare the prev song to play again
         if song == None:
-            embed = discord.Embed(
+            embed = Embed(
                 title=config.SONG_PLAYER,
                 description=config.NOT_PREVIOUS,
                 colour=config.COLOURS['blue']
@@ -161,7 +158,7 @@ class Player(commands.Cog):
 
             await self.__play_music(ctx, song)
 
-    async def queue(self) -> discord.Embed:
+    async def queue(self) -> Embed:
         if self.__playlist.looping_one:
             info = self.__playlist.current.info
             title = config.ONE_SONG_LOOPING
@@ -191,7 +188,7 @@ class Player(commands.Cog):
                 song_name = song.title if song.title else config.SONG_DOWNLOADING
                 text += f"**`{pos}` - ** {song_name} - `{format_time(song.duration)}`\n"
 
-        embed = discord.Embed(
+        embed = Embed(
             title=title,
             description=text,
             colour=config.COLOURS['blue']
@@ -199,9 +196,9 @@ class Player(commands.Cog):
 
         return embed
 
-    async def skip(self, ctx) -> bool:
+    async def skip(self, ctx: Context) -> bool:
         if self.__playlist.looping_one:
-            embed = discord.Embed(
+            embed = Embed(
                 title=config.SONG_PLAYER,
                 description=config.LOOP_ON,
                 colour=config.COLOURS['blue']
@@ -215,7 +212,7 @@ class Player(commands.Cog):
         else:
             return False
 
-    def history(self) -> discord.Embed:
+    def history(self) -> Embed:
         history = self.__playlist.songs_history
 
         if len(history) == 0:
@@ -226,7 +223,7 @@ class Player(commands.Cog):
             for pos, song in enumerate(history, start=1):
                 text += f"**`{pos}` - ** {song.title} - `{format_time(song.duration)}`\n"
 
-        embed = discord.Embed(
+        embed = Embed(
             title=config.HISTORY_TITLE,
             description=text,
             colour=config.COLOURS['blue']
@@ -234,7 +231,7 @@ class Player(commands.Cog):
         return embed
 
     async def stop(self) -> bool:
-        if self.__guild.voice_client == None:
+        if self.__guild.voice_client is None:
             return False
 
         if self.__guild.voice_client.is_connected():
@@ -246,6 +243,9 @@ class Player(commands.Cog):
 
     async def force_stop(self) -> None:
         try:
+            if self.__guild.voice_client is None:
+                return
+
             self.__guild.voice_client.stop()
             await self.__guild.voice_client.disconnect()
             self.__playlist.clear()
@@ -288,9 +288,9 @@ class Player(commands.Cog):
     async def clear(self) -> None:
         self.__playlist.clear()
 
-    async def now_playing(self) -> discord.Embed:
+    async def now_playing(self) -> Embed:
         if not self.__playing:
-            embed = discord.Embed(
+            embed = Embed(
                 title=config.SONG_PLAYER,
                 description=config.PLAYER_NOT_PLAYING,
                 colour=config.COLOURS['blue']
@@ -348,9 +348,9 @@ class Player(commands.Cog):
         result = self.__playlist.remove_song(position)
         return result
 
-    def __format_embed(self, info: dict, title='', position='Playing Now') -> discord.Embed:
+    def __format_embed(self, info: dict, title='', position='Playing Now') -> Embed:
         """Configure the embed to show the song information"""
-        embedvc = discord.Embed(
+        embedvc = Embed(
             title=title,
             description=f"[{info['title']}]({info['original_url']})",
             color=config.COLOURS['blue']
@@ -368,7 +368,7 @@ class Player(commands.Cog):
             embedvc.set_thumbnail(url=info['thumbnail'])
 
         if 'duration' in info.keys():
-            duration = str(datetime.timedelta(seconds=info['duration']))
+            duration = str(timedelta(seconds=info['duration']))
             embedvc.add_field(name=config.SONGINFO_DURATION,
                               value=f"{duration}",
                               inline=True)

@@ -3,3 +3,4 @@ discord.py[voice]
 python-decouple==3.5
 spotipy==2.19.0
 yt-dlp==2021.12.1
+typing_extensions==4.0.1
