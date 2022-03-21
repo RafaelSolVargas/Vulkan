@@ -84,9 +84,18 @@ class Player(commands.Cog):
             if provider == Provider.YouTube:
                 links = await self.__down.extract_info(links[0])
 
-            songs_quant = len(links)
+            if len(links) == 0:
+                embed = Embed(
+                    title=config.ERROR_TITLE,
+                    description="This video is unavailable",
+                    colours=config.COLOURS['blue'])
+                await ctx.send(embed=embed)
+                return None
+
+            songs_quant = 0
             for info in links:
                 song = self.__playlist.add_song(info, requester)
+                songs_quant += 1
 
             songs_preload = self.__playlist.songs_to_preload
             await self.__down.preload(songs_preload)
@@ -100,7 +109,7 @@ class Player(commands.Cog):
             return
 
         if songs_quant == 1:
-            song = await self.__down.finish_one_song(song)
+            song = self.__down.finish_one_song(song)
             pos = len(self.__playlist)
 
             if song.problematic:

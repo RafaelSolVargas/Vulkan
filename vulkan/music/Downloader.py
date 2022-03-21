@@ -14,21 +14,18 @@ class Downloader():
                      'playliststart': 0,
                      'extract_flat': False,
                      'playlistend': config.MAX_PLAYLIST_LENGTH,
-                     'quiet': True
                      }
     __YDL_OPTIONS_EXTRACT = {'format': 'bestaudio/best',
                              'default_search': 'auto',
                              'playliststart': 0,
                              'extract_flat': True,
                              'playlistend': config.MAX_PLAYLIST_LENGTH,
-                             'quiet': True
                              }
     __YDL_OPTIONS_FORCE_EXTRACT = {'format': 'bestaudio/best',
                                    'default_search': 'auto',
                                    'playliststart': 0,
                                    'extract_flat': False,
                                    'playlistend': config.MAX_PLAYLIST_LENGTH,
-                                   'quiet': True
                                    }
     __BASE_URL = 'https://www.youtube.com/watch?v={}'
 
@@ -38,7 +35,7 @@ class Downloader():
         self.__not_extracted_not_keys = ['entries']
         self.__playlist_keys = ['entries']
 
-    async def finish_one_song(self, song: Song) -> Song:
+    def finish_one_song(self, song: Song) -> Song:
         """Receives a song object, finish his download and return it"""
         if song.identifier == None:
             return None
@@ -46,7 +43,7 @@ class Downloader():
         if is_url(song.identifier):
             song_info = self.__download_url(song.identifier)
         else:
-            song_info = await self.__download_title(song.identifier)
+            song_info = self.__download_title(song.identifier)
 
         song.finish_down(song_info)
         return song
@@ -65,23 +62,16 @@ class Downloader():
         """
         if is_url(url):  # If Url
             options = Downloader.__YDL_OPTIONS_EXTRACT
-            options['extract_flat'] = False
             with YoutubeDL(options) as ydl:
                 try:
-                    print('Normal Extraction')
-                    print('A')
                     extracted_info = ydl.extract_info(url, download=False)
-                    print('B')
                     if self.__failed_to_extract(extracted_info):
-                        print('Forcing Extraction')
                         extracted_info = self.__get_forced_extracted_info(url)
 
                     if self.__is_music(extracted_info):
-                        print('Is Music')
                         return [extracted_info['original_url']]
 
                     elif self.__is_multiple_musics(extracted_info):
-                        print('Multiple Musics')
                         songs = []
                         for song in extracted_info['entries']:
                             songs.append(self.__BASE_URL.format(song['id']))
@@ -92,7 +82,7 @@ class Downloader():
                         return []
                 except Exception as e:
                     print(f'DEVELOPER NOTE -> Error Extracting Music: {e}')
-                    return None
+                    raise
         else:
             return []
 
@@ -141,7 +131,6 @@ class Downloader():
         fs = {loop.run_in_executor(executor, __download_func, song)}
         await asyncio.wait(fs=fs, return_when=asyncio.ALL_COMPLETED)
 
-    @run_async
     def __download_title(self, title: str) -> dict:
         """Download a music full information using his name.
 
