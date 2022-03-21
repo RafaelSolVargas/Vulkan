@@ -27,6 +27,10 @@ class Player(commands.Cog):
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
 
+    @property
+    def playlist(self) -> Playlist:
+        return self.__playlist
+
     async def connect(self, ctx: Context) -> bool:
         if not ctx.author.voice:
             return False

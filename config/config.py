@@ -4,7 +4,7 @@ BOT_TOKEN = config('BOT_TOKEN')
 SPOTIFY_ID = config('SPOTIFY_ID')
 SPOTIFY_SECRET = config('SPOTIFY_SECRET')
 
-BOT_PREFIX = '!'
+BOT_PREFIX = '$'
 VC_TIMEOUT = 600
 
 STARTUP_MESSAGE = 'Starting Vulkan...'

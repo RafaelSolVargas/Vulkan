@@ -6,6 +6,7 @@ from config import config
 from config import help
 from vulkan.music.Player import Player
 from vulkan.music.utils import is_connected
+from vulkan.controllers.SkipController import SkipHandler
 
 
 class Music(commands.Cog):
@@ -65,14 +66,15 @@ class Music(commands.Cog):
 
     @commands.command(name="skip", help=help.HELP_SKIP, description=help.HELP_SKIP_LONG, aliases=['s', 'pular'])
     async def skip(self, ctx: Context) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
-        else:
-            await player.skip(ctx)
+        print(ctx.bot == self.__bot)
+
+        handler = SkipHandler(ctx, self.__bot)
+        await handler.run()
 
     @commands.command(name='stop', help=help.HELP_STOP, description=help.HELP_STOP_LONG, aliases=['parar'])
     async def stop(self, ctx: Context) -> None:
+        print(ctx.bot == self.__bot)
+
         player = self.__get_player(ctx)
         if player is None:
             return
