@@ -1,15 +1,15 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from config.Config import Config
+from Config.Config import Config
 
 
 class SpotifySearch():
     """Search a Spotify music or playlist and return the musics names"""
 
     def __init__(self) -> None:
+        self.__config = Config()
         self.__connected = False
         self.__connect()
-        self.__config = Config()
 
     @property
     def connected(self):
@@ -19,10 +19,11 @@ class SpotifySearch():
         try:
             # Initialize the connection with Spotify API
             self.__api = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
-                client_id=Config.SPOTIFY_ID, client_secret=self.__config.SPOTIFY_SECRET))
+                client_id=self.__config.SPOTIFY_ID, client_secret=self.__config.SPOTIFY_SECRET))
             self.__connected = True
             return True
-        except:
+        except Exception as e:
+            print(f'DEVELOPER NOTE -> Spotify Connection {e}')
             return False
 
     def search(self, music=str) -> list:

@@ -2,9 +2,10 @@ from Vulkan.Views.AbstractView import AbstractView
 from Vulkan.Controllers.ControllerResponse import ControllerResponse
 
 
-class MessageView(AbstractView):
+class EmbedView(AbstractView):
     def __init__(self, response: ControllerResponse) -> None:
         super().__init__(response)
 
     async def run(self) -> None:
-        return super().run()
+        if self.response.embed:
+            await self.context.send(embed=self.response.embed)

@@ -2,11 +2,14 @@ from typing import Dict
 from discord import Guild, Client, Embed
 from discord.ext import commands
 from discord.ext.commands import Context
-from config.Config import Config
-from config.Helper import Helper
-from vulkan.music.Player import Player
-from vulkan.music.utils import is_connected
-from vulkan.controllers.SkipController import SkipHandler
+from Config.Config import Config
+from Config.Helper import Helper
+from Vulkan.Music.Player import Player
+from Vulkan.Music.utils import is_connected
+from Vulkan.Controllers.SkipController import SkipController
+from Vulkan.Views.EmoteView import EmoteView
+from Vulkan.Views.EmbedView import EmbedView
+
 
 helper = Helper()
 
@@ -69,8 +72,15 @@ class Music(commands.Cog):
 
     @commands.command(name="skip", help=helper.HELP_SKIP, description=helper.HELP_SKIP_LONG, aliases=['s', 'pular'])
     async def skip(self, ctx: Context) -> None:
-        handler = SkipHandler(ctx, self.__bot)
-        await handler.run()
+        controller = SkipController(ctx, self.__bot)
+
+        response = await controller.run()
+        if response.success:
+            view = EmoteView(response)
+        else:
+            view = EmbedView(response)
+
+        await view.run()
 
     @commands.command(name='stop', help=helper.HELP_STOP, description=helper.HELP_STOP_LONG, aliases=['parar'])
     async def stop(self, ctx: Context) -> None:

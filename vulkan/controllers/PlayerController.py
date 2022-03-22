@@ -1,7 +1,7 @@
 from typing import Dict, List, Union
-from config.Singleton import Singleton
+from Config.Singleton import Singleton
 from discord import Guild, Client, VoiceClient
-from vulkan.music.Player import Player
+from Vulkan.Music.Player import Player
 
 
 class PlayersController(Singleton):

@@ -1,8 +1,8 @@
 from random import randint, random
 import discord
 from discord.ext import commands
-from config.Config import Config
-from config.Helper import Helper
+from Config.Config import Config
+from Config.Helper import Helper
 
 helper = Helper()
 

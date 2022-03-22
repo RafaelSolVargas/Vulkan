@@ -1,10 +1,10 @@
 import asyncio
 from typing import List
-from config.Config import Config
+from Config.Config import Config
 from yt_dlp import YoutubeDL
 from concurrent.futures import ThreadPoolExecutor
-from vulkan.music.Song import Song
-from vulkan.music.utils import is_url, run_async
+from Vulkan.Music.Song import Song
+from Vulkan.Music.utils import is_url, run_async
 
 
 class Downloader():

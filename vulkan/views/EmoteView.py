@@ -1,10 +1,14 @@
-from vulkan.views.AbstractView import AbstractView
-from vulkan.results import AbstractResult
+from Vulkan.Views.AbstractView import AbstractView
+from Vulkan.Controllers.ControllerResponse import ControllerResponse
 
 
 class EmoteView(AbstractView):
-    def __init__(self, result: AbstractResult) -> None:
-        super().__init__(result)
 
-    def run(self) -> None:
-        return super().run()
+    def __init__(self, response: ControllerResponse) -> None:
+        super().__init__(response)
+
+    async def run(self) -> None:
+        if self.response.success:
+            await self.message.add_reaction('✅')
+        else:
+            await self.message.add_reaction('❌')

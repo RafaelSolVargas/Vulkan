@@ -1,14 +1,14 @@
 from discord.ext import commands
-from config.Config import Config
+from Config.Config import Config
 from discord import Client, Guild, FFmpegPCMAudio, Embed
 from discord.ext.commands import Context
 from datetime import timedelta
-from vulkan.music.Downloader import Downloader
-from vulkan.music.Playlist import Playlist
-from vulkan.music.Searcher import Searcher
-from vulkan.music.Song import Song
-from vulkan.music.Types import Provider
-from vulkan.music.utils import *
+from Vulkan.Music.Downloader import Downloader
+from Vulkan.Music.Playlist import Playlist
+from Vulkan.Music.Searcher import Searcher
+from Vulkan.Music.Song import Song
+from Vulkan.Music.Types import Provider
+from Vulkan.Music.utils import *
 
 
 class Player(commands.Cog):
@@ -21,7 +21,7 @@ class Player(commands.Cog):
 
         self.__timer = Timer(self.__timeout_handler)
         self.__playing = False
-        self.__config = Config.Config()
+        self.__config = Config()
 
         # Flag to control if the player should stop totally the playing
         self.__force_stop = False
@@ -209,22 +209,6 @@ class Player(commands.Cog):
         )
 
         return embed
-
-    async def skip(self, ctx: Context) -> bool:
-        if self.__playlist.looping_one:
-            embed = Embed(
-                title=self.__config.SONG_PLAYER,
-                description=self.__config.LOOP_ON,
-                colour=self.__config.COLOURS['blue']
-            )
-            await ctx.send(embed=embed)
-            return False
-
-        if self.__guild.voice_client != None:
-            self.__guild.voice_client.stop()
-            return True
-        else:
-            return False
 
     def history(self) -> Embed:
         history = self.__playlist.songs_history

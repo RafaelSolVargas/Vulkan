@@ -1,10 +1,9 @@
 from collections import deque
 from typing import List
-from config.Config import Config
+from Config.Config import Config
+from Vulkan.Music.Interfaces import IPlaylist
+from Vulkan.Music.Song import Song
 import random
-
-from vulkan.music.Interfaces import IPlaylist
-from vulkan.music.Song import Song
 
 
 class Playlist(IPlaylist):

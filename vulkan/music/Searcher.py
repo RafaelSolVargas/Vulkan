@@ -1,6 +1,6 @@
-from vulkan.music.Types import Provider
-from vulkan.music.Spotify import SpotifySearch
-from vulkan.music.utils import is_url
+from Vulkan.Music.Types import Provider
+from Vulkan.Music.Spotify import SpotifySearch
+from Vulkan.Music.utils import is_url
 
 
 class Searcher():
@@ -16,6 +16,7 @@ class Searcher():
         Return -> A list of musics names and Provider Type
         """
         provider = self.__identify_source(music)
+        print(provider)
 
         if provider == Provider.YouTube:
             return [music], Provider.YouTube
@@ -25,6 +26,7 @@ class Searcher():
                 musics = self.__Spotify.search(music)
                 return musics, Provider.Name
             else:
+                print('Spotify Not Connected')
                 return [], Provider.Unknown
 
         elif provider == Provider.Name:

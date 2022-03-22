@@ -1,5 +1,5 @@
 from decouple import config
-from config.Singleton import Singleton
+from Config.Singleton import Singleton
 
 
 class Config(Singleton):
@@ -77,11 +77,13 @@ class Config(Singleton):
             self.MY_ERROR_BAD_COMMAND = 'This string serves to verify if some error was raised by myself on purpose'
             self.BAD_COMMAND_TITLE = 'Misuse of command'
             self.BAD_COMMAND = f'❌ Bad usage of this command, type {self.BOT_PREFIX}help "command" to understand the command better'
+            self.INVITE_URL = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'
+            self.VIDEO_UNAVAILABLE = '❌ Sorry. This video is unavailable for download.'
 
-            self.COLOURS = {
-                'red': 0xDC143C,
-                'green': 0x1F8B4C,
-                'grey': 0x708090,
-                'blue': 0x206694,
-                'black': 0x23272A
-            }
+        self.COLOURS = {
+            'red': 0xDC143C,
+            'green': 0x1F8B4C,
+            'grey': 0x708090,
+            'blue': 0x206694,
+            'black': 0x23272A
+        }

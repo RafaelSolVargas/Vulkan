@@ -2,8 +2,8 @@ import discord
 from discord import Client
 from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument, UserInputError
 from discord.ext import commands
-from config.Config import Config
-from config.Helper import Helper
+from Config.Config import Config
+from Config.Helper import Helper
 
 helper = Helper()
 

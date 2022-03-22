@@ -1,5 +1,5 @@
-from config.Singleton import Singleton
-from config.Config import Config
+from Config.Singleton import Singleton
+from Config.Config import Config
 
 
 class Helper(Singleton):
