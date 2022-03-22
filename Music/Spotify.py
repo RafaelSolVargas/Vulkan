@@ -1,13 +1,13 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from Config.Config import Config
+from Config.Config import Configs
 
 
 class SpotifySearch():
     """Search a Spotify music or playlist and return the musics names"""
 
     def __init__(self) -> None:
-        self.__config = Config()
+        self.__config = Configs()
         self.__connected = False
         self.__connect()
 

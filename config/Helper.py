@@ -1,11 +1,11 @@
 from Config.Singleton import Singleton
-from Config.Config import Config
+from Config.Config import Configs
 
 
 class Helper(Singleton):
     def __init__(self) -> None:
         if not super().created:
-            config = Config()
+            config = Configs()
             self.HELP_SKIP = 'Skip the current playing song.'
             self.HELP_SKIP_LONG = 'Skip the playing of the current song, does not work if loop one is activated. \n\nArguments: None.'
             self.HELP_RESUME = 'Resumes the song player.'

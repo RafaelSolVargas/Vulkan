@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from discord.ext.commands import Context
 from discord import Client, Guild
-from Vulkan.Controllers.PlayerController import PlayersController
-from Vulkan.Music.Player import Player
-from Vulkan.Controllers.ControllerResponse import ControllerResponse
-from Config.Config import Config
+from Controllers.PlayerController import PlayersController
+from Music.Player import Player
+from Controllers.ControllerResponse import ControllerResponse
+from Config.Config import Configs
 from Config.Helper import Helper
-from Vulkan.Views.Embeds.Embeds import Embeds
+from Views.Embeds import Embeds
 
 
 class AbstractController(ABC):
@@ -16,7 +16,7 @@ class AbstractController(ABC):
         self.__player: Player = self.__controller.get_player(ctx.guild)
         self.__guild: Guild = ctx.guild
         self.__ctx: Context = ctx
-        self.__config = Config()
+        self.__config = Configs()
         self.__helper = Helper()
         self.__embeds = Embeds()
 
@@ -41,7 +41,7 @@ class AbstractController(ABC):
         return self.__bot
 
     @property
-    def config(self) -> Config:
+    def config(self) -> Configs:
         return self.__config
 
     @property

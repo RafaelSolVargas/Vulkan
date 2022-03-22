@@ -2,13 +2,13 @@ from typing import Dict
 from discord import Guild, Client, Embed
 from discord.ext import commands
 from discord.ext.commands import Context
-from Config.Config import Config
+from Config.Config import Configs
 from Config.Helper import Helper
-from Vulkan.Music.Player import Player
-from Vulkan.Music.utils import is_connected
-from Vulkan.Controllers.SkipController import SkipController
-from Vulkan.Views.EmoteView import EmoteView
-from Vulkan.Views.EmbedView import EmbedView
+from Music.Player import Player
+from Music.utils import is_connected
+from Controllers.SkipController import SkipController
+from Views.EmoteView import EmoteView
+from Views.EmbedView import EmbedView
 
 
 helper = Helper()
@@ -18,7 +18,7 @@ class Music(commands.Cog):
     def __init__(self, bot) -> None:
         self.__guilds: Dict[Guild, Player] = {}
         self.__bot: Client = bot
-        self.__config = Config()
+        self.__config = Configs()
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -197,7 +197,7 @@ class Music(commands.Cog):
             player = self.__get_player(ctx)
             await player.force_stop()
         except Exception as e:
-            print(f'Reset Error: {e}')
+            print(f'DEVELOPER NOTE -> Reset Error: {e}')
 
         self.__guilds[ctx.guild] = Player(self.__bot, ctx.guild)
         player = self.__get_player(ctx)

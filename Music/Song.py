@@ -1,4 +1,4 @@
-from Vulkan.Music.Interfaces import ISong, IPlaylist
+from Music.Interfaces import ISong, IPlaylist
 
 
 class Song(ISong):

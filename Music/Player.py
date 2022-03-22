@@ -1,14 +1,14 @@
 from discord.ext import commands
-from Config.Config import Config
+from Config.Config import Configs
 from discord import Client, Guild, FFmpegPCMAudio, Embed
 from discord.ext.commands import Context
 from datetime import timedelta
-from Vulkan.Music.Downloader import Downloader
-from Vulkan.Music.Playlist import Playlist
-from Vulkan.Music.Searcher import Searcher
-from Vulkan.Music.Song import Song
-from Vulkan.Music.Types import Provider
-from Vulkan.Music.utils import *
+from Music.Downloader import Downloader
+from Music.Playlist import Playlist
+from Music.Searcher import Searcher
+from Music.Song import Song
+from Music.Types import Provider
+from Music.utils import *
 
 
 class Player(commands.Cog):
@@ -21,7 +21,7 @@ class Player(commands.Cog):
 
         self.__timer = Timer(self.__timeout_handler)
         self.__playing = False
-        self.__config = Config()
+        self.__config = Configs()
 
         # Flag to control if the player should stop totally the playing
         self.__force_stop = False
@@ -249,7 +249,7 @@ class Player(commands.Cog):
             self.__playlist.clear()
             self.__playlist.loop_off()
         except Exception as e:
-            print(f'Force Stop Error: {e}')
+            print(f'DEVELOPER NOTE -> Force Stop Error: {e}')
 
     async def pause(self) -> bool:
         if self.__guild.voice_client == None:

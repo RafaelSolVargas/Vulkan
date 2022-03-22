@@ -1,15 +1,15 @@
 import asyncio
 from typing import List
-from Config.Config import Config
+from Config.Config import Configs
 from yt_dlp import YoutubeDL
 from concurrent.futures import ThreadPoolExecutor
-from Vulkan.Music.Song import Song
-from Vulkan.Music.utils import is_url, run_async
+from Music.Song import Song
+from Music.utils import is_url, run_async
 
 
 class Downloader():
     """Download musics direct URL and title or Source from Youtube using a music name or Youtube URL"""
-    config = Config()
+    config = Configs()
     __YDL_OPTIONS = {'format': 'bestaudio/best',
                      'default_search': 'auto',
                      'playliststart': 0,
@@ -31,7 +31,7 @@ class Downloader():
     __BASE_URL = 'https://www.youtube.com/watch?v={}'
 
     def __init__(self) -> None:
-        self.__config = Config()
+        self.__config = Configs()
         self.__music_keys_only = ['resolution', 'fps', 'quality']
         self.__not_extracted_keys_only = ['ie_key']
         self.__not_extracted_not_keys = ['entries']

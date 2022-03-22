@@ -1,6 +1,6 @@
 from typing import Union
 from discord.ext.commands import Context
-from Vulkan.Exceptions.Exceptions import Error
+from Exceptions.Exceptions import Error
 from discord import Embed
 
 

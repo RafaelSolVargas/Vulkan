@@ -1,7 +1,7 @@
 from random import randint, random
 import discord
 from discord.ext import commands
-from Config.Config import Config
+from Config.Config import Configs
 from Config.Helper import Helper
 
 helper = Helper()
@@ -12,7 +12,7 @@ class Random(commands.Cog):
 
     def __init__(self, bot):
         self.__bot = bot
-        self.__config = Config()
+        self.__config = Configs()
 
     @commands.command(name='random', help=helper.HELP_RANDOM, description=helper.HELP_RANDOM_LONG)
     async def random(self, ctx, arg: str) -> None:

@@ -1,5 +1,5 @@
-from Vulkan.Views.AbstractView import AbstractView
-from Vulkan.Controllers.ControllerResponse import ControllerResponse
+from Views.AbstractView import AbstractView
+from Controllers.ControllerResponse import ControllerResponse
 
 
 class EmoteView(AbstractView):

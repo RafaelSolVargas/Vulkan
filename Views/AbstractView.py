@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from Vulkan.Controllers.ControllerResponse import ControllerResponse
+from Controllers.ControllerResponse import ControllerResponse
 from discord.ext.commands import Context
 from discord import Client, Message
 

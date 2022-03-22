@@ -1,12 +1,12 @@
 from discord import Embed
-from Config.Config import Config
+from Config.Config import Configs
 from Config.Colors import Colors
 from datetime import timedelta
 
 
 class Embeds:
     def __init__(self) -> None:
-        self.__config = Config()
+        self.__config = Configs()
         self.__colors = Colors()
 
     @property

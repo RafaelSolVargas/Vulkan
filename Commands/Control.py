@@ -2,7 +2,7 @@ import discord
 from discord import Client
 from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument, UserInputError
 from discord.ext import commands
-from Config.Config import Config
+from Config.Config import Configs
 from Config.Helper import Helper
 
 helper = Helper()
@@ -13,7 +13,7 @@ class Control(commands.Cog):
 
     def __init__(self, bot: Client):
         self.__bot = bot
-        self.__config = Config()
+        self.__config = Configs()
         self.__comandos = {
             'MUSIC': ['resume', 'pause', 'loop', 'stop',
                       'skip', 'play', 'queue', 'clear',

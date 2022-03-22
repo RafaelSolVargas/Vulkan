@@ -1,8 +1,8 @@
 from discord.ext.commands import Context
 from discord import Client
-from Vulkan.Controllers.AbstractController import AbstractController
-from Vulkan.Exceptions.Exceptions import BadCommandUsage
-from Vulkan.Controllers.ControllerResponse import ControllerResponse
+from Controllers.AbstractController import AbstractController
+from Exceptions.Exceptions import BadCommandUsage
+from Controllers.ControllerResponse import ControllerResponse
 
 
 class SkipController(AbstractController):

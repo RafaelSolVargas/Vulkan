@@ -1,8 +1,8 @@
 from collections import deque
 from typing import List
-from Config.Config import Config
-from Vulkan.Music.Interfaces import IPlaylist
-from Vulkan.Music.Song import Song
+from Config.Config import Configs
+from Music.Interfaces import IPlaylist
+from Music.Song import Song
 import random
 
 
@@ -10,7 +10,7 @@ class Playlist(IPlaylist):
     """Class to manage and control the songs to play and played"""
 
     def __init__(self) -> None:
-        self.__config = Config()
+        self.__config = Configs()
         self.__queue = deque()  # Store the musics to play
         self.__songs_history = deque()  # Store the musics played
 
