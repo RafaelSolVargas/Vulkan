@@ -1,6 +1,6 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from config import config
+from config.Config import Config
 
 
 class SpotifySearch():
@@ -9,6 +9,7 @@ class SpotifySearch():
     def __init__(self) -> None:
         self.__connected = False
         self.__connect()
+        self.__config = Config()
 
     @property
     def connected(self):
@@ -18,7 +19,7 @@ class SpotifySearch():
         try:
             # Initialize the connection with Spotify API
             self.__api = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
-                client_id=config.SPOTIFY_ID, client_secret=config.SPOTIFY_SECRET))
+                client_id=Config.SPOTIFY_ID, client_secret=self.__config.SPOTIFY_SECRET))
             self.__connected = True
             return True
         except:

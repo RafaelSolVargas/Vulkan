@@ -1,6 +1,6 @@
 from collections import deque
 from typing import List
-from config import config
+from config.Config import Config
 import random
 
 from vulkan.music.Interfaces import IPlaylist
@@ -11,6 +11,7 @@ class Playlist(IPlaylist):
     """Class to manage and control the songs to play and played"""
 
     def __init__(self) -> None:
+        self.__config = Config()
         self.__queue = deque()  # Store the musics to play
         self.__songs_history = deque()  # Store the musics played
 
@@ -37,7 +38,7 @@ class Playlist(IPlaylist):
 
     @property
     def songs_to_preload(self) -> List[Song]:
-        return list(self.__queue)[:config.MAX_PRELOAD_SONGS]
+        return list(self.__queue)[:self.__config.MAX_PRELOAD_SONGS]
 
     def __len__(self) -> int:
         return len(self.__queue)
@@ -55,7 +56,7 @@ class Playlist(IPlaylist):
                 if played_song.problematic == False:
                     self.__songs_history.appendleft(played_song)
 
-                if len(self.__songs_history) > config.MAX_SONGS_HISTORY:
+                if len(self.__songs_history) > self.__config.MAX_SONGS_HISTORY:
                     self.__songs_history.pop()  # Remove the older
 
             elif self.__looping_one:  # Insert the current song to play again
@@ -107,13 +108,13 @@ class Playlist(IPlaylist):
         Return: Embed descrition to show to user
         """
         if self.__looping_all == True:
-            return config.LOOP_ALL_ON
+            return self.__config.LOOP_ALL_ON
 
         elif self.__looping_one == True:
-            return config.LOOP_ONE_ALREADY_ON
+            return self.__config.LOOP_ONE_ALREADY_ON
         else:
             self.__looping_one = True
-            return config.LOOP_ONE_ACTIVATE
+            return self.__config.LOOP_ONE_ACTIVATE
 
     def loop_all(self) -> str:
         """Try to start the loop of all songs
@@ -121,23 +122,23 @@ class Playlist(IPlaylist):
         Return: Embed descrition to show to user
         """
         if self.__looping_one == True:
-            return config.LOOP_ONE_ON
+            return self.__config.LOOP_ONE_ON
 
         elif self.__looping_all == True:
-            return config.LOOP_ALL_ALREADY_ON
+            return self.__config.LOOP_ALL_ALREADY_ON
 
         else:
             self.__looping_all = True
-            return config.LOOP_ALL_ACTIVATE
+            return self.__config.LOOP_ALL_ACTIVATE
 
     def loop_off(self) -> str:
         """Disable both types of loop"""
         if self.__looping_all == False and self.__looping_one == False:
-            return config.LOOP_ALREADY_DISABLE
+            return self.__config.LOOP_ALREADY_DISABLE
 
         self.__looping_all = False
         self.__looping_one = False
-        return config.LOOP_DISABLE
+        return self.__config.LOOP_DISABLE
 
     def destroy_song(self, song_destroy: Song) -> None:
         """Destroy a song object from the queue"""
@@ -158,7 +159,7 @@ class Playlist(IPlaylist):
             pos2 = len(self.__queue)
 
         if pos2 not in range(1, len(self.__queue) + 1) or pos1 not in range(1, len(self.__queue) + 1):
-            return config.LENGTH_ERROR
+            return self.__config.LENGTH_ERROR
 
         try:
             song = self.__queue[pos1-1]
@@ -167,23 +168,23 @@ class Playlist(IPlaylist):
 
             song1_name = song.title if song.title else song.identifier
 
-            return config.SONG_MOVED_SUCCESSFULLY.format(song1_name, pos1, pos2)
+            return self.__config.SONG_MOVED_SUCCESSFULLY.format(song1_name, pos1, pos2)
         except:
-            return config.ERROR_MOVING
+            return self.__config.ERROR_MOVING
 
     def remove_song(self, position) -> str:
         if position == -1:
             position = len(self.__queue)
 
         if position not in range(1, len(self.__queue) + 1):
-            return config.LENGTH_ERROR
+            return self.__config.LENGTH_ERROR
         else:
             song = self.__queue[position-1]
             self.__queue.remove(song)
 
             song_name = song.title if song.title else song.identifier
 
-            return config.SONG_REMOVED_SUCCESSFULLY.format(song_name)
+            return self.__config.SONG_REMOVED_SUCCESSFULLY.format(song_name)
 
     def history(self) -> list:
         """Return a list with the song title of all played songs"""

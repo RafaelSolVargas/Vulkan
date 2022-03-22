@@ -1,6 +1,6 @@
 import asyncio
 from typing import List
-from config import config
+from config.Config import Config
 from yt_dlp import YoutubeDL
 from concurrent.futures import ThreadPoolExecutor
 from vulkan.music.Song import Song
@@ -9,6 +9,7 @@ from vulkan.music.utils import is_url, run_async
 
 class Downloader():
     """Download musics direct URL and title or Source from Youtube using a music name or Youtube URL"""
+    config = Config()
     __YDL_OPTIONS = {'format': 'bestaudio/best',
                      'default_search': 'auto',
                      'playliststart': 0,
@@ -30,6 +31,7 @@ class Downloader():
     __BASE_URL = 'https://www.youtube.com/watch?v={}'
 
     def __init__(self) -> None:
+        self.__config = Config()
         self.__music_keys_only = ['resolution', 'fps', 'quality']
         self.__not_extracted_keys_only = ['ie_key']
         self.__not_extracted_not_keys = ['entries']
@@ -127,7 +129,7 @@ class Downloader():
 
         # Creating a loop task to download each song
         loop = asyncio.get_event_loop()
-        executor = ThreadPoolExecutor(max_workers=config.MAX_PRELOAD_SONGS)
+        executor = ThreadPoolExecutor(max_workers=self.__config.MAX_PRELOAD_SONGS)
         fs = {loop.run_in_executor(executor, __download_func, song)}
         await asyncio.wait(fs=fs, return_when=asyncio.ALL_COMPLETED)
 

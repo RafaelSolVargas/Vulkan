@@ -1,7 +1,8 @@
 import re
 import asyncio
-from config import config
+from config.Config import Config
 from functools import wraps, partial
+config = Config()
 
 
 def is_connected(ctx):

@@ -1,5 +1,5 @@
 from discord.ext import commands
-from config import config
+from config.Config import Config
 from discord import Client, Guild, FFmpegPCMAudio, Embed
 from discord.ext.commands import Context
 from datetime import timedelta
@@ -21,6 +21,7 @@ class Player(commands.Cog):
 
         self.__timer = Timer(self.__timeout_handler)
         self.__playing = False
+        self.__config = Config.Config()
 
         # Flag to control if the player should stop totally the playing
         self.__force_stop = False
@@ -79,9 +80,9 @@ class Player(commands.Cog):
             links, provider = self.__searcher.search(track)
             if provider == Provider.Unknown or links == None:
                 embed = Embed(
-                    title=config.ERROR_TITLE,
-                    description=config.INVALID_INPUT,
-                    colours=config.COLOURS['blue'])
+                    title=self.__config.ERROR_TITLE,
+                    description=self.__config.INVALID_INPUT,
+                    colours=self.__config.COLOURS['blue'])
                 await ctx.send(embed=embed)
                 return None
 
@@ -90,9 +91,9 @@ class Player(commands.Cog):
 
             if len(links) == 0:
                 embed = Embed(
-                    title=config.ERROR_TITLE,
+                    title=self.__config.ERROR_TITLE,
                     description="This video is unavailable",
-                    colours=config.COLOURS['blue'])
+                    colours=self.__config.COLOURS['blue'])
                 await ctx.send(embed=embed)
                 return None
 
@@ -106,9 +107,9 @@ class Player(commands.Cog):
         except Exception as e:
             print(f'DEVELOPER NOTE -> Error while Downloading in Player: {e}')
             embed = Embed(
-                title=config.ERROR_TITLE,
-                description=config.DOWNLOADING_ERROR,
-                colours=config.COLOURS['blue'])
+                title=self.__config.ERROR_TITLE,
+                description=self.__config.DOWNLOADING_ERROR,
+                colours=self.__config.COLOURS['blue'])
             await ctx.send(embed=embed)
             return
 
@@ -118,25 +119,25 @@ class Player(commands.Cog):
 
             if song.problematic:
                 embed = Embed(
-                    title=config.ERROR_TITLE,
-                    description=config.DOWNLOADING_ERROR,
-                    colours=config.COLOURS['blue'])
+                    title=self.__config.ERROR_TITLE,
+                    description=self.__config.DOWNLOADING_ERROR,
+                    colours=self.__config.COLOURS['blue'])
                 await ctx.send(embed=embed)
                 return None
             elif not self.__playing:
                 embed = Embed(
-                    title=config.SONG_PLAYER,
-                    description=config.SONG_ADDED.format(song.title),
-                    colour=config.COLOURS['blue'])
+                    title=self.__config.SONG_PLAYER,
+                    description=self.__config.SONG_ADDED.format(song.title),
+                    colour=self.__config.COLOURS['blue'])
                 await ctx.send(embed=embed)
             else:
-                embed = self.__format_embed(song.info, config.SONG_ADDED_TWO, pos)
+                embed = self.__format_embed(song.info, self.__config.SONG_ADDED_TWO, pos)
                 await ctx.send(embed=embed)
         else:
             embed = Embed(
-                title=config.SONG_PLAYER,
-                description=config.SONGS_ADDED.format(songs_quant),
-                colour=config.COLOURS['blue'])
+                title=self.__config.SONG_PLAYER,
+                description=self.__config.SONGS_ADDED.format(songs_quant),
+                colour=self.__config.COLOURS['blue'])
             await ctx.send(embed=embed)
 
         if not self.__playing:
@@ -147,9 +148,9 @@ class Player(commands.Cog):
         """Stop the currently playing cycle, load the previous song and play"""
         if self.__playlist.looping_one or self.__playlist.looping_all:  # Do not allow play if loop
             embed = Embed(
-                title=config.SONG_PLAYER,
-                description=config.LOOP_ON,
-                colour=config.COLOURS['blue']
+                title=self.__config.SONG_PLAYER,
+                description=self.__config.LOOP_ON,
+                colour=self.__config.COLOURS['blue']
             )
             await ctx.send(embed=embed)
             return None
@@ -157,9 +158,9 @@ class Player(commands.Cog):
         song = self.__playlist.prev_song()  # Prepare the prev song to play again
         if song == None:
             embed = Embed(
-                title=config.SONG_PLAYER,
-                description=config.NOT_PREVIOUS,
-                colour=config.COLOURS['blue']
+                title=self.__config.SONG_PLAYER,
+                description=self.__config.NOT_PREVIOUS,
+                colour=self.__config.COLOURS['blue']
             )
             await ctx.send(embed=embed)
         else:
@@ -174,20 +175,20 @@ class Player(commands.Cog):
     async def queue(self) -> Embed:
         if self.__playlist.looping_one:
             info = self.__playlist.current.info
-            title = config.ONE_SONG_LOOPING
+            title = self.__config.ONE_SONG_LOOPING
             return self.__format_embed(info, title)
 
         songs_preload = self.__playlist.songs_to_preload
 
         if len(songs_preload) == 0:
-            title = config.SONG_PLAYER
-            text = config.EMPTY_QUEUE
+            title = self.__config.SONG_PLAYER
+            text = self.__config.EMPTY_QUEUE
 
         else:
             if self.__playlist.looping_all:
-                title = config.ALL_SONGS_LOOPING
+                title = self.__config.ALL_SONGS_LOOPING
             else:
-                title = config.QUEUE_TITLE
+                title = self.__config.QUEUE_TITLE
 
             await self.__down.preload(songs_preload)
 
@@ -198,13 +199,13 @@ class Player(commands.Cog):
             text = f'📜 Queue length: {total_songs} | ⌛ Duration: `{total_time}` downloaded  \n\n'
 
             for pos, song in enumerate(songs_preload, start=1):
-                song_name = song.title if song.title else config.SONG_DOWNLOADING
+                song_name = song.title if song.title else self.__config.SONG_DOWNLOADING
                 text += f"**`{pos}` - ** {song_name} - `{format_time(song.duration)}`\n"
 
         embed = Embed(
             title=title,
             description=text,
-            colour=config.COLOURS['blue']
+            colour=self.__config.COLOURS['blue']
         )
 
         return embed
@@ -212,9 +213,9 @@ class Player(commands.Cog):
     async def skip(self, ctx: Context) -> bool:
         if self.__playlist.looping_one:
             embed = Embed(
-                title=config.SONG_PLAYER,
-                description=config.LOOP_ON,
-                colour=config.COLOURS['blue']
+                title=self.__config.SONG_PLAYER,
+                description=self.__config.LOOP_ON,
+                colour=self.__config.COLOURS['blue']
             )
             await ctx.send(embed=embed)
             return False
@@ -229,17 +230,17 @@ class Player(commands.Cog):
         history = self.__playlist.songs_history
 
         if len(history) == 0:
-            text = config.HISTORY_EMPTY
+            text = self.__config.HISTORY_EMPTY
 
         else:
-            text = f'\n📜 History Length: {len(history)} | Max: {config.MAX_SONGS_HISTORY}\n'
+            text = f'\n📜 History Length: {len(history)} | Max: {self.__config.MAX_SONGS_HISTORY}\n'
             for pos, song in enumerate(history, start=1):
                 text += f"**`{pos}` - ** {song.title} - `{format_time(song.duration)}`\n"
 
         embed = Embed(
-            title=config.HISTORY_TITLE,
+            title=self.__config.HISTORY_TITLE,
             description=text,
-            colour=config.COLOURS['blue']
+            colour=self.__config.COLOURS['blue']
         )
         return embed
 
@@ -285,7 +286,7 @@ class Player(commands.Cog):
     async def loop(self, args: str) -> str:
         args = args.lower()
         if self.__playlist.current == None:
-            return config.PLAYER_NOT_PLAYING
+            return self.__config.PLAYER_NOT_PLAYING
 
         if args == 'one':
             description = self.__playlist.loop_one()
@@ -294,7 +295,7 @@ class Player(commands.Cog):
         elif args == 'off':
             description = self.__playlist.loop_off()
         else:
-            raise commands.UserInputError(config.MY_ERROR_BAD_COMMAND)
+            raise commands.UserInputError(self.__config.MY_ERROR_BAD_COMMAND)
 
         return description
 
@@ -304,16 +305,16 @@ class Player(commands.Cog):
     async def now_playing(self) -> Embed:
         if not self.__playing:
             embed = Embed(
-                title=config.SONG_PLAYER,
-                description=config.PLAYER_NOT_PLAYING,
-                colour=config.COLOURS['blue']
+                title=self.__config.SONG_PLAYER,
+                description=self.__config.PLAYER_NOT_PLAYING,
+                colour=self.__config.COLOURS['blue']
             )
             return embed
 
         if self.__playlist.looping_one:
-            title = config.ONE_SONG_LOOPING
+            title = self.__config.ONE_SONG_LOOPING
         else:
-            title = config.SONG_PLAYING
+            title = self.__config.SONG_PLAYING
 
         current_song = self.__playlist.current
         embed = self.__format_embed(current_song.info, title)
@@ -326,20 +327,20 @@ class Player(commands.Cog):
             songs = self.__playlist.songs_to_preload
 
             await self.__down.preload(songs)
-            return config.SONGS_SHUFFLED
+            return self.__config.SONGS_SHUFFLED
         except:
-            return config.ERROR_SHUFFLING
+            return self.__config.ERROR_SHUFFLING
 
     async def move(self, pos1, pos2='1') -> str:
         if not self.__playing:
-            return config.PLAYER_NOT_PLAYING
+            return self.__config.PLAYER_NOT_PLAYING
 
         try:
             pos1 = int(pos1)
             pos2 = int(pos2)
 
         except:
-            return config.ERROR_NUMBER
+            return self.__config.ERROR_NUMBER
 
         result = self.__playlist.move_songs(pos1, pos2)
 
@@ -350,13 +351,13 @@ class Player(commands.Cog):
     async def remove(self, position) -> str:
         """Remove a song from the queue in the position"""
         if not self.__playing:
-            return config.PLAYER_NOT_PLAYING
+            return self.__config.PLAYER_NOT_PLAYING
 
         try:
             position = int(position)
 
         except:
-            return config.ERROR_NUMBER
+            return self.__config.ERROR_NUMBER
 
         result = self.__playlist.remove_song(position)
         return result
@@ -366,14 +367,14 @@ class Player(commands.Cog):
         embedvc = Embed(
             title=title,
             description=f"[{info['title']}]({info['original_url']})",
-            color=config.COLOURS['blue']
+            color=self.__config.COLOURS['blue']
         )
 
-        embedvc.add_field(name=config.SONGINFO_UPLOADER,
+        embedvc.add_field(name=self.__config.SONGINFO_UPLOADER,
                           value=info['uploader'],
                           inline=False)
 
-        embedvc.add_field(name=config.SONGINFO_REQUESTER,
+        embedvc.add_field(name=self.__config.SONGINFO_REQUESTER,
                           value=info['requester'],
                           inline=True)
 
@@ -382,15 +383,15 @@ class Player(commands.Cog):
 
         if 'duration' in info.keys():
             duration = str(timedelta(seconds=info['duration']))
-            embedvc.add_field(name=config.SONGINFO_DURATION,
+            embedvc.add_field(name=self.__config.SONGINFO_DURATION,
                               value=f"{duration}",
                               inline=True)
         else:
-            embedvc.add_field(name=config.SONGINFO_DURATION,
-                              value=config.SONGINFO_UNKNOWN_DURATION,
+            embedvc.add_field(name=self.__config.SONGINFO_DURATION,
+                              value=self.__config.SONGINFO_UNKNOWN_DURATION,
                               inline=True)
 
-        embedvc.add_field(name=config.SONGINFO_POSITION,
+        embedvc.add_field(name=self.__config.SONGINFO_POSITION,
                           value=position,
                           inline=True)
 

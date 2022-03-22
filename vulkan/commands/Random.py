@@ -1,8 +1,10 @@
 from random import randint, random
 import discord
 from discord.ext import commands
-from config import config
-from config import help
+from config.Config import Config
+from config.Helper import Helper
+
+helper = Helper()
 
 
 class Random(commands.Cog):
@@ -10,16 +12,17 @@ class Random(commands.Cog):
 
     def __init__(self, bot):
         self.__bot = bot
+        self.__config = Config()
 
-    @commands.command(name='random', help=help.HELP_RANDOM, description=help.HELP_RANDOM_LONG)
+    @commands.command(name='random', help=helper.HELP_RANDOM, description=helper.HELP_RANDOM_LONG)
     async def random(self, ctx, arg: str) -> None:
         try:
             arg = int(arg)
 
         except:
             embed = discord.Embed(
-                description=config.ERROR_NUMBER,
-                colour=config.COLOURS['red']
+                description=self.__config.ERROR_NUMBER,
+                colour=self.__config.COLOURS['red']
             )
             await ctx.send(embed=embed)
             return
@@ -35,11 +38,11 @@ class Random(commands.Cog):
         embed = discord.Embed(
             title=f'Random number between [{a, b}]',
             description=x,
-            colour=config.COLOURS['green']
+            colour=self.__config.COLOURS['green']
         )
         await ctx.send(embed=embed)
 
-    @commands.command(name='cara', help=help.HELP_CARA, description=help.HELP_CARA_LONG)
+    @commands.command(name='cara', help=helper.HELP_CARA, description=helper.HELP_CARA_LONG)
     async def cara(self, ctx) -> None:
         x = random()
         if x < 0.5:
@@ -50,11 +53,11 @@ class Random(commands.Cog):
         embed = discord.Embed(
             title='Cara Cora',
             description=f'Result: {result}',
-            colour=config.COLOURS['green']
+            colour=self.__config.COLOURS['green']
         )
         await ctx.send(embed=embed)
 
-    @commands.command(name='choose', help=help.HELP_CHOOSE, description=help.HELP_CHOOSE_LONG)
+    @commands.command(name='choose', help=helper.HELP_CHOOSE, description=helper.HELP_CHOOSE_LONG)
     async def choose(self, ctx, *args: str) -> None:
         try:
             user_input = " ".join(args)
@@ -65,14 +68,14 @@ class Random(commands.Cog):
             embed = discord.Embed(
                 title='Choose something',
                 description=itens[index],
-                colour=config.COLOURS['green']
+                colour=self.__config.COLOURS['green']
             )
             await ctx.send(embed=embed)
         except:
             embed = discord.Embed(
                 title='Choose something.',
-                description=f'Error: Use {config.BOT_PREFIX}help choose to understand this command.',
-                colour=config.COLOURS['red']
+                description=f'Error: Use {self.__config.BOT_PREFIX}help choose to understand this command.',
+                colour=self.__config.COLOURS['red']
             )
             await ctx.send(embed=embed)
 
