@@ -1,6 +1,6 @@
 from Music.Types import Provider
 from Music.Spotify import SpotifySearch
-from Music.utils import is_url
+from Utils.Utils import is_url
 
 
 class Searcher():

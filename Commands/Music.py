@@ -1,12 +1,22 @@
+from msilib.schema import ControlEvent
 from typing import Dict
 from discord import Guild, Client, Embed
 from discord.ext import commands
 from discord.ext.commands import Context
 from Config.Config import Configs
 from Config.Helper import Helper
+from Controllers.ClearController import ClearController
+from Controllers.NowPlayingController import NowPlayingController
+from Controllers.PlayerController import PlayersController
 from Music.Player import Player
-from Music.utils import is_connected
+from Utils.Utils import is_connected
 from Controllers.SkipController import SkipController
+from Controllers.PauseController import PauseController
+from Controllers.StopController import StopController
+from Controllers.ResumeController import ResumeController
+from Controllers.HistoryController import HistoryController
+from Controllers.QueueController import QueueController
+from Controllers.LoopController import LoopController
 from Views.EmoteView import EmoteView
 from Views.EmbedView import EmbedView
 
@@ -19,16 +29,11 @@ class Music(commands.Cog):
         self.__guilds: Dict[Guild, Player] = {}
         self.__bot: Client = bot
         self.__config = Configs()
+        self.__controller = PlayersController(self.__bot)
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        """Load a player for each guild that the Bot are"""
-        for guild in self.__bot.guilds:
-            player = Player(self.__bot, guild)
-            await player.force_stop()
-            self.__guilds[guild] = player
-
-            print(f'Player for guild {guild.name} created')
+        self.__controller = PlayersController(self.__bot)
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: Guild) -> None:
@@ -84,31 +89,35 @@ class Music(commands.Cog):
 
     @commands.command(name='stop', help=helper.HELP_STOP, description=helper.HELP_STOP_LONG, aliases=['parar'])
     async def stop(self, ctx: Context) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
+        controller = StopController(ctx, self.__bot)
+
+        response = await controller.run()
+        if response.success:
+            view = EmoteView(response)
         else:
-            await player.stop()
+            view = EmbedView(response)
+
+        await view.run()
 
     @commands.command(name='pause', help=helper.HELP_PAUSE, description=helper.HELP_PAUSE_LONG, aliases=['pausar'])
     async def pause(self, ctx: Context) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
-        else:
-            success = await player.pause()
-            if success:
-                await self.__send_embed(ctx, self.__config.SONG_PLAYER, self.__config.SONG_PAUSED, 'blue')
+        controller = PauseController(ctx, self.__bot)
+
+        response = await controller.run()
+        view1 = EmoteView(response)
+        view2 = EmbedView(response)
+        await view1.run()
+        await view2.run()
 
     @commands.command(name='resume', help=helper.HELP_RESUME, description=helper.HELP_RESUME_LONG, aliases=['soltar'])
     async def resume(self, ctx: Context) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
-        else:
-            success = await player.resume()
-            if success:
-                await self.__send_embed(ctx, self.__config.SONG_PLAYER, self.__config.SONG_RESUMED, 'blue')
+        controller = ResumeController(ctx, self.__bot)
+
+        response = await controller.run()
+        view1 = EmoteView(response)
+        view2 = EmbedView(response)
+        await view1.run()
+        await view2.run()
 
     @commands.command(name='prev', help=helper.HELP_PREV, description=helper.HELP_PREV_LONG, aliases=['anterior'])
     async def prev(self, ctx: Context) -> None:
@@ -126,39 +135,39 @@ class Music(commands.Cog):
 
     @commands.command(name='history', help=helper.HELP_HISTORY, description=helper.HELP_HISTORY_LONG, aliases=['historico'])
     async def history(self, ctx: Context) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
-        else:
-            embed = player.history()
-            await ctx.send(embed=embed)
+        controller = HistoryController(ctx, self.__bot)
+
+        response = await controller.run()
+        view1 = EmbedView(response)
+        view2 = EmoteView(response)
+        await view1.run()
+        await view2.run()
 
     @commands.command(name='loop', help=helper.HELP_LOOP, description=helper.HELP_LOOP_LONG, aliases=['l', 'repeat'])
-    async def loop(self, ctx: Context, args: str) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
-        else:
-            description = await player.loop(args)
-            await self.__send_embed(ctx, self.__config.SONG_PLAYER, description, 'blue')
+    async def loop(self, ctx: Context, args='') -> None:
+        controller = LoopController(ctx, self.__bot)
+
+        response = await controller.run(args)
+        view1 = EmoteView(response)
+        view2 = EmbedView(response)
+        await view1.run()
+        await view2.run()
 
     @commands.command(name='clear', help=helper.HELP_CLEAR, description=helper.HELP_CLEAR_LONG, aliases=['c', 'limpar'])
     async def clear(self, ctx: Context) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
-        else:
-            await player.clear()
+        controller = ClearController(ctx, self.__bot)
+
+        response = await controller.run()
+        view = EmoteView(response)
+        await view.run()
 
     @commands.command(name='np', help=helper.HELP_NP, description=helper.HELP_NP_LONG, aliases=['playing', 'now'])
     async def now_playing(self, ctx: Context) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
-        else:
-            embed = await player.now_playing()
-            await self.__clean_messages(ctx)
-            await ctx.send(embed=embed)
+        controller = NowPlayingController(ctx, self.__bot)
+
+        response = await controller.run()
+        view = EmbedView(response)
+        await view.run()
 
     @commands.command(name='shuffle', help=helper.HELP_SHUFFLE, description=helper.HELP_SHUFFLE_LONG, aliases=['aleatorio'])
     async def shuffle(self, ctx: Context) -> None:
@@ -232,10 +241,7 @@ class Music(commands.Cog):
                 continue
 
     def __get_player(self, ctx: Context) -> Player:
-        try:
-            return self.__guilds[ctx.guild]
-        except:
-            return None
+        return self.__controller.get_player(ctx.guild)
 
 
 def setup(bot):

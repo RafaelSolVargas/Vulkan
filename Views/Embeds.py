@@ -9,7 +9,20 @@ class Embeds:
         self.__config = Configs()
         self.__colors = Colors()
 
-    @property
+    def ONE_SONG_LOOPING(self, info: dict) -> Embed:
+        title = self.__config.ONE_SONG_LOOPING
+        return self.SONG_INFO(info, title)
+
+    def EMPTY_QUEUE(self) -> Embed:
+        title = self.__config.SONG_PLAYER
+        text = self.__config.EMPTY_QUEUE
+        embed = Embed(
+            title=title,
+            description=text,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
     def INVALID_INPUT(self) -> Embed:
         embed = Embed(
             title=self.__config.ERROR_TITLE,
@@ -17,7 +30,6 @@ class Embeds:
             colours=self.__colors.BLUE)
         return embed
 
-    @property
     def UNAVAILABLE_VIDEO(self) -> Embed:
         embed = Embed(
             title=self.__config.ERROR_TITLE,
@@ -25,7 +37,6 @@ class Embeds:
             colours=self.__colors.BLUE)
         return embed
 
-    @property
     def DOWNLOADING_ERROR(self) -> Embed:
         embed = Embed(
             title=self.__config.ERROR_TITLE,
@@ -33,7 +44,6 @@ class Embeds:
             colours=self.__colors.BLUE)
         return embed
 
-    @property
     def SONG_ADDED(self, title: str) -> Embed:
         embed = Embed(
             title=self.__config.SONG_PLAYER,
@@ -41,7 +51,6 @@ class Embeds:
             colours=self.__colors.BLUE)
         return embed
 
-    @property
     def SONGS_ADDED(self, quant: int) -> Embed:
         embed = Embed(
             title=self.__config.SONG_PLAYER,
@@ -49,7 +58,6 @@ class Embeds:
             colour=self.__colors.BLUE)
         return embed
 
-    @property
     def SONG_INFO(self, info: dict, title: str, position='Playing Now') -> Embed:
         embedvc = Embed(
             title=title,
@@ -84,7 +92,14 @@ class Embeds:
 
         return embedvc
 
-    @property
+    def BAD_LOOP_USE(self) -> Embed:
+        embed = Embed(
+            title=self.__config.BAD_COMMAND_TITLE,
+            description=self.__config.BAD_USE_OF_LOOP,
+            colour=self.__colors.BLACK
+        )
+        return embed
+
     def COMMAND_ERROR(self):
         embed = Embed(
             title=self.__config.ERROR_TITLE,
@@ -93,7 +108,6 @@ class Embeds:
         )
         return embed
 
-    @property
     def COMMAND_NOT_FOUND(self) -> Embed:
         embed = Embed(
             title=self.__config.ERROR_TITLE,
@@ -102,7 +116,6 @@ class Embeds:
         )
         return embed
 
-    @property
     def MY_ERROR_BAD_COMMAND(self) -> Embed:
         embed = Embed(
             title=self.__config.BAD_COMMAND_TITLE,
@@ -111,7 +124,6 @@ class Embeds:
         )
         return embed
 
-    @property
     def UNKNOWN_ERROR(self) -> Embed:
         embed = Embed(
             title=self.__config.ERROR_TITLE,
@@ -120,7 +132,6 @@ class Embeds:
         )
         return embed
 
-    @property
     def FAIL_DUE_TO_LOOP_ON(self) -> Embed:
         embed = Embed(
             title=self.__config.SONG_PLAYER,
@@ -129,7 +140,30 @@ class Embeds:
         )
         return embed
 
-    @property
+    def LOOP_ONE_ACTIVATED(self) -> Embed:
+        embed = Embed(
+            title=self.__config.SONG_PLAYER,
+            description=self.__config.LOOP_ONE_ACTIVATE,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def LOOP_ALL_ACTIVATED(self) -> Embed:
+        embed = Embed(
+            title=self.__config.SONG_PLAYER,
+            description=self.__config.LOOP_ALL_ACTIVATE,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def LOOP_DISABLE(self) -> Embed:
+        embed = Embed(
+            title=self.__config.SONG_PLAYER,
+            description=self.__config.LOOP_DISABLE,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
     def NOT_PREVIOUS_SONG(self) -> Embed:
         embed = Embed(
             title=self.__config.SONG_PLAYER,
@@ -138,7 +172,6 @@ class Embeds:
         )
         return embed
 
-    @property
     def HISTORY(self, description: str) -> Embed:
         embed = Embed(
             title=self.__config.HISTORY_TITLE,
@@ -146,7 +179,6 @@ class Embeds:
             colour=self.__colors.BLUE)
         return embed
 
-    @property
     def NOT_PLAYING(self) -> Embed:
         embed = Embed(
             title=self.__config.SONG_PLAYER,
@@ -154,7 +186,6 @@ class Embeds:
             colour=self.__colors.BLUE)
         return embed
 
-    @property
     def QUEUE(self, title: str, description: str) -> Embed:
         embed = Embed(
             title=title,
@@ -163,7 +194,6 @@ class Embeds:
         )
         return embed
 
-    @property
     def INVITE(self, bot_id: str) -> Embed:
         link = self.__config.INVITE_URL
         link.format(bot_id)
@@ -176,7 +206,6 @@ class Embeds:
         )
         return embed
 
-    @property
     def ERROR_NUMBER(self) -> Embed:
         embed = Embed(
             description=self.__config.ERROR_NUMBER,
@@ -184,7 +213,6 @@ class Embeds:
         )
         return embed
 
-    @property
     def RANDOM_NUMBER(self, a: int, b: int, x: int) -> Embed:
         embed = Embed(
             title=f'Random number between [{a, b}]',
@@ -193,7 +221,6 @@ class Embeds:
         )
         return embed
 
-    @property
     def CARA_COROA(self, result: str) -> Embed:
         embed = Embed(
             title='Cara Cora',
@@ -202,7 +229,6 @@ class Embeds:
         )
         return embed
 
-    @property
     def CHOSEN_THING(self, thing: str) -> Embed:
         embed = Embed(
             title='Choose something',
@@ -211,7 +237,6 @@ class Embeds:
         )
         return embed
 
-    @property
     def BAD_CHOOSE_USE(self) -> Embed:
         embed = Embed(
             title='Choose something',

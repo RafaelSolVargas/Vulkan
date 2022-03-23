@@ -8,7 +8,7 @@ from Music.Playlist import Playlist
 from Music.Searcher import Searcher
 from Music.Song import Song
 from Music.Types import Provider
-from Music.utils import *
+from Utils.Utils import *
 
 
 class Player(commands.Cog):
@@ -27,6 +27,10 @@ class Player(commands.Cog):
         self.__force_stop = False
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
+
+    @property
+    def playing(self) -> bool:
+        return self.__playing
 
     @property
     def playlist(self) -> Playlist:
@@ -212,6 +216,7 @@ class Player(commands.Cog):
 
     def history(self) -> Embed:
         history = self.__playlist.songs_history
+        print(f'Player -> {history}')
 
         if len(history) == 0:
             text = self.__config.HISTORY_EMPTY

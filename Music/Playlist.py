@@ -7,7 +7,6 @@ import random
 
 
 class Playlist(IPlaylist):
-    """Class to manage and control the songs to play and played"""
 
     def __init__(self) -> None:
         self.__config = Configs()
@@ -43,7 +42,6 @@ class Playlist(IPlaylist):
         return len(self.__queue)
 
     def next_song(self) -> Song:
-        """Return the next song to play in a normal playlist flow"""
         if self.__current == None and len(self.__queue) == 0:
             return None
 
@@ -72,7 +70,6 @@ class Playlist(IPlaylist):
         return self.__current
 
     def prev_song(self) -> Song:
-        """If playing return it to queue and return the previous song to play"""
         if len(self.__songs_history) == 0:
             return None
         else:
@@ -84,74 +81,38 @@ class Playlist(IPlaylist):
             return self.__current  # return the song
 
     def add_song(self, identifier: str, requester: str) -> Song:
-        """Create a song object, add to queue and return it"""
         song = Song(identifier=identifier, playlist=self, requester=requester)
         self.__queue.append(song)
         return song
 
     def shuffle(self) -> None:
-        """Shuffle the order of the songs to play"""
         random.shuffle(self.__queue)
 
     def revert(self) -> None:
-        """Revert the order of the songs to play"""
         self.__queue.reverse()
 
     def clear(self) -> None:
-        """Clear the songs to play song history"""
         self.__queue.clear()
 
-    def loop_one(self) -> str:
-        """Try to start the loop of the current song
+    def loop_one(self) -> None:
+        self.__looping_one = True
+        self.__looping_all = False
 
-        Return: Embed descrition to show to user
-        """
-        if self.__looping_all == True:
-            return self.__config.LOOP_ALL_ON
-
-        elif self.__looping_one == True:
-            return self.__config.LOOP_ONE_ALREADY_ON
-        else:
-            self.__looping_one = True
-            return self.__config.LOOP_ONE_ACTIVATE
-
-    def loop_all(self) -> str:
-        """Try to start the loop of all songs
-
-        Return: Embed descrition to show to user
-        """
-        if self.__looping_one == True:
-            return self.__config.LOOP_ONE_ON
-
-        elif self.__looping_all == True:
-            return self.__config.LOOP_ALL_ALREADY_ON
-
-        else:
-            self.__looping_all = True
-            return self.__config.LOOP_ALL_ACTIVATE
+    def loop_all(self) -> None:
+        self.__looping_all = True
+        self.__looping_one = False
 
     def loop_off(self) -> str:
-        """Disable both types of loop"""
-        if self.__looping_all == False and self.__looping_one == False:
-            return self.__config.LOOP_ALREADY_DISABLE
-
         self.__looping_all = False
         self.__looping_one = False
-        return self.__config.LOOP_DISABLE
 
     def destroy_song(self, song_destroy: Song) -> None:
-        """Destroy a song object from the queue"""
         for song in self.__queue:
             if song == song_destroy:
                 self.__queue.remove(song)
                 break
 
     def move_songs(self, pos1, pos2) -> str:
-        """Try to move the song in pos1 to pos2, -1 is the last
-
-        Positions: First music is 1
-        Return: String with the status of the function, to show to user
-        """
         if pos1 == -1:
             pos1 = len(self.__queue)
         if pos2 == -1:
@@ -186,7 +147,6 @@ class Playlist(IPlaylist):
             return self.__config.SONG_REMOVED_SUCCESSFULLY.format(song_name)
 
     def history(self) -> list:
-        """Return a list with the song title of all played songs"""
         titles = []
         for song in self.__songs_history:
             title = song.title if song.title else 'Unknown'

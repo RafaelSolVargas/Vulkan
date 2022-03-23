@@ -4,7 +4,7 @@ from Config.Config import Configs
 from yt_dlp import YoutubeDL
 from concurrent.futures import ThreadPoolExecutor
 from Music.Song import Song
-from Music.utils import is_url, run_async
+from Utils.Utils import is_url, run_async
 
 
 class Downloader():

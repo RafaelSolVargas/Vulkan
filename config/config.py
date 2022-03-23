@@ -54,7 +54,9 @@ class Configs(Singleton):
             self.LOOP_DISABLE = '➡️ Loop disabled'
             self.LOOP_ALREADY_DISABLE = '❌ Loop is already disabled'
             self.LOOP_ON = f'❌ This command cannot be invoked with any loop activated. Use {self.BOT_PREFIX}loop off to disable loop'
+            self.ERROR_DUE_LOOP_ONE_ON = f'❌ This command cannot be executed with loop one activated. Use {self.BOT_PREFIX}loop off to disable loop.'
 
+            self.BAD_USE_OF_LOOP = '❌ The available subcommands of loop are: [one], [all], [off], use them to control the loop of songs'
             self.SONGS_SHUFFLED = '🔀 Songs shuffled successfully'
             self.ERROR_SHUFFLING = '❌ Error while shuffling the songs'
             self.ERROR_MOVING = '❌ Error while moving the songs'

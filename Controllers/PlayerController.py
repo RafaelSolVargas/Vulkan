@@ -40,5 +40,6 @@ class PlayersController(Singleton):
         for guild in list_guilds:
             player = Player(self.__bot, guild)
             players[guild] = player
+            print(f'Player for guild {guild.name} created')
 
         return players
