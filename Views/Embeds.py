@@ -171,26 +171,47 @@ class Embeds:
         )
         return embed
 
-    def LOOP_ONE_ACTIVATED(self) -> Embed:
+    def ERROR_SHUFFLING(self) -> Embed:
         embed = Embed(
             title=self.__config.SONG_PLAYER,
-            description=self.__config.LOOP_ONE_ACTIVATE,
+            description=self.__config.ERROR_SHUFFLING,
+            colour=self.__colors.BLACK
+        )
+        return embed
+
+    def SONGS_SHUFFLED(self) -> Embed:
+        embed = Embed(
+            title=self.__config.SONG_PLAYER,
+            description=self.__config.SONGS_SHUFFLED,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def LOOP_ONE_ACTIVATED(self) -> Embed:
+        embed = Embed(
+            title=self.__config.LOOP_ONE_ACTIVATE,
             colour=self.__colors.BLUE
         )
         return embed
 
     def LOOP_ALL_ACTIVATED(self) -> Embed:
         embed = Embed(
-            title=self.__config.SONG_PLAYER,
-            description=self.__config.LOOP_ALL_ACTIVATE,
+            title=self.__config.LOOP_ALL_ACTIVATE,
             colour=self.__colors.BLUE
+        )
+        return embed
+
+    def ERROR_DUE_LOOP_ONE_ON(self) -> Embed:
+        embed = Embed(
+            title=self.__config.BAD_COMMAND_TITLE,
+            description=self.__config.ERROR_DUE_LOOP_ONE_ON,
+            colour=self.__colors.BLACK
         )
         return embed
 
     def LOOP_DISABLE(self) -> Embed:
         embed = Embed(
-            title=self.__config.SONG_PLAYER,
-            description=self.__config.LOOP_DISABLE,
+            title=self.__config.LOOP_DISABLE,
             colour=self.__colors.BLUE
         )
         return embed

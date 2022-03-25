@@ -30,11 +30,10 @@ class LoopController(AbstractController):
             embed = self.embeds.LOOP_ALL_ACTIVATED()
             return ControllerResponse(self.ctx, embed)
         elif args == 'off':
-            self.player.playlist.loop_all()
+            self.player.playlist.loop_off()
             embed = self.embeds.LOOP_DISABLE()
             return ControllerResponse(self.ctx, embed)
         else:
-            self.player.playlist.loop_all()
             error = BadCommandUsage()
             embed = self.embeds.BAD_LOOP_USE()
             return ControllerResponse(self.ctx, embed, error)

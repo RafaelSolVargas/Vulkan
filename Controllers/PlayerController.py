@@ -1,6 +1,6 @@
 from typing import Dict, List, Union
 from Config.Singleton import Singleton
-from discord import Guild, Client, VoiceClient
+from discord import Guild, Client, VoiceClient, Member
 from Music.Player import Player
 
 
@@ -43,3 +43,9 @@ class PlayersController(Singleton):
             print(f'Player for guild {guild.name} created')
 
         return players
+
+    def __get_guild_bot_member(self, guild: Guild) -> Member:
+        members: List[Member] = guild.members
+        for member in members:
+            if member.id == self.__bot.user.id:
+                return member

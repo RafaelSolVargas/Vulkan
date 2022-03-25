@@ -1,4 +1,3 @@
-from msilib.schema import ControlEvent
 from typing import Dict
 from discord import Guild, Client, Embed
 from discord.ext import commands
@@ -10,6 +9,8 @@ from Controllers.MoveController import MoveController
 from Controllers.NowPlayingController import NowPlayingController
 from Controllers.PlayerController import PlayersController
 from Controllers.RemoveController import RemoveController
+from Controllers.ResetController import ResetController
+from Controllers.ShuffleController import ShuffleController
 from Music.Player import Player
 from Utils.Utils import is_connected
 from Controllers.SkipController import SkipController
@@ -70,12 +71,11 @@ class Music(commands.Cog):
 
     @commands.command(name="queue", help=helper.HELP_QUEUE, description=helper.HELP_QUEUE_LONG, aliases=['q', 'fila'])
     async def queue(self, ctx: Context) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
+        controller = QueueController(ctx, self.__bot)
 
-        embed = await player.queue()
-        await ctx.send(embed=embed)
+        response = await controller.run()
+        view2 = EmbedView(response)
+        await view2.run()
 
     @commands.command(name="skip", help=helper.HELP_SKIP, description=helper.HELP_SKIP_LONG, aliases=['s', 'pular'])
     async def skip(self, ctx: Context) -> None:
@@ -175,12 +175,13 @@ class Music(commands.Cog):
 
     @commands.command(name='shuffle', help=helper.HELP_SHUFFLE, description=helper.HELP_SHUFFLE_LONG, aliases=['aleatorio'])
     async def shuffle(self, ctx: Context) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
-        else:
-            description = await player.shuffle()
-            await self.__send_embed(ctx, self.__config.SONG_PLAYER, description, 'blue')
+        controller = ShuffleController(ctx, self.__bot)
+
+        response = await controller.run()
+        view1 = EmbedView(response)
+        view2 = EmoteView(response)
+        await view1.run()
+        await view2.run()
 
     @commands.command(name='move', help=helper.HELP_MOVE, description=helper.HELP_MOVE_LONG, aliases=['m', 'mover'])
     async def move(self, ctx: Context, pos1, pos2='1') -> None:
@@ -204,19 +205,13 @@ class Music(commands.Cog):
 
     @commands.command(name='reset', help=helper.HELP_RESET, description=helper.HELP_RESET_LONG, aliases=['resetar'])
     async def reset(self, ctx: Context) -> None:
-        player = self.__get_player(ctx)
-        try:
-            await player.force_stop()
-            await player.stop()
-            self.__guilds[ctx.guild] = Player(self.__bot, ctx.guild)
-            player = self.__get_player(ctx)
-            await player.force_stop()
-        except Exception as e:
-            print(f'DEVELOPER NOTE -> Reset Error: {e}')
+        controller = ResetController(ctx, self.__bot)
 
-        self.__guilds[ctx.guild] = Player(self.__bot, ctx.guild)
-        player = self.__get_player(ctx)
-        print(f'Player for guild {ctx.guild} created')
+        response = await controller.run()
+        view1 = EmbedView(response)
+        view2 = EmoteView(response)
+        await view1.run()
+        await view2.run()
 
     async def __send_embed(self, ctx: Context, title='', description='', colour='grey') -> None:
         try:
