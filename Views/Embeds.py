@@ -62,7 +62,7 @@ class Embeds:
         embedvc = Embed(
             title=title,
             description=f"[{info['title']}]({info['original_url']})",
-            color=self.__config.COLOURS['blue']
+            color=self.__colors.BLUE
         )
 
         embedvc.add_field(name=self.__config.SONGINFO_UPLOADER,
@@ -91,6 +91,37 @@ class Embeds:
                           inline=True)
 
         return embedvc
+
+    def SONG_MOVED(self, song_name: str, pos1: int, pos2: int) -> Embed:
+        embed = Embed(
+            title=self.__config.SONG_PLAYER,
+            description=self.__config.SONG_MOVED_SUCCESSFULLY.format(song_name, pos1, pos2),
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def ERROR_MOVING(self) -> Embed:
+        embed = Embed(
+            title=self.__config.UNKNOWN_ERROR,
+            description=self.__config.ERROR_MOVING,
+            colour=self.__colors.BLACK
+        )
+        return embed
+
+    def ERROR_EMBED(self, description: str) -> Embed:
+        embed = Embed(
+            description=description,
+            colour=self.__colors.BLACK
+        )
+        return embed
+
+    def WRONG_LENGTH_INPUT(self) -> Embed:
+        embed = Embed(
+            title=self.__config.BAD_COMMAND_TITLE,
+            description=self.__config.LENGTH_ERROR,
+            colour=self.__colors.BLACK
+        )
+        return embed
 
     def BAD_LOOP_USE(self) -> Embed:
         embed = Embed(
@@ -209,7 +240,7 @@ class Embeds:
     def ERROR_NUMBER(self) -> Embed:
         embed = Embed(
             description=self.__config.ERROR_NUMBER,
-            colour=self.__colors.RED
+            colour=self.__colors.BLACK
         )
         return embed
 
@@ -218,6 +249,20 @@ class Embeds:
             title=f'Random number between [{a, b}]',
             description=x,
             colour=self.__colors.GREEN
+        )
+        return embed
+
+    def SONG_REMOVED(self, song_name: str) -> Embed:
+        embed = Embed(
+            description=self.__config.SONG_REMOVED_SUCCESSFULLY.format(song_name),
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def PLAYLIST_RANGE_ERROR(self) -> Embed:
+        embed = Embed(
+            description=self.__config.LENGTH_ERROR,
+            colour=self.__colors.BLACK
         )
         return embed
 
@@ -233,7 +278,7 @@ class Embeds:
         embed = Embed(
             title='Choose something',
             description=f'Chosen: {thing}',
-            colour=self.__config.COLOURS['green']
+            colour=self.__colors.GREEN
         )
         return embed
 

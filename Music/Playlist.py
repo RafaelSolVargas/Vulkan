@@ -18,6 +18,18 @@ class Playlist(IPlaylist):
 
         self.__current: Song = None
 
+    def validate_position(self, position: int) -> bool:
+        if position not in range(1, len(self.__queue) + 1):
+            return False
+        else:
+            return True
+
+    def validate_positions_list(self, positions: list) -> bool:
+        for position in positions:
+            if not self.validate_position(position):
+                return False
+        return True
+
     @property
     def songs_history(self) -> deque:
         return self.__songs_history
@@ -113,38 +125,17 @@ class Playlist(IPlaylist):
                 break
 
     def move_songs(self, pos1, pos2) -> str:
-        if pos1 == -1:
-            pos1 = len(self.__queue)
-        if pos2 == -1:
-            pos2 = len(self.__queue)
+        song = self.__queue[pos1-1]
+        self.__queue.remove(song)
+        self.__queue.insert(pos2-1, song)
 
-        if pos2 not in range(1, len(self.__queue) + 1) or pos1 not in range(1, len(self.__queue) + 1):
-            return self.__config.LENGTH_ERROR
-
-        try:
-            song = self.__queue[pos1-1]
-            self.__queue.remove(song)
-            self.__queue.insert(pos2-1, song)
-
-            song1_name = song.title if song.title else song.identifier
-
-            return self.__config.SONG_MOVED_SUCCESSFULLY.format(song1_name, pos1, pos2)
-        except:
-            return self.__config.ERROR_MOVING
+        return song
 
     def remove_song(self, position) -> str:
-        if position == -1:
-            position = len(self.__queue)
+        song = self.__queue[position-1]
+        self.__queue.remove(song)
 
-        if position not in range(1, len(self.__queue) + 1):
-            return self.__config.LENGTH_ERROR
-        else:
-            song = self.__queue[position-1]
-            self.__queue.remove(song)
-
-            song_name = song.title if song.title else song.identifier
-
-            return self.__config.SONG_REMOVED_SUCCESSFULLY.format(song_name)
+        return song
 
     def history(self) -> list:
         titles = []

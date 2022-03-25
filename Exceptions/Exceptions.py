@@ -37,3 +37,28 @@ class BadCommandUsage(Error):
 class UnknownError(Error):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
+
+
+class InvalidInput(Error):
+    def __init__(self, message='', title='', *args: object) -> None:
+        super().__init__(message, title, *args)
+
+
+class WrongLength(Error):
+    def __init__(self, message='', title='', *args: object) -> None:
+        super().__init__(message, title, *args)
+
+
+class ErrorMoving(Error):
+    def __init__(self, message='', title='', *args: object) -> None:
+        super().__init__(message, title, *args)
+
+
+class ErrorRemoving(Error):
+    def __init__(self, message='', title='', *args: object) -> None:
+        super().__init__(message, title, *args)
+
+
+class NumberRequired(Error):
+    def __init__(self, message='', title='', *args: object) -> None:
+        super().__init__(message, title, *args)

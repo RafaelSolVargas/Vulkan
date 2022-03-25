@@ -216,7 +216,6 @@ class Player(commands.Cog):
 
     def history(self) -> Embed:
         history = self.__playlist.songs_history
-        print(f'Player -> {history}')
 
         if len(history) == 0:
             text = self.__config.HISTORY_EMPTY

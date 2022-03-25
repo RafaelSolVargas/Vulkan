@@ -6,8 +6,10 @@ from discord.ext.commands import Context
 from Config.Config import Configs
 from Config.Helper import Helper
 from Controllers.ClearController import ClearController
+from Controllers.MoveController import MoveController
 from Controllers.NowPlayingController import NowPlayingController
 from Controllers.PlayerController import PlayersController
+from Controllers.RemoveController import RemoveController
 from Music.Player import Player
 from Utils.Utils import is_connected
 from Controllers.SkipController import SkipController
@@ -166,8 +168,10 @@ class Music(commands.Cog):
         controller = NowPlayingController(ctx, self.__bot)
 
         response = await controller.run()
-        view = EmbedView(response)
-        await view.run()
+        view1 = EmbedView(response)
+        view2 = EmoteView(response)
+        await view1.run()
+        await view2.run()
 
     @commands.command(name='shuffle', help=helper.HELP_SHUFFLE, description=helper.HELP_SHUFFLE_LONG, aliases=['aleatorio'])
     async def shuffle(self, ctx: Context) -> None:
@@ -180,21 +184,23 @@ class Music(commands.Cog):
 
     @commands.command(name='move', help=helper.HELP_MOVE, description=helper.HELP_MOVE_LONG, aliases=['m', 'mover'])
     async def move(self, ctx: Context, pos1, pos2='1') -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
-        else:
-            description = await player.move(pos1, pos2)
-            await self.__send_embed(ctx, self.__config.SONG_PLAYER, description, 'blue')
+        controller = MoveController(ctx, self.__bot)
+
+        response = await controller.run(pos1, pos2)
+        view1 = EmbedView(response)
+        view2 = EmoteView(response)
+        await view1.run()
+        await view2.run()
 
     @commands.command(name='remove', help=helper.HELP_REMOVE, description=helper.HELP_REMOVE_LONG, aliases=['remover'])
     async def remove(self, ctx: Context, position) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
-        else:
-            description = await player.remove(position)
-            await self.__send_embed(ctx, self.__config.SONG_PLAYER, description, 'blue')
+        controller = RemoveController(ctx, self.__bot)
+
+        response = await controller.run(position)
+        view1 = EmbedView(response)
+        view2 = EmoteView(response)
+        await view1.run()
+        await view2.run()
 
     @commands.command(name='reset', help=helper.HELP_RESET, description=helper.HELP_RESET_LONG, aliases=['resetar'])
     async def reset(self, ctx: Context) -> None:
