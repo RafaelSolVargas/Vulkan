@@ -1,13 +1,20 @@
+import asyncio
+from Exceptions.Exceptions import DownloadingError, Error
 from discord.ext.commands import Context
 from discord import Client
 from Controllers.AbstractController import AbstractController
 from Exceptions.Exceptions import ImpossibleMove, UnknownError
 from Controllers.ControllerResponse import ControllerResponse
+from Music.Downloader import Downloader
+from Music.Searcher import Searcher
+from Music.Song import Song
 
 
 class PlayController(AbstractController):
     def __init__(self, ctx: Context, bot: Client) -> None:
         super().__init__(ctx, bot)
+        self.__searcher = Searcher()
+        self.__down = Downloader()
 
     async def run(self, args: str) -> ControllerResponse:
         track = " ".join(args)
@@ -25,7 +32,47 @@ class PlayController(AbstractController):
                 embed = self.embeds.UNKNOWN_ERROR()
                 return ControllerResponse(self.ctx, embed, error)
 
-        await self.player.play(self.ctx, track, requester)
+        try:
+            musics = await self.__searcher.search(track)
+            for music in musics:
+                song = Song(music, self.player.playlist, requester)
+                self.player.playlist.add_song(song)
+            quant = len(musics)
+
+            songs_preload = self.player.playlist.songs_to_preload
+            await self.__down.preload(songs_preload)
+
+            if quant == 1:
+                pos = len(self.player.playlist)
+                song = self.__down.finish_one_song(song)
+                if song.problematic:
+                    embed = self.embeds.SONG_PROBLEMATIC()
+                    error = DownloadingError()
+                    response = ControllerResponse(self.ctx, embed, error)
+
+                elif not self.player.playing:
+                    embed = self.embeds.SONG_ADDED(song.title)
+                    response = ControllerResponse(self.ctx, embed)
+                else:
+                    embed = self.embeds.SONG_ADDED_TWO(song.info, pos)
+                    response = ControllerResponse(self.ctx, embed)
+            else:
+                embed = self.embeds.SONGS_ADDED(quant)
+                response = ControllerResponse(self.ctx, embed)
+
+            asyncio.create_task(self.player.play(self.ctx))
+            return response
+
+        except Exception as err:
+            if isinstance(err, Error):
+                print(f'DEVELOPER NOTE -> PlayController Error: {err.message}')
+                error = err
+                embed = self.embeds.CUSTOM_ERROR(error)
+            else:
+                error = UnknownError()
+                embed = self.embeds.UNKNOWN_ERROR()
+
+            return ControllerResponse(self.ctx, embed, error)
 
     def __user_connected(self) -> bool:
         if self.ctx.author.voice:

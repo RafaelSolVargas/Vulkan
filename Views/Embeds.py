@@ -1,3 +1,4 @@
+from Exceptions.Exceptions import Error
 from discord import Embed
 from Config.Config import Configs
 from Config.Colors import Colors
@@ -23,32 +24,36 @@ class Embeds:
         )
         return embed
 
+    def SONG_ADDED_TWO(self, info: dict, pos: int) -> Embed:
+        embed = self.SONG_INFO(info, self.__config.SONG_ADDED_TWO, pos)
+        return embed
+
     def INVALID_INPUT(self) -> Embed:
         embed = Embed(
             title=self.__config.ERROR_TITLE,
             description=self.__config.INVALID_INPUT,
-            colours=self.__colors.BLUE)
+            colour=self.__colors.BLACK)
         return embed
 
     def UNAVAILABLE_VIDEO(self) -> Embed:
         embed = Embed(
             title=self.__config.ERROR_TITLE,
             description=self.__config.VIDEO_UNAVAILABLE,
-            colours=self.__colors.BLUE)
+            colour=self.__colors.BLACK)
         return embed
 
     def DOWNLOADING_ERROR(self) -> Embed:
         embed = Embed(
             title=self.__config.ERROR_TITLE,
             description=self.__config.DOWNLOADING_ERROR,
-            colours=self.__colors.BLUE)
+            colour=self.__colors.BLACK)
         return embed
 
     def SONG_ADDED(self, title: str) -> Embed:
         embed = Embed(
             title=self.__config.SONG_PLAYER,
             description=self.__config.SONG_ADDED.format(title),
-            colours=self.__colors.BLUE)
+            colour=self.__colors.BLUE)
         return embed
 
     def SONGS_ADDED(self, quant: int) -> Embed:
@@ -62,7 +67,7 @@ class Embeds:
         embedvc = Embed(
             title=title,
             description=f"[{info['title']}]({info['original_url']})",
-            color=self.__colors.BLUE
+            colour=self.__colors.BLUE
         )
 
         embedvc.add_field(name=self.__config.SONGINFO_UPLOADER,
@@ -111,6 +116,14 @@ class Embeds:
     def ERROR_EMBED(self, description: str) -> Embed:
         embed = Embed(
             description=description,
+            colour=self.__colors.BLACK
+        )
+        return embed
+
+    def CUSTOM_ERROR(self, error: Error) -> Embed:
+        embed = Embed(
+            title=error.title,
+            description=error.message,
             colour=self.__colors.BLACK
         )
         return embed
@@ -199,6 +212,13 @@ class Embeds:
             title=self.__config.LOOP_ALL_ACTIVATE,
             colour=self.__colors.BLUE
         )
+        return embed
+
+    def SONG_PROBLEMATIC(self) -> Embed:
+        embed = Embed(
+            title=self.__config.ERROR_TITLE,
+            description=self.__config.DOWNLOADING_ERROR,
+            colour=self.__colors.BLACK)
         return embed
 
     def NO_CHANNEL(self) -> Embed:

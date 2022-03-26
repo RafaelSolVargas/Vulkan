@@ -1,4 +1,3 @@
-from distutils.command.config import config
 from discord import Intents, Client
 from os import listdir
 from Config.Config import Configs

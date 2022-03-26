@@ -36,71 +36,7 @@ class Player(commands.Cog):
     def playlist(self) -> Playlist:
         return self.__playlist
 
-    async def play(self, ctx: Context, track: str, requester: str) -> str:
-        try:
-            links, provider = self.__searcher.search(track)
-            if provider == Provider.Unknown or links == None:
-                embed = Embed(
-                    title=self.__config.ERROR_TITLE,
-                    description=self.__config.INVALID_INPUT,
-                    colours=self.__config.COLOURS['blue'])
-                await ctx.send(embed=embed)
-                return None
-
-            if provider == Provider.YouTube:
-                links = await self.__down.extract_info(links[0])
-
-            if len(links) == 0:
-                embed = Embed(
-                    title=self.__config.ERROR_TITLE,
-                    description="This video is unavailable",
-                    colours=self.__config.COLOURS['blue'])
-                await ctx.send(embed=embed)
-                return None
-
-            songs_quant = 0
-            for info in links:
-                song = self.__playlist.add_song(info, requester)
-                songs_quant += 1
-
-            songs_preload = self.__playlist.songs_to_preload
-            await self.__down.preload(songs_preload)
-        except Exception as e:
-            print(f'DEVELOPER NOTE -> Error while Downloading in Player: {e}')
-            embed = Embed(
-                title=self.__config.ERROR_TITLE,
-                description=self.__config.DOWNLOADING_ERROR,
-                colours=self.__config.COLOURS['blue'])
-            await ctx.send(embed=embed)
-            return
-
-        if songs_quant == 1:
-            song = self.__down.finish_one_song(song)
-            pos = len(self.__playlist)
-
-            if song.problematic:
-                embed = Embed(
-                    title=self.__config.ERROR_TITLE,
-                    description=self.__config.DOWNLOADING_ERROR,
-                    colours=self.__config.COLOURS['blue'])
-                await ctx.send(embed=embed)
-                return None
-            elif not self.__playing:
-                embed = Embed(
-                    title=self.__config.SONG_PLAYER,
-                    description=self.__config.SONG_ADDED.format(song.title),
-                    colour=self.__config.COLOURS['blue'])
-                await ctx.send(embed=embed)
-            else:
-                embed = self.__format_embed(song.info, self.__config.SONG_ADDED_TWO, pos)
-                await ctx.send(embed=embed)
-        else:
-            embed = Embed(
-                title=self.__config.SONG_PLAYER,
-                description=self.__config.SONGS_ADDED.format(songs_quant),
-                colour=self.__config.COLOURS['blue'])
-            await ctx.send(embed=embed)
-
+    async def play(self, ctx: Context) -> str:
         if not self.__playing:
             first_song = self.__playlist.next_song()
             await self.__play_music(ctx, first_song)

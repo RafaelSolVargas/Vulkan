@@ -34,6 +34,16 @@ class BadCommandUsage(Error):
         super().__init__(message, title, *args)
 
 
+class DownloadingError(Error):
+    def __init__(self, message='', title='', *args: object) -> None:
+        super().__init__(message, title, *args)
+
+
+class SpotifyError(Error):
+    def __init__(self, message='', title='', *args: object) -> None:
+        super().__init__(message, title, *args)
+
+
 class UnknownError(Error):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)

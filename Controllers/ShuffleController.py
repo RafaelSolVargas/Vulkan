@@ -1,3 +1,4 @@
+import asyncio
 from discord.ext.commands import Context
 from discord import Client
 from Controllers.AbstractController import AbstractController
@@ -16,7 +17,7 @@ class ShuffleController(AbstractController):
             self.player.playlist.shuffle()
             songs = self.player.playlist.songs_to_preload
 
-            await self.__down.preload(songs)
+            asyncio.create_task(self.__down.preload(songs))
             embed = self.embeds.SONGS_SHUFFLED()
             return ControllerResponse(self.ctx, embed)
         except Exception as e:

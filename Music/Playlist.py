@@ -92,8 +92,7 @@ class Playlist(IPlaylist):
             self.__current = last_song
             return self.__current  # return the song
 
-    def add_song(self, identifier: str, requester: str) -> Song:
-        song = Song(identifier=identifier, playlist=self, requester=requester)
+    def add_song(self, song: Song) -> Song:
         self.__queue.append(song)
         return song
 

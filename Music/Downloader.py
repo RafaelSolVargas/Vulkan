@@ -1,5 +1,7 @@
 import asyncio
 from typing import List
+
+from numpy import extract
 from Config.Config import Configs
 from yt_dlp import YoutubeDL
 from concurrent.futures import ThreadPoolExecutor
@@ -25,7 +27,7 @@ class Downloader():
                                    'default_search': 'auto',
                                    'playliststart': 0,
                                    'extract_flat': False,
-                                   'playlistend': config.MAX_PLAYLIST_LENGTH,
+                                   'playlistend': config.MAX_PLAYLIST_FORCED_LENGTH,
                                    }
     __BASE_URL = 'https://www.youtube.com/watch?v={}'
 
@@ -127,7 +129,10 @@ class Downloader():
                 extracted_info = ydl.extract_info(search, download=False)
 
                 if self.__failed_to_extract(extracted_info):
-                    self.__get_forced_extracted_info(extracted_info)
+                    extracted_info = self.__get_forced_extracted_info(title)
+
+                if extracted_info is None:
+                    return {}
 
                 if self.__is_multiple_musics(extracted_info):
                     return extracted_info['entries'][0]

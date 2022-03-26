@@ -17,17 +17,15 @@ class Song(ISong):
         self.__required_keys = ['url']
 
         for key in self.__required_keys:
-            if key in info:
+            if key in info.keys():
                 self.__info[key] = info[key]
             else:
                 print(f'DEVELOPER NOTE -> {key} not found in info of music: {self.identifier}')
                 self.destroy()
 
         for key in self.__usefull_keys:
-            if key in info:
+            if key in info.keys():
                 self.__info[key] = info[key]
-            else:
-                print(f'DEVELOPER NOTE -> {key} not found in info of music: {self.identifier}')
 
     @property
     def source(self) -> str:

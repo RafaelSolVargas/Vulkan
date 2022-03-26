@@ -69,3 +69,13 @@ class Messages(Singleton):
             self.BAD_COMMAND = f'❌ Bad usage of this command, type {configs.BOT_PREFIX}help "command" to understand the command better'
             self.INVITE_URL = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'
             self.VIDEO_UNAVAILABLE = '❌ Sorry. This video is unavailable for download.'
+
+
+class SearchMessages(Singleton):
+    def __init__(self) -> None:
+        if not super().created:
+            config = Configs()
+            self.UNKNOWN_INPUT = f'This type of input was too strange, try something else or type {config.BOT_PREFIX}help play'
+            self.UNKNOWN_INPUT_TITLE = 'Nothing Found'
+            self.SPOTIFY_ERROR = 'Spotify could not process any songs with this input, verify your link or try again later.'
+            self.GENERIC_TITLE = 'Input could not be processed'
