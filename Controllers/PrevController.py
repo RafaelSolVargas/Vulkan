@@ -1,7 +1,7 @@
 from discord.ext.commands import Context
 from discord import Client
 from Controllers.AbstractController import AbstractController
-from Exceptions.Exceptions import ImpossibleMove, UnknownError
+from Exceptions.Exceptions import BadCommandUsage, ImpossibleMove, UnknownError
 from Controllers.ControllerResponse import ControllerResponse
 
 
@@ -26,6 +26,11 @@ class PrevController(AbstractController):
                 error = UnknownError()
                 embed = self.embeds.UNKNOWN_ERROR()
                 return ControllerResponse(self.ctx, embed, error)
+
+        if self.player.playlist.looping_all or self.player.playlist.looping_one:
+            error = BadCommandUsage()
+            embed = self.embeds.FAIL_DUE_TO_LOOP_ON()
+            return ControllerResponse(self.ctx, embed, error)
 
         await self.player.play_prev(self.ctx)
 

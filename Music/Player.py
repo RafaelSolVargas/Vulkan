@@ -5,15 +5,12 @@ from discord.ext.commands import Context
 from datetime import timedelta
 from Music.Downloader import Downloader
 from Music.Playlist import Playlist
-from Music.Searcher import Searcher
 from Music.Song import Song
-from Music.Types import Provider
-from Utils.Utils import *
+from Utils.Utils import Timer
 
 
 class Player(commands.Cog):
     def __init__(self, bot: Client, guild: Guild):
-        self.__searcher: Searcher = Searcher()
         self.__down: Downloader = Downloader()
         self.__playlist: Playlist = Playlist()
         self.__bot: Client = bot
@@ -42,24 +39,8 @@ class Player(commands.Cog):
             await self.__play_music(ctx, first_song)
 
     async def play_prev(self, ctx: Context) -> None:
-        if self.__playlist.looping_one or self.__playlist.looping_all:  # Do not allow play if loop
-            embed = Embed(
-                title=self.__config.SONG_PLAYER,
-                description=self.__config.LOOP_ON,
-                colour=self.__config.COLOURS['blue']
-            )
-            await ctx.send(embed=embed)
-            return None
-
-        song = self.__playlist.prev_song()  # Prepare the prev song to play again
-        if song == None:
-            embed = Embed(
-                title=self.__config.SONG_PLAYER,
-                description=self.__config.NOT_PREVIOUS,
-                colour=self.__config.COLOURS['blue']
-            )
-            await ctx.send(embed=embed)
-        else:
+        song = self.__playlist.prev_song()
+        if song is not None:
             if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
                 # Will forbidden next_song to execute after stopping current player
                 self.__force_stop = True

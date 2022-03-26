@@ -180,7 +180,7 @@ class Embeds:
         embed = Embed(
             title=self.__config.SONG_PLAYER,
             description=self.__config.LOOP_ON,
-            colour=self.__colors.BLUE
+            colour=self.__colors.BLACK
         )
         return embed
 
