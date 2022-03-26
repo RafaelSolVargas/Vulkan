@@ -36,14 +36,6 @@ class Player(commands.Cog):
     def playlist(self) -> Playlist:
         return self.__playlist
 
-    async def connect(self, ctx: Context) -> bool:
-        if not ctx.author.voice:
-            return False
-
-        if self.__guild.voice_client == None:
-            await ctx.author.voice.channel.connect(reconnect=True, timeout=None)
-            return True
-
     def __play_next(self, error, ctx: Context) -> None:
         if self.__force_stop:  # If it's forced to stop player
             self.__force_stop = False

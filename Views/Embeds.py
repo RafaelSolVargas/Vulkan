@@ -201,6 +201,14 @@ class Embeds:
         )
         return embed
 
+    def NO_CHANNEL(self) -> Embed:
+        embed = Embed(
+            title=self.__config.IMPOSSIBLE_MOVE,
+            description=self.__config.NO_CHANNEL,
+            colour=self.__colors.BLACK
+        )
+        return embed
+
     def ERROR_DUE_LOOP_ONE_ON(self) -> Embed:
         embed = Embed(
             title=self.__config.BAD_COMMAND_TITLE,

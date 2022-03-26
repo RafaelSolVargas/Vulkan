@@ -7,7 +7,9 @@ from Config.Helper import Helper
 from Controllers.ClearController import ClearController
 from Controllers.MoveController import MoveController
 from Controllers.NowPlayingController import NowPlayingController
+from Controllers.PlayController import PlayController
 from Controllers.PlayerController import PlayersController
+from Controllers.PrevController import PrevController
 from Controllers.RemoveController import RemoveController
 from Controllers.ResetController import ResetController
 from Controllers.ShuffleController import ShuffleController
@@ -53,21 +55,14 @@ class Music(commands.Cog):
 
     @commands.command(name="play", help=helper.HELP_PLAY, description=helper.HELP_PLAY_LONG, aliases=['p', 'tocar'])
     async def play(self, ctx: Context, *args) -> None:
-        track = " ".join(args)
-        requester = ctx.author.name
+        controller = PlayController(ctx, self.__bot)
 
-        player = self.__get_player(ctx)
-        if player is None:
-            await self.__send_embed(ctx, self.__config.ERROR_TITLE, self.__config.NO_GUILD, 'red')
-            return
-
-        if is_connected(ctx) is None:
-            success = await player.connect(ctx)
-            if success == False:
-                await self.__send_embed(ctx, self.__config.IMPOSSIBLE_MOVE, self.__config.NO_CHANNEL, 'red')
-                return
-
-        await player.play(ctx, track, requester)
+        response = await controller.run(args)
+        if response is not None:
+            view1 = EmbedView(response)
+            view2 = EmoteView(response)
+            await view1.run()
+            await view2.run()
 
     @commands.command(name="queue", help=helper.HELP_QUEUE, description=helper.HELP_QUEUE_LONG, aliases=['q', 'fila'])
     async def queue(self, ctx: Context) -> None:
@@ -123,17 +118,14 @@ class Music(commands.Cog):
 
     @commands.command(name='prev', help=helper.HELP_PREV, description=helper.HELP_PREV_LONG, aliases=['anterior'])
     async def prev(self, ctx: Context) -> None:
-        player = self.__get_player(ctx)
-        if player is None:
-            return
+        controller = PrevController(ctx, self.__bot)
 
-        if is_connected(ctx) is None:
-            success = await player.connect(ctx)
-            if success == False:
-                await self.__send_embed(ctx, self.__config.IMPOSSIBLE_MOVE, self.__config.NO_CHANNEL, 'red')
-                return
-
-        await player.play_prev(ctx)
+        response = await controller.run()
+        if response is not None:
+            view1 = EmbedView(response)
+            view2 = EmoteView(response)
+            await view1.run()
+            await view2.run()
 
     @commands.command(name='history', help=helper.HELP_HISTORY, description=helper.HELP_HISTORY_LONG, aliases=['historico'])
     async def history(self, ctx: Context) -> None:
