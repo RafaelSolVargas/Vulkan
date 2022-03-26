@@ -1,12 +1,10 @@
 import asyncio
 from typing import List
-
-from numpy import extract
 from Config.Config import Configs
 from yt_dlp import YoutubeDL
 from concurrent.futures import ThreadPoolExecutor
 from Music.Song import Song
-from Utils.Utils import is_url, run_async
+from Utils.Utils import Utils, run_async
 
 
 class Downloader():
@@ -39,10 +37,10 @@ class Downloader():
         self.__playlist_keys = ['entries']
 
     def finish_one_song(self, song: Song) -> Song:
-        if song.identifier == None:
+        if song.identifier is None:
             return None
 
-        if is_url(song.identifier):
+        if Utils.is_url(song.identifier):
             song_info = self.__download_url(song.identifier)
         else:
             song_info = self.__download_title(song.identifier)
@@ -56,7 +54,7 @@ class Downloader():
 
     @run_async
     def extract_info(self, url: str) -> List[dict]:
-        if is_url(url):  # If Url
+        if Utils.is_url(url):  # If Url
             options = Downloader.__YDL_OPTIONS_EXTRACT
             with YoutubeDL(options) as ydl:
                 try:
@@ -78,7 +76,7 @@ class Downloader():
                         return []
                 except Exception as e:
                     print(f'DEVELOPER NOTE -> Error Extracting Music: {e}')
-                    raise
+                    raise e
         else:
             return []
 
@@ -109,10 +107,11 @@ class Downloader():
             return None
 
         def __download_func(song: Song) -> None:
-            if is_url(song.identifier):
+            if Utils.is_url(song.identifier):
                 song_info = self.__download_url(song.identifier)
             else:
                 song_info = self.__download_title(song.identifier)
+
             song.finish_down(song_info)
 
         # Creating a loop task to download each song

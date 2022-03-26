@@ -29,6 +29,11 @@ class MusicUnavailable(Error):
         super().__init__(message, title, *args)
 
 
+class YoutubeError(Error):
+    def __init__(self, message='', title='', *args: object) -> None:
+        super().__init__(message, title, *args)
+
+
 class BadCommandUsage(Error):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)

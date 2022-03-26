@@ -1,4 +1,4 @@
-from Exceptions.Exceptions import InvalidInput, SpotifyError
+from Exceptions.Exceptions import InvalidInput, SpotifyError, YoutubeError
 from Music.Downloader import Downloader
 from Music.Types import Provider
 from Music.Spotify import SpotifySearch
@@ -18,8 +18,11 @@ class Searcher():
             raise InvalidInput(self.__messages.UNKNOWN_INPUT, self.__messages.UNKNOWN_INPUT_TITLE)
 
         elif provider == Provider.YouTube:
-            musics = await self.__down.extract_info(track)
-            return musics
+            try:
+                musics = await self.__down.extract_info(track)
+                return musics
+            except:
+                raise YoutubeError(self.__messages.YOUTUBE_ERROR, self.__messages.GENERIC_TITLE)
 
         elif provider == Provider.Spotify:
             try:

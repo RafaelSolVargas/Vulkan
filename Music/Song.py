@@ -10,6 +10,10 @@ class Song(ISong):
         self.__playlist: IPlaylist = playlist
 
     def finish_down(self, info: dict) -> None:
+        if info is None:
+            self.destroy()
+            return None
+
         self.__usefull_keys = ['duration',
                                'title', 'webpage_url',
                                'channel', 'id', 'uploader',

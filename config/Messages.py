@@ -79,3 +79,4 @@ class SearchMessages(Singleton):
             self.UNKNOWN_INPUT_TITLE = 'Nothing Found'
             self.SPOTIFY_ERROR = 'Spotify could not process any songs with this input, verify your link or try again later.'
             self.GENERIC_TITLE = 'Input could not be processed'
+            self.YOUTUBE_ERROR = 'Youtube could not process any songs with this input, verify your link or try again later.'

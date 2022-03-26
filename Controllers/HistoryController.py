@@ -2,7 +2,7 @@ from discord.ext.commands import Context
 from discord import Client
 from Controllers.AbstractController import AbstractController
 from Controllers.ControllerResponse import ControllerResponse
-from Utils.Utils import format_time
+from Utils.Utils import Utils
 
 
 class HistoryController(AbstractController):
@@ -18,7 +18,7 @@ class HistoryController(AbstractController):
         else:
             text = f'\n📜 History Length: {len(history)} | Max: {self.config.MAX_SONGS_HISTORY}\n'
             for pos, song in enumerate(history, start=1):
-                text += f"**`{pos}` - ** {song.title} - `{format_time(song.duration)}`\n"
+                text += f"**`{pos}` - ** {song.title} - `{Utils.format_time(song.duration)}`\n"
 
         embed = self.embeds.HISTORY(text)
         return ControllerResponse(self.ctx, embed)
