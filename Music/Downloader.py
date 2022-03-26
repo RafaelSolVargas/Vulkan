@@ -8,7 +8,6 @@ from Utils.Utils import is_url, run_async
 
 
 class Downloader():
-    """Download musics direct URL and title or Source from Youtube using a music name or Youtube URL"""
     config = Configs()
     __YDL_OPTIONS = {'format': 'bestaudio/best',
                      'default_search': 'auto',
@@ -38,7 +37,6 @@ class Downloader():
         self.__playlist_keys = ['entries']
 
     def finish_one_song(self, song: Song) -> Song:
-        """Receives a song object, finish his download and return it"""
         if song.identifier == None:
             return None
 
@@ -51,17 +49,11 @@ class Downloader():
         return song
 
     async def preload(self, songs: List[Song]) -> None:
-        """Download the full info of the songs objects"""
         for song in songs:
             asyncio.ensure_future(self.__download_song(song))
 
     @run_async
     def extract_info(self, url: str) -> List[dict]:
-        """Extract all songs direct URL from a Youtube Link
-
-        Arg: Url String
-        Return: List with the direct youtube URL of each song
-        """
         if is_url(url):  # If Url
             options = Downloader.__YDL_OPTIONS_EXTRACT
             with YoutubeDL(options) as ydl:
@@ -100,11 +92,6 @@ class Downloader():
                 return []
 
     def __download_url(self, url) -> dict:
-        """Download musics full info and source from Music URL
-
-        Arg: URL from Youtube 
-        Return: Dict with the full youtube information of the music, including source to play it
-        """
         options = Downloader.__YDL_OPTIONS
         with YoutubeDL(options) as ydl:
             try:
@@ -116,7 +103,6 @@ class Downloader():
                 return None
 
     async def __download_song(self, song: Song) -> None:
-        """Download a music object asynchronously"""
         if song.source is not None:  # If Music already preloaded
             return None
 
@@ -134,11 +120,6 @@ class Downloader():
         await asyncio.wait(fs=fs, return_when=asyncio.ALL_COMPLETED)
 
     def __download_title(self, title: str) -> dict:
-        """Download a music full information using his name.
-
-        Arg: Music Name
-        Return: A dict containing the song information
-        """
         options = Downloader.__YDL_OPTIONS
         with YoutubeDL(options) as ydl:
             try:

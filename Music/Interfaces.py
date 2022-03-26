@@ -2,8 +2,6 @@ from abc import ABC, abstractproperty, abstractmethod
 
 
 class IPlaylist(ABC):
-    """Class to manage and control the songs to play and played"""
-
     @abstractproperty
     def looping_one(self):
         pass
@@ -58,8 +56,6 @@ class IPlaylist(ABC):
 
 
 class ISong(ABC):
-    """Store the usefull information about a Song"""
-
     @abstractmethod
     def finish_down(self, info: dict) -> None:
         pass

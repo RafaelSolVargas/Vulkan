@@ -5,6 +5,7 @@ from Config.Singleton import Singleton
 class Configs(Singleton):
     def __init__(self) -> None:
         if not super().created:
+            self.COMMANDS_PATH = 'Commands'
             self.BOT_TOKEN = config('BOT_TOKEN')
             self.SPOTIFY_ID = config('SPOTIFY_ID')
             self.SPOTIFY_SECRET = config('SPOTIFY_SECRET')

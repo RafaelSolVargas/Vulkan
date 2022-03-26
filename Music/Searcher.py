@@ -4,17 +4,10 @@ from Utils.Utils import is_url
 
 
 class Searcher():
-    """Turn the user input into list of musics names, support youtube and spotify"""
-
     def __init__(self) -> None:
         self.__Spotify = SpotifySearch()
 
     def search(self, music: str) -> list:
-        """Return a list with the song names or an URL
-
-        Arg -> User Input, a string with the 
-        Return -> A list of musics names and Provider Type
-        """
         provider = self.__identify_source(music)
 
         if provider == Provider.YouTube:
@@ -35,7 +28,6 @@ class Searcher():
             return None, Provider.Unknown
 
     def __identify_source(self, music) -> Provider:
-        """Identify the provider of a music"""
         if not is_url(music):
             return Provider.Name
 

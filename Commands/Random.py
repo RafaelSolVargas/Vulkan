@@ -8,7 +8,6 @@ helper = Helper()
 
 
 class Random(commands.Cog):
-    """Deal with returning random things"""
 
     def __init__(self, bot):
         self.__bot = bot

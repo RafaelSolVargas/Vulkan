@@ -9,7 +9,6 @@ helper = Helper()
 
 
 class Control(commands.Cog):
-    """Control the flow of the Bot"""
 
     def __init__(self, bot: Client):
         self.__bot = bot

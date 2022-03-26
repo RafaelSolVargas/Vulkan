@@ -36,41 +36,6 @@ class Player(commands.Cog):
     def playlist(self) -> Playlist:
         return self.__playlist
 
-    def __play_next(self, error, ctx: Context) -> None:
-        if self.__force_stop:  # If it's forced to stop player
-            self.__force_stop = False
-            return None
-
-        song = self.__playlist.next_song()
-
-        if song != None:
-            coro = self.__play_music(ctx, song)
-            self.__bot.loop.create_task(coro)
-        else:
-            self.__playing = False
-
-    async def __play_music(self, ctx: Context, song: Song) -> None:
-        try:
-            source = self.__ensure_source(song)
-            if source == None:
-                self.__play_next(None, ctx)
-
-            self.__playing = True
-
-            player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
-            self.__guild.voice_client.play(
-                player, after=lambda e: self.__play_next(e, ctx))
-
-            self.__timer.cancel()
-            self.__timer = Timer(self.__timeout_handler)
-
-            await ctx.invoke(self.__bot.get_command('np'))
-
-            songs = self.__playlist.songs_to_preload
-            await self.__down.preload(songs)
-        except:
-            self.__play_next(None, ctx)
-
     async def play(self, ctx: Context, track: str, requester: str) -> str:
         try:
             links, provider = self.__searcher.search(track)
@@ -141,7 +106,6 @@ class Player(commands.Cog):
             await self.__play_music(ctx, first_song)
 
     async def play_prev(self, ctx: Context) -> None:
-        """Stop the currently playing cycle, load the previous song and play"""
         if self.__playlist.looping_one or self.__playlist.looping_all:  # Do not allow play if loop
             embed = Embed(
                 title=self.__config.SONG_PLAYER,
@@ -168,17 +132,6 @@ class Player(commands.Cog):
 
             await self.__play_music(ctx, song)
 
-    async def stop(self) -> bool:
-        if self.__guild.voice_client is None:
-            return False
-
-        if self.__guild.voice_client.is_connected():
-            self.__playlist.clear()
-            self.__playlist.loop_off()
-            self.__guild.voice_client.stop()
-            await self.__guild.voice_client.disconnect()
-            return True
-
     async def force_stop(self) -> None:
         try:
             if self.__guild.voice_client is None:
@@ -191,8 +144,42 @@ class Player(commands.Cog):
         except Exception as e:
             print(f'DEVELOPER NOTE -> Force Stop Error: {e}')
 
+    def __play_next(self, error, ctx: Context) -> None:
+        if self.__force_stop:  # If it's forced to stop player
+            self.__force_stop = False
+            return None
+
+        song = self.__playlist.next_song()
+
+        if song != None:
+            coro = self.__play_music(ctx, song)
+            self.__bot.loop.create_task(coro)
+        else:
+            self.__playing = False
+
+    async def __play_music(self, ctx: Context, song: Song) -> None:
+        try:
+            source = self.__ensure_source(song)
+            if source == None:
+                self.__play_next(None, ctx)
+
+            self.__playing = True
+
+            player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
+            self.__guild.voice_client.play(
+                player, after=lambda e: self.__play_next(e, ctx))
+
+            self.__timer.cancel()
+            self.__timer = Timer(self.__timeout_handler)
+
+            await ctx.invoke(self.__bot.get_command('np'))
+
+            songs = self.__playlist.songs_to_preload
+            await self.__down.preload(songs)
+        except:
+            self.__play_next(None, ctx)
+
     def __format_embed(self, info: dict, title='', position='Playing Now') -> Embed:
-        """Configure the embed to show the song information"""
         embedvc = Embed(
             title=title,
             description=f"[{info['title']}]({info['original_url']})",

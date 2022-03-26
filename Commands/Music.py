@@ -1,8 +1,6 @@
-from typing import Dict
-from discord import Guild, Client, Embed
+from discord import Guild, Client
 from discord.ext import commands
 from discord.ext.commands import Context
-from Config.Config import Configs
 from Config.Helper import Helper
 from Controllers.ClearController import ClearController
 from Controllers.MoveController import MoveController
@@ -13,8 +11,7 @@ from Controllers.PrevController import PrevController
 from Controllers.RemoveController import RemoveController
 from Controllers.ResetController import ResetController
 from Controllers.ShuffleController import ShuffleController
-from Music.Player import Player
-from Utils.Utils import is_connected
+from Utils.Cleaner import Cleaner
 from Controllers.SkipController import SkipController
 from Controllers.PauseController import PauseController
 from Controllers.StopController import StopController
@@ -31,9 +28,8 @@ helper = Helper()
 
 class Music(commands.Cog):
     def __init__(self, bot) -> None:
-        self.__guilds: Dict[Guild, Player] = {}
         self.__bot: Client = bot
-        self.__config = Configs()
+        self.__cleaner = Cleaner(self.__bot)
         self.__controller = PlayersController(self.__bot)
 
     @commands.Cog.listener()
@@ -42,16 +38,7 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: Guild) -> None:
-        """Load a player when joining a guild"""
-        self.__guilds[guild] = Player(self.__bot, guild)
-        print(f'Player for guild {guild.name} created')
-
-    @commands.Cog.listener()
-    async def on_guild_remove(self, guild: Guild) -> None:
-        """Removes the player of the guild if banned"""
-        if guild in self.__guilds.keys():
-            self.__guilds.pop(guild, None)
-            print(f'Player for guild {guild.name} destroyed')
+        self.__controller.create_player(guild)
 
     @commands.command(name="play", help=helper.HELP_PLAY, description=helper.HELP_PLAY_LONG, aliases=['p', 'tocar'])
     async def play(self, ctx: Context, *args) -> None:
@@ -204,37 +191,6 @@ class Music(commands.Cog):
         view2 = EmoteView(response)
         await view1.run()
         await view2.run()
-
-    async def __send_embed(self, ctx: Context, title='', description='', colour='grey') -> None:
-        try:
-            colour = self.__config.COLOURS[colour]
-        except:
-            colour = self.__config.COLOURS['grey']
-
-        embedvc = Embed(
-            title=title,
-            description=description,
-            colour=colour
-        )
-        await ctx.send(embed=embedvc)
-
-    async def __clean_messages(self, ctx: Context) -> None:
-        last_messages = await ctx.channel.history(limit=5).flatten()
-
-        for message in last_messages:
-            try:
-                if message.author == self.__bot.user:
-                    if len(message.embeds) > 0:
-                        embed = message.embeds[0]
-                        if len(embed.fields) > 0:
-                            if embed.fields[0].name == 'Uploader:':
-                                await message.delete()
-
-            except:
-                continue
-
-    def __get_player(self, ctx: Context) -> Player:
-        return self.__controller.get_player(ctx.guild)
 
 
 def setup(bot):

@@ -34,7 +34,6 @@ def format_time(duration) -> str:
 
 
 def is_url(string) -> bool:
-    """Verify if a string is a url"""
     regex = re.compile(
         "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
 

@@ -33,6 +33,11 @@ class PlayersController(Singleton):
         else:
             return guild.voice_client
 
+    def create_player(self, guild: Guild) -> None:
+        player = Player(self.__bot, guild)
+        self.__players[guild] = player
+        print(f'Player for guild {guild.name} created')
+
     def __create_players(self) -> Dict[Guild, Player]:
         list_guilds: List[Guild] = self.__bot.guilds
         players: Dict[Guild, Player] = {}
