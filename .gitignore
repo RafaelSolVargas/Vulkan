@@ -2,7 +2,6 @@ assets/
 __pycache__
 .env
 .cache
-Admin.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
