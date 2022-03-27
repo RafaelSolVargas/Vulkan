@@ -14,18 +14,21 @@ class Downloader():
                      'playliststart': 0,
                      'extract_flat': False,
                      'playlistend': config.MAX_PLAYLIST_LENGTH,
+                     'quiet': True
                      }
     __YDL_OPTIONS_EXTRACT = {'format': 'bestaudio/best',
                              'default_search': 'auto',
                              'playliststart': 0,
                              'extract_flat': True,
                              'playlistend': config.MAX_PLAYLIST_LENGTH,
+                             'quiet': True
                              }
     __YDL_OPTIONS_FORCE_EXTRACT = {'format': 'bestaudio/best',
                                    'default_search': 'auto',
                                    'playliststart': 0,
                                    'extract_flat': False,
                                    'playlistend': config.MAX_PLAYLIST_FORCED_LENGTH,
+                                   'quiet': True
                                    }
     __BASE_URL = 'https://www.youtube.com/watch?v={}'
 

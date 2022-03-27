@@ -11,7 +11,7 @@ class Configs(Singleton):
             self.SPOTIFY_SECRET = config('SPOTIFY_SECRET')
             self.CLEANER_MESSAGES_QUANT = 5
 
-            self.BOT_PREFIX = '$'
+            self.BOT_PREFIX = '!'
             self.VC_TIMEOUT = 600
 
             self.MAX_PLAYLIST_LENGTH = 50
