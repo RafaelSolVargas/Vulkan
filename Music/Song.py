@@ -1,13 +1,10 @@
-from Music.Interfaces import ISong, IPlaylist
+class Song:
 
-
-class Song(ISong):
-
-    def __init__(self, identifier: str, playlist: IPlaylist, requester: str) -> None:
+    def __init__(self, identifier: str, playlist, requester: str) -> None:
         self.__identifier = identifier
         self.__info = {'requester': requester}
         self.__problematic = False
-        self.__playlist: IPlaylist = playlist
+        self.__playlist = playlist
 
     def finish_down(self, info: dict) -> None:
         if info is None:

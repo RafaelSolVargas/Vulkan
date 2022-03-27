@@ -10,7 +10,7 @@ class LoopController(AbstractController):
         super().__init__(ctx, bot)
 
     async def run(self, args: str) -> ControllerResponse:
-        if args == '' or args == None:
+        if args == '' or args is None:
             self.player.playlist.loop_all()
             embed = self.embeds.LOOP_ALL_ACTIVATED()
             return ControllerResponse(self.ctx, embed)

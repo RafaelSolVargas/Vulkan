@@ -1,9 +1,11 @@
-import discord
-from discord import Client
+from discord import Client, Game, Status, Embed
 from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument, UserInputError
 from discord.ext import commands
 from Config.Config import Configs
 from Config.Helper import Helper
+from Config.Messages import Messages
+from Config.Colors import Colors
+from Views.Embeds import Embeds
 
 helper = Helper()
 
@@ -13,6 +15,9 @@ class Control(commands.Cog):
     def __init__(self, bot: Client):
         self.__bot = bot
         self.__config = Configs()
+        self.__messages = Messages()
+        self.__colors = Colors()
+        self.__embeds = Embeds()
         self.__comandos = {
             'MUSIC': ['resume', 'pause', 'loop', 'stop',
                       'skip', 'play', 'queue', 'clear',
@@ -24,49 +29,23 @@ class Control(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print(self.__config.STARTUP_MESSAGE)
-        await self.__bot.change_presence(status=discord.Status.online, activity=discord.Game(name=f"Vulkan | {self.__config.BOT_PREFIX}help"))
-        print(self.__config.STARTUP_COMPLETE_MESSAGE)
+        print(self.__messages.STARTUP_MESSAGE)
+        await self.__bot.change_presence(status=Status.online, activity=Game(name=f"Vulkan | {self.__config.BOT_PREFIX}help"))
+        print(self.__messages.STARTUP_COMPLETE_MESSAGE)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, MissingRequiredArgument):
-            embed = discord.Embed(
-                title=self.__config.ERROR_TITLE,
-                description=self.__config.ERROR_MISSING_ARGUMENTS,
-                colour=self.__config.COLOURS['black']
-            )
+            embed = self.__embeds.MISSING_ARGUMENTS()
             await ctx.send(embed=embed)
 
         elif isinstance(error, CommandNotFound):
-            embed = discord.Embed(
-                title=self.__config.ERROR_TITLE,
-                description=self.__config.COMMAND_NOT_FOUND,
-                colour=self.__config.COLOURS['black']
-            )
+            embed = self.__embeds.COMMAND_NOT_FOUND()
             await ctx.send(embed=embed)
-        elif isinstance(error, UserInputError):
-            my_error = False
-            if len(error.args) > 0:
-                for arg in error.args:
-                    if arg == self.__config.MY_ERROR_BAD_COMMAND:
-                        embed = discord.Embed(
-                            title=self.__config.BAD_COMMAND_TITLE,
-                            description=self.__config.BAD_COMMAND,
-                            colour=self.__config.COLOURS['black']
-                        )
-                        await ctx.send(embed=embed)
-                        my_error = True
-                        break
-            if not my_error:
-                raise error
+
         else:
             print(f'DEVELOPER NOTE -> Comand Error: {error}')
-            embed = discord.Embed(
-                title=self.__config.ERROR_TITLE,
-                description=self.__config.UNKNOWN_ERROR,
-                colour=self.__config.COLOURS['red']
-            )
+            embed = self.__embeds.UNKNOWN_ERROR()
             await ctx.send(embed=embed)
 
     @commands.command(name="help", help=helper.HELP_HELP, description=helper.HELP_HELP_LONG, aliases=['h', 'ajuda'])
@@ -76,19 +55,19 @@ class Control(commands.Cog):
                 if command.name == command_help:
                     txt = command.description if command.description else command.help
 
-                    embedhelp = discord.Embed(
+                    embedhelp = Embed(
                         title=f'**Description of {command_help}** command',
                         description=txt,
-                        colour=self.__config.COLOURS['blue']
+                        colour=self.__colors.BLUE
                     )
 
                     await ctx.send(embed=embedhelp)
                     return
 
-            embedhelp = discord.Embed(
+            embedhelp = Embed(
                 title='Command Help',
                 description=f'Command {command_help} Not Found',
-                colour=self.__config.COLOURS['red']
+                colour=self.__colors.RED
             )
 
             await ctx.send(embed=embedhelp)
@@ -111,10 +90,10 @@ class Control(commands.Cog):
 
             helptxt = f'\n{help_music}\n{help_help}\n{help_random}'
             helptxt += f'\n\nType {self.__config.BOT_PREFIX}help "command" for more information about the command chosen'
-            embedhelp = discord.Embed(
+            embedhelp = Embed(
                 title=f'**Available Commands of {self.__bot.user.name}**',
                 description=helptxt,
-                colour=self.__config.COLOURS['blue']
+                colour=self.__colors.BLUE
             )
 
             embedhelp.set_thumbnail(url=self.__bot.user.avatar_url)
@@ -122,14 +101,13 @@ class Control(commands.Cog):
 
     @commands.command(name='invite', help=helper.HELP_INVITE, description=helper.HELP_INVITE_LONG)
     async def invite_bot(self, ctx):
-        invite_url = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'.format(
-            self.__bot.user.id)
-        txt = self.__config.INVITE_MESSAGE.format(invite_url)
+        invite_url = self.__config.INVITE_URL.format(self.__bot.user.id)
+        txt = self.__config.INVITE_MESSAGE.format(invite_url, invite_url)
 
-        embed = discord.Embed(
+        embed = Embed(
             title="Invite Vulkan",
             description=txt,
-            colour=self.__config.COLOURS['blue']
+            colour=self.__colors.BLUE
         )
 
         await ctx.send(embed=embed)

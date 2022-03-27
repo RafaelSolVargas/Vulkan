@@ -13,7 +13,7 @@ class HistoryController(AbstractController):
         history = self.player.playlist.songs_history
 
         if len(history) == 0:
-            text = self.config.HISTORY_EMPTY
+            text = self.messages.HISTORY_EMPTY
 
         else:
             text = f'\n📜 History Length: {len(history)} | Max: {self.config.MAX_SONGS_HISTORY}\n'

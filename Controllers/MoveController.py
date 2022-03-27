@@ -49,7 +49,7 @@ class MoveController(AbstractController):
             pos1 = int(pos1)
             pos2 = int(pos2)
         except:
-            return NumberRequired(self.config.ERROR_NUMBER)
+            return NumberRequired(self.messages.ERROR_NUMBER)
 
     def __sanitize_input(self, pos1: int, pos2: int) -> tuple:
         pos1 = int(pos1)

@@ -1,12 +1,11 @@
 from collections import deque
 from typing import List
 from Config.Config import Configs
-from Music.Interfaces import IPlaylist
 from Music.Song import Song
 import random
 
 
-class Playlist(IPlaylist):
+class Playlist:
 
     def __init__(self) -> None:
         self.__config = Configs()
@@ -54,7 +53,7 @@ class Playlist(IPlaylist):
         return len(self.__queue)
 
     def next_song(self) -> Song:
-        if self.__current == None and len(self.__queue) == 0:
+        if self.__current is None and len(self.__queue) == 0:
             return None
 
         played_song = self.__current

@@ -25,9 +25,9 @@ class QueueController(AbstractController):
         await self.__down.preload(songs_preload)
 
         if self.player.playlist.looping_all:
-            title = self.config.ALL_SONGS_LOOPING
+            title = self.messages.ALL_SONGS_LOOPING
         else:
-            title = self.config.QUEUE_TITLE
+            title = self.messages.QUEUE_TITLE
 
         total_time = Utils.format_time(sum([int(song.duration if song.duration else 0)
                                             for song in songs_preload]))
@@ -36,7 +36,7 @@ class QueueController(AbstractController):
         text = f'📜 Queue length: {total_songs} | ⌛ Duration: `{total_time}` downloaded  \n\n'
 
         for pos, song in enumerate(songs_preload, start=1):
-            song_name = song.title if song.title else self.config.SONG_DOWNLOADING
+            song_name = song.title if song.title else self.messages.SONG_DOWNLOADING
             text += f"**`{pos}` - ** {song_name} - `{Utils.format_time(song.duration)}`\n"
 
         embed = self.embeds.QUEUE(title, text)

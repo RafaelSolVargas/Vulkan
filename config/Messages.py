@@ -9,8 +9,6 @@ class Messages(Singleton):
             self.STARTUP_MESSAGE = 'Starting Vulkan...'
             self.STARTUP_COMPLETE_MESSAGE = 'Vulkan is now operating.'
 
-            self.INVITE_MESSAGE = 'To invite Vulkan to your own server, click [here]({})'
-
             self.SONGINFO_UPLOADER = "Uploader: "
             self.SONGINFO_DURATION = "Duration: "
             self.SONGINFO_REQUESTER = 'Requester: '
@@ -67,8 +65,8 @@ class Messages(Singleton):
             self.MY_ERROR_BAD_COMMAND = 'This string serves to verify if some error was raised by myself on purpose'
             self.BAD_COMMAND_TITLE = 'Misuse of command'
             self.BAD_COMMAND = f'❌ Bad usage of this command, type {configs.BOT_PREFIX}help "command" to understand the command better'
-            self.INVITE_URL = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'
             self.VIDEO_UNAVAILABLE = '❌ Sorry. This video is unavailable for download.'
+            self.ERROR_DUE_LOOP_ONE_ON = f'❌ This command cannot be executed with loop one activated. Use {self.BOT_PREFIX}loop off to disable loop.'
 
 
 class SearchMessages(Singleton):

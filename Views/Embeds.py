@@ -1,3 +1,4 @@
+from Config.Messages import Messages
 from Exceptions.Exceptions import Error
 from discord import Embed
 from Config.Config import Configs
@@ -8,15 +9,16 @@ from datetime import timedelta
 class Embeds:
     def __init__(self) -> None:
         self.__config = Configs()
+        self.__messages = Messages()
         self.__colors = Colors()
 
     def ONE_SONG_LOOPING(self, info: dict) -> Embed:
-        title = self.__config.ONE_SONG_LOOPING
+        title = self.__messages.ONE_SONG_LOOPING
         return self.SONG_INFO(info, title)
 
     def EMPTY_QUEUE(self) -> Embed:
-        title = self.__config.SONG_PLAYER
-        text = self.__config.EMPTY_QUEUE
+        title = self.__messages.SONG_PLAYER
+        text = self.__messages.EMPTY_QUEUE
         embed = Embed(
             title=title,
             description=text,
@@ -24,42 +26,50 @@ class Embeds:
         )
         return embed
 
+    def MISSING_ARGUMENTS(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.ERROR_TITLE,
+            description=self.__messages.ERROR_MISSING_ARGUMENTS,
+            colour=self.__colors.BLACK
+        )
+        return embed
+
     def SONG_ADDED_TWO(self, info: dict, pos: int) -> Embed:
-        embed = self.SONG_INFO(info, self.__config.SONG_ADDED_TWO, pos)
+        embed = self.SONG_INFO(info, self.__messages.SONG_ADDED_TWO, pos)
         return embed
 
     def INVALID_INPUT(self) -> Embed:
         embed = Embed(
-            title=self.__config.ERROR_TITLE,
-            description=self.__config.INVALID_INPUT,
+            title=self.__messages.ERROR_TITLE,
+            description=self.__messages.INVALID_INPUT,
             colour=self.__colors.BLACK)
         return embed
 
     def UNAVAILABLE_VIDEO(self) -> Embed:
         embed = Embed(
-            title=self.__config.ERROR_TITLE,
-            description=self.__config.VIDEO_UNAVAILABLE,
+            title=self.__messages.ERROR_TITLE,
+            description=self.__messages.VIDEO_UNAVAILABLE,
             colour=self.__colors.BLACK)
         return embed
 
     def DOWNLOADING_ERROR(self) -> Embed:
         embed = Embed(
-            title=self.__config.ERROR_TITLE,
-            description=self.__config.DOWNLOADING_ERROR,
+            title=self.__messages.ERROR_TITLE,
+            description=self.__messages.DOWNLOADING_ERROR,
             colour=self.__colors.BLACK)
         return embed
 
     def SONG_ADDED(self, title: str) -> Embed:
         embed = Embed(
-            title=self.__config.SONG_PLAYER,
-            description=self.__config.SONG_ADDED.format(title),
+            title=self.__messages.SONG_PLAYER,
+            description=self.__messages.SONG_ADDED.format(title),
             colour=self.__colors.BLUE)
         return embed
 
     def SONGS_ADDED(self, quant: int) -> Embed:
         embed = Embed(
-            title=self.__config.SONG_PLAYER,
-            description=self.__config.SONGS_ADDED.format(quant),
+            title=self.__messages.SONG_PLAYER,
+            description=self.__messages.SONGS_ADDED.format(quant),
             colour=self.__colors.BLUE)
         return embed
 
@@ -70,11 +80,11 @@ class Embeds:
             colour=self.__colors.BLUE
         )
 
-        embedvc.add_field(name=self.__config.SONGINFO_UPLOADER,
+        embedvc.add_field(name=self.__messages.SONGINFO_UPLOADER,
                           value=info['uploader'],
                           inline=False)
 
-        embedvc.add_field(name=self.__config.SONGINFO_REQUESTER,
+        embedvc.add_field(name=self.__messages.SONGINFO_REQUESTER,
                           value=info['requester'],
                           inline=True)
 
@@ -83,15 +93,15 @@ class Embeds:
 
         if 'duration' in info.keys():
             duration = str(timedelta(seconds=info['duration']))
-            embedvc.add_field(name=self.__config.SONGINFO_DURATION,
+            embedvc.add_field(name=self.__messages.SONGINFO_DURATION,
                               value=f"{duration}",
                               inline=True)
         else:
-            embedvc.add_field(name=self.__config.SONGINFO_DURATION,
-                              value=self.__config.SONGINFO_UNKNOWN_DURATION,
+            embedvc.add_field(name=self.__messages.SONGINFO_DURATION,
+                              value=self.__messages.SONGINFO_UNKNOWN_DURATION,
                               inline=True)
 
-        embedvc.add_field(name=self.__config.SONGINFO_POSITION,
+        embedvc.add_field(name=self.__messages.SONGINFO_POSITION,
                           value=position,
                           inline=True)
 
@@ -99,16 +109,16 @@ class Embeds:
 
     def SONG_MOVED(self, song_name: str, pos1: int, pos2: int) -> Embed:
         embed = Embed(
-            title=self.__config.SONG_PLAYER,
-            description=self.__config.SONG_MOVED_SUCCESSFULLY.format(song_name, pos1, pos2),
+            title=self.__messages.SONG_PLAYER,
+            description=self.__messages.SONG_MOVED_SUCCESSFULLY.format(song_name, pos1, pos2),
             colour=self.__colors.BLUE
         )
         return embed
 
     def ERROR_MOVING(self) -> Embed:
         embed = Embed(
-            title=self.__config.UNKNOWN_ERROR,
-            description=self.__config.ERROR_MOVING,
+            title=self.__messages.UNKNOWN_ERROR,
+            description=self.__messages.ERROR_MOVING,
             colour=self.__colors.BLACK
         )
         return embed
@@ -130,139 +140,139 @@ class Embeds:
 
     def WRONG_LENGTH_INPUT(self) -> Embed:
         embed = Embed(
-            title=self.__config.BAD_COMMAND_TITLE,
-            description=self.__config.LENGTH_ERROR,
+            title=self.__messages.BAD_COMMAND_TITLE,
+            description=self.__messages.LENGTH_ERROR,
             colour=self.__colors.BLACK
         )
         return embed
 
     def BAD_LOOP_USE(self) -> Embed:
         embed = Embed(
-            title=self.__config.BAD_COMMAND_TITLE,
-            description=self.__config.BAD_USE_OF_LOOP,
+            title=self.__messages.BAD_COMMAND_TITLE,
+            description=self.__messages.BAD_USE_OF_LOOP,
             colour=self.__colors.BLACK
         )
         return embed
 
     def COMMAND_ERROR(self):
         embed = Embed(
-            title=self.__config.ERROR_TITLE,
-            description=self.__config.ERROR_MISSING_ARGUMENTS,
+            title=self.__messages.ERROR_TITLE,
+            description=self.__messages.ERROR_MISSING_ARGUMENTS,
             colour=self.__colors.BLACK
         )
         return embed
 
     def COMMAND_NOT_FOUND(self) -> Embed:
         embed = Embed(
-            title=self.__config.ERROR_TITLE,
-            description=self.__config.COMMAND_NOT_FOUND,
+            title=self.__messages.ERROR_TITLE,
+            description=self.__messages.COMMAND_NOT_FOUND,
             colour=self.__colors.BLACK
         )
         return embed
 
     def MY_ERROR_BAD_COMMAND(self) -> Embed:
         embed = Embed(
-            title=self.__config.BAD_COMMAND_TITLE,
-            description=self.__config.BAD_COMMAND,
+            title=self.__messages.BAD_COMMAND_TITLE,
+            description=self.__messages.BAD_COMMAND,
             colour=self.__colors.BLACK
         )
         return embed
 
     def UNKNOWN_ERROR(self) -> Embed:
         embed = Embed(
-            title=self.__config.ERROR_TITLE,
-            description=self.__config.UNKNOWN_ERROR,
+            title=self.__messages.ERROR_TITLE,
+            description=self.__messages.UNKNOWN_ERROR,
             colour=self.__colors.RED
         )
         return embed
 
     def FAIL_DUE_TO_LOOP_ON(self) -> Embed:
         embed = Embed(
-            title=self.__config.SONG_PLAYER,
-            description=self.__config.LOOP_ON,
+            title=self.__messages.SONG_PLAYER,
+            description=self.__messages.LOOP_ON,
             colour=self.__colors.BLACK
         )
         return embed
 
     def ERROR_SHUFFLING(self) -> Embed:
         embed = Embed(
-            title=self.__config.SONG_PLAYER,
-            description=self.__config.ERROR_SHUFFLING,
+            title=self.__messages.SONG_PLAYER,
+            description=self.__messages.ERROR_SHUFFLING,
             colour=self.__colors.BLACK
         )
         return embed
 
     def SONGS_SHUFFLED(self) -> Embed:
         embed = Embed(
-            title=self.__config.SONG_PLAYER,
-            description=self.__config.SONGS_SHUFFLED,
+            title=self.__messages.SONG_PLAYER,
+            description=self.__messages.SONGS_SHUFFLED,
             colour=self.__colors.BLUE
         )
         return embed
 
     def LOOP_ONE_ACTIVATED(self) -> Embed:
         embed = Embed(
-            title=self.__config.LOOP_ONE_ACTIVATE,
+            title=self.__messages.LOOP_ONE_ACTIVATE,
             colour=self.__colors.BLUE
         )
         return embed
 
     def LOOP_ALL_ACTIVATED(self) -> Embed:
         embed = Embed(
-            title=self.__config.LOOP_ALL_ACTIVATE,
+            title=self.__messages.LOOP_ALL_ACTIVATE,
             colour=self.__colors.BLUE
         )
         return embed
 
     def SONG_PROBLEMATIC(self) -> Embed:
         embed = Embed(
-            title=self.__config.ERROR_TITLE,
-            description=self.__config.DOWNLOADING_ERROR,
+            title=self.__messages.ERROR_TITLE,
+            description=self.__messages.DOWNLOADING_ERROR,
             colour=self.__colors.BLACK)
         return embed
 
     def NO_CHANNEL(self) -> Embed:
         embed = Embed(
-            title=self.__config.IMPOSSIBLE_MOVE,
-            description=self.__config.NO_CHANNEL,
+            title=self.__messages.IMPOSSIBLE_MOVE,
+            description=self.__messages.NO_CHANNEL,
             colour=self.__colors.BLACK
         )
         return embed
 
     def ERROR_DUE_LOOP_ONE_ON(self) -> Embed:
         embed = Embed(
-            title=self.__config.BAD_COMMAND_TITLE,
-            description=self.__config.ERROR_DUE_LOOP_ONE_ON,
+            title=self.__messages.BAD_COMMAND_TITLE,
+            description=self.__messages.ERROR_DUE_LOOP_ONE_ON,
             colour=self.__colors.BLACK
         )
         return embed
 
     def LOOP_DISABLE(self) -> Embed:
         embed = Embed(
-            title=self.__config.LOOP_DISABLE,
+            title=self.__messages.LOOP_DISABLE,
             colour=self.__colors.BLUE
         )
         return embed
 
     def NOT_PREVIOUS_SONG(self) -> Embed:
         embed = Embed(
-            title=self.__config.SONG_PLAYER,
-            description=self.__config.NOT_PREVIOUS,
+            title=self.__messages.SONG_PLAYER,
+            description=self.__messages.NOT_PREVIOUS,
             colour=self.__colors.BLUE
         )
         return embed
 
     def HISTORY(self, description: str) -> Embed:
         embed = Embed(
-            title=self.__config.HISTORY_TITLE,
+            title=self.__messages.HISTORY_TITLE,
             description=description,
             colour=self.__colors.BLUE)
         return embed
 
     def NOT_PLAYING(self) -> Embed:
         embed = Embed(
-            title=self.__config.SONG_PLAYER,
-            description=self.__config.PLAYER_NOT_PLAYING,
+            title=self.__messages.SONG_PLAYER,
+            description=self.__messages.PLAYER_NOT_PLAYING,
             colour=self.__colors.BLUE)
         return embed
 
@@ -275,9 +285,9 @@ class Embeds:
         return embed
 
     def INVITE(self, bot_id: str) -> Embed:
-        link = self.__config.INVITE_URL
+        link = self.__messages.INVITE_URL
         link.format(bot_id)
-        text = self.__config.INVITE_MESSAGE.format(link, link)
+        text = self.__messages.INVITE_MESSAGE.format(link, link)
 
         embed = Embed(
             title="Invite Vulkan",
@@ -288,14 +298,14 @@ class Embeds:
 
     def ERROR_NUMBER(self) -> Embed:
         embed = Embed(
-            description=self.__config.ERROR_NUMBER,
+            description=self.__messages.ERROR_NUMBER,
             colour=self.__colors.BLACK
         )
         return embed
 
     def RANDOM_NUMBER(self, a: int, b: int, x: int) -> Embed:
         embed = Embed(
-            title=f'Random number between [{a, b}]',
+            title=f'Random number between [{a}, {b}]',
             description=x,
             colour=self.__colors.GREEN
         )
@@ -303,14 +313,14 @@ class Embeds:
 
     def SONG_REMOVED(self, song_name: str) -> Embed:
         embed = Embed(
-            description=self.__config.SONG_REMOVED_SUCCESSFULLY.format(song_name),
+            description=self.__messages.SONG_REMOVED_SUCCESSFULLY.format(song_name),
             colour=self.__colors.BLUE
         )
         return embed
 
     def PLAYLIST_RANGE_ERROR(self) -> Embed:
         embed = Embed(
-            description=self.__config.LENGTH_ERROR,
+            description=self.__messages.LENGTH_ERROR,
             colour=self.__colors.BLACK
         )
         return embed

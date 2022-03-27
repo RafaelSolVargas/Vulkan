@@ -42,7 +42,7 @@ class RemoveController(AbstractController):
         try:
             position = int(position)
         except:
-            return NumberRequired(self.config.ERROR_NUMBER)
+            return NumberRequired(self.messages.ERROR_NUMBER)
 
     def __sanitize_input(self, position: str) -> int:
         position = int(position)

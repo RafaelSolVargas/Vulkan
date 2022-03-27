@@ -1,3 +1,4 @@
+import asyncio
 from discord.ext import commands
 from Config.Config import Configs
 from discord import Client, Guild, FFmpegPCMAudio, Embed
@@ -18,7 +19,6 @@ class Player(commands.Cog):
 
         self.__timer = Timer(self.__timeout_handler)
         self.__playing = False
-        self.__config = Configs()
 
         # Flag to control if the player should stop totally the playing
         self.__force_stop = False
@@ -68,7 +68,7 @@ class Player(commands.Cog):
 
         song = self.__playlist.next_song()
 
-        if song != None:
+        if song is not None:
             coro = self.__play_music(ctx, song)
             self.__bot.loop.create_task(coro)
         else:
@@ -76,15 +76,15 @@ class Player(commands.Cog):
 
     async def __play_music(self, ctx: Context, song: Song) -> None:
         try:
-            source = self.__ensure_source(song)
-            if source == None:
+            source = await self.__ensure_source(song)
+            if source is None:
                 self.__play_next(None, ctx)
 
             self.__playing = True
 
             player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
-            self.__guild.voice_client.play(
-                player, after=lambda e: self.__play_next(e, ctx))
+            voice = self.__guild.voice_client
+            voice.play(player, after=lambda e: self.__play_next(e, ctx))
 
             self.__timer.cancel()
             self.__timer = Timer(self.__timeout_handler)
@@ -92,46 +92,12 @@ class Player(commands.Cog):
             await ctx.invoke(self.__bot.get_command('np'))
 
             songs = self.__playlist.songs_to_preload
-            await self.__down.preload(songs)
+            asyncio.create_task(self.__down.preload(songs))
         except:
             self.__play_next(None, ctx)
 
-    def __format_embed(self, info: dict, title='', position='Playing Now') -> Embed:
-        embedvc = Embed(
-            title=title,
-            description=f"[{info['title']}]({info['original_url']})",
-            color=self.__config.COLOURS['blue']
-        )
-
-        embedvc.add_field(name=self.__config.SONGINFO_UPLOADER,
-                          value=info['uploader'],
-                          inline=False)
-
-        embedvc.add_field(name=self.__config.SONGINFO_REQUESTER,
-                          value=info['requester'],
-                          inline=True)
-
-        if 'thumbnail' in info.keys():
-            embedvc.set_thumbnail(url=info['thumbnail'])
-
-        if 'duration' in info.keys():
-            duration = str(timedelta(seconds=info['duration']))
-            embedvc.add_field(name=self.__config.SONGINFO_DURATION,
-                              value=f"{duration}",
-                              inline=True)
-        else:
-            embedvc.add_field(name=self.__config.SONGINFO_DURATION,
-                              value=self.__config.SONGINFO_UNKNOWN_DURATION,
-                              inline=True)
-
-        embedvc.add_field(name=self.__config.SONGINFO_POSITION,
-                          value=position,
-                          inline=True)
-
-        return embedvc
-
     async def __timeout_handler(self) -> None:
-        if self.__guild.voice_client == None:
+        if self.__guild.voice_client is None:
             return
 
         if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
@@ -142,9 +108,10 @@ class Player(commands.Cog):
             self.__playlist.loop_off()
             await self.__guild.voice_client.disconnect()
 
-    def __ensure_source(self, song: Song) -> str:
+    async def __ensure_source(self, song: Song) -> str:
         while True:
-            if song.source != None:  # If song got downloaded
+            await asyncio.sleep(0.1)
+            if song.source is not None:  # If song got downloaded
                 return song.source
 
             if song.problematic:  # If song got any error

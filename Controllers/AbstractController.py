@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 from discord.ext.commands import Context
 from discord import Client, Guild, ClientUser, Member
+from Config.Messages import Messages
 from Controllers.PlayerController import PlayersController
 from Music.Player import Player
 from Controllers.ControllerResponse import ControllerResponse
@@ -19,6 +20,7 @@ class AbstractController(ABC):
         self.__ctx: Context = ctx
         self.__bot_user: ClientUser = self.__bot.user
         self.__id = self.__bot_user.id
+        self.__messages = Messages()
         self.__config = Configs()
         self.__helper = Helper()
         self.__embeds = Embeds()
@@ -59,6 +61,10 @@ class AbstractController(ABC):
     @property
     def config(self) -> Configs:
         return self.__config
+
+    @property
+    def messages(self) -> Messages:
+        return self.__messages
 
     @property
     def helper(self) -> Helper:
