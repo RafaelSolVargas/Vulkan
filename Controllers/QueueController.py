@@ -1,3 +1,4 @@
+import asyncio
 from discord.ext.commands import Context
 from discord import Client
 from Controllers.AbstractController import AbstractController
@@ -22,7 +23,7 @@ class QueueController(AbstractController):
             embed = self.embeds.EMPTY_QUEUE()
             return ControllerResponse(self.ctx, embed)
 
-        await self.__down.preload(songs_preload)
+        asyncio.create_task(self.__down.preload(songs_preload))
 
         if self.player.playlist.looping_all:
             title = self.messages.ALL_SONGS_LOOPING

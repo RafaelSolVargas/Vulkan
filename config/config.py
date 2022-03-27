@@ -20,8 +20,7 @@ class Configs(Singleton):
             self.MAX_SONGS_HISTORY = 15
 
             self.INVITE_MESSAGE = """To invite Vulkan to your own server, click [here]({}). 
-            
-            Or use this direct URL: ({})"""
+            Or use this direct URL: {}"""
 
             self.MY_ERROR_BAD_COMMAND = 'This string serves to verify if some error was raised by myself on purpose'
-            self.INVITE_URL = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot>'
+            self.INVITE_URL = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot'

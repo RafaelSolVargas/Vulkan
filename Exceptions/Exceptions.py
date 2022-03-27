@@ -1,4 +1,5 @@
 from Config.Config import Configs
+from Config.Messages import Messages
 
 
 class Error(Exception):
@@ -18,9 +19,9 @@ class Error(Exception):
 
 class ImpossibleMove(Error):
     def __init__(self, message='', title='', *args: object) -> None:
-        config = Configs()
+        message = Messages()
         if title == '':
-            title = config.IMPOSSIBLE_MOVE
+            title = message.IMPOSSIBLE_MOVE
         super().__init__(message, title, *args)
 
 

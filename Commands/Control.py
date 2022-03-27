@@ -102,6 +102,7 @@ class Control(commands.Cog):
     @commands.command(name='invite', help=helper.HELP_INVITE, description=helper.HELP_INVITE_LONG)
     async def invite_bot(self, ctx):
         invite_url = self.__config.INVITE_URL.format(self.__bot.user.id)
+        print(invite_url)
         txt = self.__config.INVITE_MESSAGE.format(invite_url, invite_url)
 
         embed = Embed(

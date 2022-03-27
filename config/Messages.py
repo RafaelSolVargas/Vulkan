@@ -66,7 +66,7 @@ class Messages(Singleton):
             self.BAD_COMMAND_TITLE = 'Misuse of command'
             self.BAD_COMMAND = f'❌ Bad usage of this command, type {configs.BOT_PREFIX}help "command" to understand the command better'
             self.VIDEO_UNAVAILABLE = '❌ Sorry. This video is unavailable for download.'
-            self.ERROR_DUE_LOOP_ONE_ON = f'❌ This command cannot be executed with loop one activated. Use {self.BOT_PREFIX}loop off to disable loop.'
+            self.ERROR_DUE_LOOP_ONE_ON = f'❌ This command cannot be executed with loop one activated. Use {configs.BOT_PREFIX}loop off to disable loop.'
 
 
 class SearchMessages(Singleton):
