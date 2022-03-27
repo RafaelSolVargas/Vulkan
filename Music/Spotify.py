@@ -1,6 +1,6 @@
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
-from Config.Config import Configs
+from Config.Configs import Configs
 
 
 class SpotifySearch():

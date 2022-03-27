@@ -1,5 +1,5 @@
 from Config.Singleton import Singleton
-from Config.Config import Configs
+from Config.Configs import Configs
 
 
 class Messages(Singleton):

@@ -1,9 +1,7 @@
 import asyncio
 from discord.ext import commands
-from Config.Config import Configs
-from discord import Client, Guild, FFmpegPCMAudio, Embed
+from discord import Client, Guild, FFmpegPCMAudio
 from discord.ext.commands import Context
-from datetime import timedelta
 from Music.Downloader import Downloader
 from Music.Playlist import Playlist
 from Music.Song import Song

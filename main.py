@@ -1,6 +1,6 @@
 from discord import Intents, Client
 from os import listdir
-from Config.Config import Configs
+from Config.Configs import Configs
 from discord.ext.commands import Bot
 
 

@@ -1,7 +1,7 @@
 from discord import Client, Game, Status, Embed
 from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument, UserInputError
 from discord.ext import commands
-from Config.Config import Configs
+from Config.Configs import Configs
 from Config.Helper import Helper
 from Config.Messages import Messages
 from Config.Colors import Colors

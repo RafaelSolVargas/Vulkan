@@ -2,7 +2,7 @@ from random import randint, random
 from discord import Client
 from discord.ext.commands import Context, command, Cog
 from Config.Colors import Colors
-from Config.Config import Configs
+from Config.Configs import Configs
 from Config.Helper import Helper
 from Views.Embeds import Embeds
 

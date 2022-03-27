@@ -1,6 +1,6 @@
 import asyncio
 from typing import List
-from Config.Config import Configs
+from Config.Configs import Configs
 from yt_dlp import YoutubeDL
 from concurrent.futures import ThreadPoolExecutor
 from Music.Song import Song

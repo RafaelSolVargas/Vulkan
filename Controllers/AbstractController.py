@@ -6,7 +6,7 @@ from Config.Messages import Messages
 from Controllers.PlayerController import PlayersController
 from Music.Player import Player
 from Controllers.ControllerResponse import ControllerResponse
-from Config.Config import Configs
+from Config.Configs import Configs
 from Config.Helper import Helper
 from Views.Embeds import Embeds
 

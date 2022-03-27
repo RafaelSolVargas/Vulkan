@@ -1,6 +1,6 @@
 from collections import deque
 from typing import List
-from Config.Config import Configs
+from Config.Configs import Configs
 from Music.Song import Song
 import random
 

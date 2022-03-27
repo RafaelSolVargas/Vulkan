@@ -1,4 +1,4 @@
-from Config.Config import Configs
+from Config.Configs import Configs
 from Config.Messages import Messages
 
 

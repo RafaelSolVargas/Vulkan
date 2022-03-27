@@ -1,7 +1,7 @@
 from Config.Messages import Messages
 from Exceptions.Exceptions import Error
 from discord import Embed
-from Config.Config import Configs
+from Config.Configs import Configs
 from Config.Colors import Colors
 from datetime import timedelta
 
