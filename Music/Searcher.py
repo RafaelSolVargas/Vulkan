@@ -1,7 +1,8 @@
-from Exceptions.Exceptions import InvalidInput, SpotifyError, YoutubeError
+from Exceptions.Exceptions import DeezerError, InvalidInput, SpotifyError, YoutubeError
 from Music.Downloader import Downloader
 from Music.Types import Provider
 from Music.Spotify import SpotifySearch
+from Music.DeezerSearcher import DeezerSearcher
 from Utils.Utils import Utils
 from Utils.UrlAnalyzer import URLAnalyzer
 from Config.Messages import SearchMessages
@@ -9,7 +10,8 @@ from Config.Messages import SearchMessages
 
 class Searcher():
     def __init__(self) -> None:
-        self.__Spotify = SpotifySearch()
+        self.__spotify = SpotifySearch()
+        self.__deezer = DeezerSearcher()
         self.__messages = SearchMessages()
         self.__down = Downloader()
 
@@ -24,20 +26,35 @@ class Searcher():
                 musics = await self.__down.extract_info(track)
                 return musics
             except:
-                raise YoutubeError(self.__messages.YOUTUBE_ERROR, self.__messages.GENERIC_TITLE)
+                raise YoutubeError(self.__messages.YOUTUBE_NOT_FOUND, self.__messages.GENERIC_TITLE)
 
         elif provider == Provider.Spotify:
             try:
-                musics = self.__Spotify.search(track)
+                musics = self.__spotify.search(track)
                 if musics == None or len(musics) == 0:
-                    raise SpotifyError(self.__messages.SPOTIFY_ERROR, self.__messages.GENERIC_TITLE)
+                    raise SpotifyError(self.__messages.SPOTIFY_NOT_FOUND,
+                                       self.__messages.GENERIC_TITLE)
 
                 return musics
             except SpotifyError as error:
                 raise error  # Redirect already processed error
             except Exception as e:
                 print(f'[Spotify Error] -> {e}')
-                raise SpotifyError(self.__messages.SPOTIFY_ERROR, self.__messages.GENERIC_TITLE)
+                raise SpotifyError(self.__messages.SPOTIFY_NOT_FOUND, self.__messages.GENERIC_TITLE)
+
+        elif provider == Provider.Deezer:
+            try:
+                musics = self.__deezer.search(track)
+                if musics == None or len(musics) == 0:
+                    raise DeezerError(self.__messages.DEEZER_NOT_FOUND,
+                                      self.__messages.GENERIC_TITLE)
+
+                return musics
+            except DeezerError as error:
+                raise error  # Redirect already processed error
+            except Exception as e:
+                print(f'[Deezer Error] -> {e}')
+                raise DeezerError(self.__messages.DEEZER_NOT_FOUND, self.__messages.GENERIC_TITLE)
 
         elif provider == Provider.Name:
             return [track]
@@ -52,7 +69,7 @@ class Searcher():
         if 'start_radio' or 'index' in trackAnalyzer.queryParams.keys():
             return trackAnalyzer.getCleanedUrl()
 
-    def __identify_source(self, track) -> Provider:
+    def __identify_source(self, track: str) -> Provider:
         if not Utils.is_url(track):
             return Provider.Name
 
@@ -61,5 +78,8 @@ class Searcher():
 
         if "https://open.spotify.com" in track:
             return Provider.Spotify
+
+        if "https://www.deezer.com" in track:
+            return Provider.Deezer
 
         return Provider.Unknown

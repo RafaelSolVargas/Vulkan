@@ -1,17 +1,17 @@
 # **Vulkan**
 
-A Music Discord bot, written in Python, that supports Youtube and Spotify sources for playing. Vulkan was designed so that anyone can fork this project, follow the instructions and use it in their own way, Vulkan can also be configured in Heroku to work 24/7.
+A Music Discord bot, written in Python, that plays *Youtube*, *Spotify* and *Deezer* links. Vulkan was designed so that anyone can fork this project, follow the instructions and use it in their own way, Vulkan can also be configured in Heroku to work 24/7.
 
 
 #  **Music**
-- Play musics from Youtube and Spotify Playlists
+- Play musics from Youtube, Spotify and Deezer links (Albums, Artists, Playlists and Tracks)
 - Control loop of one or all musics
 - Allow moving and removing musics in the queue
 - Play musics in queue randomly
 - Store played songs and allow bidirectional flow
 
 ### Commands
-```!play [title, spotify_url, youtube_url]``` - Start playing song
+```!play [title, spotify_url, youtube_url, deezer_url]``` - Start playing song
 
 ```!resume``` - Resume the song player
 

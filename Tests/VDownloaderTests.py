@@ -58,14 +58,24 @@ class VulkanDownloaderTest(VulkanTesterBase):
 
     def test_YoutubeMixPlaylist(self) -> None:
         # Search the link to determine names
-        music = self._runner.run_coroutine(
+        musics = self._runner.run_coroutine(
             self._searcher.search(self._constants.YT_MIX_URL))
 
         # Musics from Mix should download only the first music
-        if len(music) == 1:
-            return True
-        else:
+        if len(musics) != 1:
             return False
+
+        playlist = Playlist()
+        song = Song(musics[0], playlist, '')
+        playlist.add_song(song)
+
+        self._runner.run_coroutine(self._downloader.download_song(song))
+
+        if song.problematic:
+            return False
+        else:
+            print(song.title)
+            return True
 
     def test_musicTitle(self):
         playlist = Playlist()
@@ -81,11 +91,30 @@ class VulkanDownloaderTest(VulkanTesterBase):
             return True
 
     def test_YoutubePersonalPlaylist(self) -> None:
-        musics = self._runner.run_coroutine(
+        musicsList = self._runner.run_coroutine(
             self._searcher.search(self._constants.YT_PERSONAL_PLAYLIST_URL))
 
-        if len(musics) > 0:
-            print(musics)
-            return True
-        else:
+        if len(musicsList) == 0:
             return False
+
+        # Create and store songs in list
+        playlist = Playlist()
+        songsList: List[Song] = []
+        for info in musicsList:
+            song = Song(identifier=info, playlist=playlist, requester='')
+            playlist.add_song(song)
+            songsList.append(song)
+
+        # Create a list of coroutines without waiting for them
+        tasks: List[Task] = []
+        for song in songsList:
+            tasks.append(self._downloader.download_song(song))
+
+        # Send for runner to execute them concurrently
+        self._runner.run_coroutines_list(tasks)
+
+        for song in songsList:
+            if not song.problematic and song.title == None:
+                return False
+
+        return True

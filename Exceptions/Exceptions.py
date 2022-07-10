@@ -49,6 +49,11 @@ class SpotifyError(VulkanError):
         super().__init__(message, title, *args)
 
 
+class DeezerError(VulkanError):
+    def __init__(self, message='', title='', *args: object) -> None:
+        super().__init__(message, title, *args)
+
+
 class UnknownError(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
