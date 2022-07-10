@@ -1,5 +1,3 @@
-from requests import HTTPError
-from Music.Spotify import SpotifySearch
 from Tests.TestBase import VulkanTesterBase
 from Exceptions.Exceptions import SpotifyError
 

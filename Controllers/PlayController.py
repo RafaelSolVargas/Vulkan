@@ -1,5 +1,5 @@
 import asyncio
-from Exceptions.Exceptions import DownloadingError, Error
+from Exceptions.Exceptions import DownloadingError, VulkanError
 from discord.ext.commands import Context
 from discord import Client
 from Controllers.AbstractController import AbstractController
@@ -64,7 +64,7 @@ class PlayController(AbstractController):
             return response
 
         except Exception as err:
-            if isinstance(err, Error):
+            if isinstance(err, VulkanError): # If error was already processed
                 print(f'DEVELOPER NOTE -> PlayController Error: {err.message}')
                 error = err
                 embed = self.embeds.CUSTOM_ERROR(error)

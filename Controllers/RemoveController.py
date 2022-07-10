@@ -3,7 +3,7 @@ from discord.ext.commands import Context
 from discord import Client
 from Controllers.AbstractController import AbstractController
 from Controllers.ControllerResponse import ControllerResponse
-from Exceptions.Exceptions import BadCommandUsage, Error, ErrorRemoving, InvalidInput, NumberRequired, UnknownError
+from Exceptions.Exceptions import BadCommandUsage, VulkanError, ErrorRemoving, InvalidInput, NumberRequired
 
 
 class RemoveController(AbstractController):
@@ -38,7 +38,7 @@ class RemoveController(AbstractController):
             embed = self.embeds.ERROR_REMOVING()
             return ControllerResponse(self.ctx, embed, error)
 
-    def __validate_input(self, position: str) -> Union[Error, None]:
+    def __validate_input(self, position: str) -> Union[VulkanError, None]:
         try:
             position = int(position)
         except:

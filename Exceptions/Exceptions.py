@@ -1,8 +1,7 @@
-from Config.Configs import Configs
 from Config.Messages import Messages
 
 
-class Error(Exception):
+class VulkanError(Exception):
     def __init__(self, message='', title='', *args: object) -> None:
         self.__message = message
         self.__title = title
@@ -17,7 +16,7 @@ class Error(Exception):
         return self.__title
 
 
-class ImpossibleMove(Error):
+class ImpossibleMove(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         message = Messages()
         if title == '':
@@ -25,56 +24,56 @@ class ImpossibleMove(Error):
         super().__init__(message, title, *args)
 
 
-class MusicUnavailable(Error):
+class MusicUnavailable(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
 
 
-class YoutubeError(Error):
+class YoutubeError(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
 
 
-class BadCommandUsage(Error):
+class BadCommandUsage(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
 
 
-class DownloadingError(Error):
+class DownloadingError(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
 
 
-class SpotifyError(Error):
+class SpotifyError(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
 
 
-class UnknownError(Error):
+class UnknownError(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
 
 
-class InvalidInput(Error):
+class InvalidInput(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
 
 
-class WrongLength(Error):
+class WrongLength(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
 
 
-class ErrorMoving(Error):
+class ErrorMoving(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
 
 
-class ErrorRemoving(Error):
+class ErrorRemoving(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
 
 
-class NumberRequired(Error):
+class NumberRequired(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)
