@@ -65,6 +65,7 @@ class Downloader():
             with YoutubeDL(options) as ydl:
                 try:
                     extracted_info = ydl.extract_info(url, download=False)
+                    # Some links doesn't extract unless extract_flat key is passed as False in options
                     if self.__failed_to_extract(extracted_info):
                         extracted_info = self.__get_forced_extracted_info(url)
 

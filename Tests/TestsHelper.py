@@ -19,3 +19,10 @@ class TestsConstants(Singleton):
             self.SPOTIFY_ALBUM_URL = 'https://open.spotify.com/album/71O60S5gIJSIAhdnrDIh3N'
             self.SPOTIFY_WRONG1_URL = 'https://open.spotify.com/wrongUrl'
             self.SPOTIFY_WRONG2_URL = 'https://open.spotify.com/track/WrongID'
+
+            self.DEEZER_TRACK_URL = 'https://www.deezer.com/br/track/33560861'
+            self.DEEZER_ARTIST_URL = 'https://www.deezer.com/br/artist/180'
+            self.DEEZER_PLAYLIST_URL = 'https://www.deezer.com/br/playlist/1001939451'
+            self.DEEZER_ALBUM_URL = 'https://www.deezer.com/en/album/236107012'
+            self.DEEZER_WRONG1_URL = 'xxxhttps://www.deezer.com/br/album/5'
+            self.DEEZER_WRONG2_URL = 'https://www.deezer.com/en/album/23610701252'
