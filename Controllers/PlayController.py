@@ -1,5 +1,5 @@
 import asyncio
-from Exceptions.Exceptions import DownloadingError, VulkanError
+from Exceptions.Exceptions import DownloadingError, InvalidInput, VulkanError
 from discord.ext.commands import Context
 from discord import Client
 from Controllers.AbstractController import AbstractController
@@ -20,6 +20,9 @@ class PlayController(AbstractController):
         track = " ".join(args)
         requester = self.ctx.author.name
 
+        if track == " ":
+            print('Aoba')
+
         if not self.__user_connected():
             error = ImpossibleMove()
             embed = self.embeds.NO_CHANNEL()
@@ -34,6 +37,9 @@ class PlayController(AbstractController):
 
         try:
             musics = await self.__searcher.search(track)
+            if musics is None or len(musics) == 0:
+                raise InvalidInput(self.messages.INVALID_INPUT, self.messages.ERROR_TITLE)
+
             for music in musics:
                 song = Song(music, self.player.playlist, requester)
                 self.player.playlist.add_song(song)
@@ -64,7 +70,7 @@ class PlayController(AbstractController):
             return response
 
         except Exception as err:
-            if isinstance(err, VulkanError): # If error was already processed
+            if isinstance(err, VulkanError):  # If error was already processed
                 print(f'DEVELOPER NOTE -> PlayController Error: {err.message}')
                 error = err
                 embed = self.embeds.CUSTOM_ERROR(error)

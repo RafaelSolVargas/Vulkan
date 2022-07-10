@@ -58,7 +58,7 @@ class Messages(Singleton):
             self.ERROR_TITLE = 'Error :-('
             self.NO_CHANNEL = 'To play some music, connect to any voice channel first.'
             self.NO_GUILD = f'This server does not has a Player, try {configs.BOT_PREFIX}reset'
-            self.INVALID_INPUT = f'This type of input was too strange, try something better or type {configs.BOT_PREFIX}help play'
+            self.INVALID_INPUT = f'This URL was too strange, try something better or type {configs.BOT_PREFIX}help play'
             self.DOWNLOADING_ERROR = '❌ An error occurred while downloading'
             self.EXTRACTING_ERROR = '❌ An error ocurred while searching for the songs'
 

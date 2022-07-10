@@ -62,9 +62,11 @@ pip install -r requirements.txt
 ```
 
 
--  Installation of FFMPEG
+-  **Installation of FFMPEG**<br>
+FFMPEG is a module that will be used to play music, you must have this configured in your machine
+*FFMPEG must be configured in the PATH for Windows users. Check this [YoutubeVideo](https://www.youtube.com/watch?v=r1AtmY-RMyQ&t=114s&ab_channel=TroubleChute).* <br><br>
+You can download the executables in this link `https://www.ffmpeg.org/download.html` and then put the .exe files inside a ffmpeg\bin folder in your C:\ folder. Do not forget to add 'ffmpeg\bin' to your PATH.
 
-    *FFMPEG must be configured in the PATH for Windows users. Check this [YoutubeVideo](https://www.youtube.com/watch?v=r1AtmY-RMyQ&t=114s&ab_channel=TroubleChute).*
 
 ### **.Env File Example**
 This is an example of how your .env file (located in root) should look like.
@@ -72,6 +74,7 @@ This is an example of how your .env file (located in root) should look like.
 BOT_TOKEN=Your_Own_Bot_Token
 SPOTIFY_ID=Your_Own_Spotify_ID
 SPOTIFY_SECRET=Your_Own_Spotify_Secret
+BOT_PREFIX=Your_Wanted_Prefix_For_Vulkan
 
 ```
 
