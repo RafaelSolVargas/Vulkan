@@ -20,9 +20,6 @@ class PlayController(AbstractController):
         track = " ".join(args)
         requester = self.ctx.author.name
 
-        if track == " ":
-            print('Aoba')
-
         if not self.__user_connected():
             error = ImpossibleMove()
             embed = self.embeds.NO_CHANNEL()
