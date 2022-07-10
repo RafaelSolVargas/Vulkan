@@ -5,13 +5,18 @@ from Config.Singleton import Singleton
 class Configs(Singleton):
     def __init__(self) -> None:
         if not super().created:
-            self.COMMANDS_PATH = 'Commands'
-            self.BOT_TOKEN = config('BOT_TOKEN')
-            self.SPOTIFY_ID = config('SPOTIFY_ID')
-            self.SPOTIFY_SECRET = config('SPOTIFY_SECRET')
-            self.CLEANER_MESSAGES_QUANT = 5
-
             self.BOT_PREFIX = '!'
+            try:
+                self.BOT_TOKEN = config('BOT_TOKEN')
+                self.SPOTIFY_ID = config('SPOTIFY_ID')
+                self.SPOTIFY_SECRET = config('SPOTIFY_SECRET')
+                self.BOT_PREFIX = config('BOT_PREFIX')
+            except:
+                print(
+                    '[ERROR] -> You must create and .env file with all required fields, see documentation for help')
+
+            self.CLEANER_MESSAGES_QUANT = 5
+            self.COMMANDS_PATH = 'Commands'
             self.VC_TIMEOUT = 600
 
             self.MAX_PLAYLIST_LENGTH = 50

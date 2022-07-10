@@ -70,6 +70,9 @@ class Searcher():
             return trackAnalyzer.getCleanedUrl()
 
     def __identify_source(self, track: str) -> Provider:
+        if track == '':
+            return Provider.Unknown
+
         if not Utils.is_url(track):
             return Provider.Name
 
