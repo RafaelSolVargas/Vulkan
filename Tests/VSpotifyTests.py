@@ -1,4 +1,7 @@
+from requests import HTTPError
+from Music.Spotify import SpotifySearch
 from Tests.TestBase import VulkanTesterBase
+from Exceptions.Exceptions import SpotifyError
 
 
 class VulkanSpotifyTest(VulkanTesterBase):
@@ -41,22 +44,25 @@ class VulkanSpotifyTest(VulkanTesterBase):
         else:
             return False
 
-    def test_spotifyWrongUrlOne(self) -> bool:
-        musics = self._runner.run_coroutine(
-            self._searcher.search(self._constants.SPOTIFY_WRONG1_URL))
+    def test_spotifyWrongUrlShouldThrowException(self) -> bool:
+        try:
+            musics = self._runner.run_coroutine(
+                self._searcher.search(self._constants.SPOTIFY_WRONG1_URL))
 
-        print(musics)
-        if len(musics) == 0:
+        except SpotifyError as e:
+            print(f'Spotify Error -> {e.message}')
             return True
-        else:
+        except Exception as e:
+            print(e)
             return False
 
-    def test_spotifyWrongUrlTwo(self) -> bool:
-        musics = self._runner.run_coroutine(
-            self._searcher.search(self._constants.SPOTIFY_WRONG2_URL))
+    def test_spotifyWrongUrlTwoShouldThrowException(self) -> bool:
+        try:
+            musics = self._runner.run_coroutine(
+                self._searcher.search(self._constants.SPOTIFY_WRONG2_URL))
 
-        print(musics)
-        if len(musics) == 0:
+        except SpotifyError as e:
+            print(f'Spotify Error -> {e.message}')
             return True
-        else:
+        except Exception as e:
             return False

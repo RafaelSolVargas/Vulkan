@@ -1,10 +1,14 @@
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
+from spotipy.exceptions import SpotifyException
+from Exceptions.Exceptions import SpotifyError
 from Config.Configs import Configs
+from Config.Messages import SpotifyMessages
 
 
 class SpotifySearch():
     def __init__(self) -> None:
+        self.__messages = SpotifyMessages()
         self.__config = Configs()
         self.__connected = False
         self.__connect()
@@ -17,22 +21,28 @@ class SpotifySearch():
         except Exception as e:
             print(f'DEVELOPER NOTE -> Spotify Connection Error {e}')
 
-    def search(self, music: str) -> list:
-        type = music.split('/')[3].split('?')[0]
-        code = music.split('/')[4].split('?')[0]
+    def search(self, url: str) -> list:
+        if not self.__checkUrlValid(url):
+            raise SpotifyError(self.__messages.INVALID_SPOTIFY_URL, self.__messages.GENERIC_TITLE)
+
+        type = url.split('/')[3].split('?')[0]
+        code = url.split('/')[4].split('?')[0]
         musics = []
 
-        if self.__connected:
-            if type == 'album':
-                musics = self.__get_album(code)
-            elif type == 'playlist':
-                musics = self.__get_playlist(code)
-            elif type == 'track':
-                musics = self.__get_track(code)
-            elif type == 'artist':
-                musics = self.__get_artist(code)
+        try:
+            if self.__connected:
+                if type == 'album':
+                    musics = self.__get_album(code)
+                elif type == 'playlist':
+                    musics = self.__get_playlist(code)
+                elif type == 'track':
+                    musics = self.__get_track(code)
+                elif type == 'artist':
+                    musics = self.__get_artist(code)
 
-        return musics
+            return musics
+        except SpotifyException:
+            raise SpotifyError(self.__messages.INVALID_SPOTIFY_URL, self.__messages.GENERIC_TITLE)
 
     def __get_album(self, code: str) -> list:
         results = self.__api.album_tracks(code)
@@ -94,3 +104,15 @@ class SpotifySearch():
             title += f'{artist["name"]} '
 
         return title
+
+    def __checkUrlValid(self, url: str) -> bool:
+        try:
+            type = url.split('/')[3].split('?')[0]
+            code = url.split('/')[4].split('?')[0]
+
+            if type == '' or code == '':
+                return False
+
+            return True
+        except:
+            return False

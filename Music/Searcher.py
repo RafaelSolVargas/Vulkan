@@ -29,8 +29,14 @@ class Searcher():
         elif provider == Provider.Spotify:
             try:
                 musics = self.__Spotify.search(track)
+                if musics == None or len(musics) == 0:
+                    raise SpotifyError(self.__messages.SPOTIFY_ERROR, self.__messages.GENERIC_TITLE)
+
                 return musics
-            except:
+            except SpotifyError as error:
+                raise error  # Redirect already processed error
+            except Exception as e:
+                print(f'[Spotify Error] -> {e}')
                 raise SpotifyError(self.__messages.SPOTIFY_ERROR, self.__messages.GENERIC_TITLE)
 
         elif provider == Provider.Name:
