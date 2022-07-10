@@ -11,10 +11,10 @@ class Song:
             self.destroy()
             return None
 
-        self.__usefull_keys = ['duration',
-                               'title', 'webpage_url',
-                               'channel', 'id', 'uploader',
-                               'thumbnail', 'original_url']
+        self.__useful_keys = ['duration',
+                              'title', 'webpage_url',
+                              'channel', 'id', 'uploader',
+                              'thumbnail', 'original_url']
         self.__required_keys = ['url']
 
         for key in self.__required_keys:
@@ -24,7 +24,7 @@ class Song:
                 print(f'DEVELOPER NOTE -> {key} not found in info of music: {self.identifier}')
                 self.destroy()
 
-        for key in self.__usefull_keys:
+        for key in self.__useful_keys:
             if key in info.keys():
                 self.__info[key] = info[key]
 

@@ -57,6 +57,9 @@ class Downloader():
 
     @run_async
     def extract_info(self, url: str) -> List[dict]:
+        if url == '':
+            return []
+
         if Utils.is_url(url):  # If Url
             options = Downloader.__YDL_OPTIONS_EXTRACT
             with YoutubeDL(options) as ydl:
