@@ -27,7 +27,7 @@ class Downloader():
                                    'default_search': 'auto',
                                    'playliststart': 0,
                                    'extract_flat': False,
-                                   'playlistend': config.MAX_PLAYLIST_FORCED_LENGTH,
+                                   'playlistend': config.MAX_PLAYLIST_LENGTH,
                                    'quiet': True
                                    }
     __BASE_URL = 'https://www.youtube.com/watch?v={}'
@@ -53,7 +53,7 @@ class Downloader():
 
     async def preload(self, songs: List[Song]) -> None:
         for song in songs:
-            asyncio.ensure_future(self.__download_song(song))
+            asyncio.ensure_future(self.download_song(song))
 
     @run_async
     def extract_info(self, url: str) -> List[dict]:
@@ -108,7 +108,7 @@ class Downloader():
                 print(f'DEVELOPER NOTE -> Error Downloading URL {e}')
                 return None
 
-    async def __download_song(self, song: Song) -> None:
+    async def download_song(self, song: Song) -> None:
         if song.source is not None:  # If Music already preloaded
             return None
 
