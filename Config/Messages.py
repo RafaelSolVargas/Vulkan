@@ -76,5 +76,13 @@ class SearchMessages(Singleton):
             self.UNKNOWN_INPUT = f'This type of input was too strange, try something else or type {config.BOT_PREFIX}help play'
             self.UNKNOWN_INPUT_TITLE = 'Nothing Found'
             self.SPOTIFY_ERROR = 'Spotify could not process any songs with this input, verify your link or try again later.'
-            self.GENERIC_TITLE = 'Input could not be processed'
+            self.GENERIC_TITLE = 'URL could not be processed'
             self.YOUTUBE_ERROR = 'Youtube could not process any songs with this input, verify your link or try again later.'
+            self.INVALID_SPOTIFY_URL = 'Invalid Spotify URL, verify your link.'
+
+
+class SpotifyMessages(Singleton):
+    def __init__(self) -> None:
+        if not super().created:
+            self.INVALID_SPOTIFY_URL = 'Invalid Spotify URL, verify your link.'
+            self.GENERIC_TITLE = 'URL could not be processed'

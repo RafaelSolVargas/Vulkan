@@ -1,5 +1,5 @@
 from Config.Messages import Messages
-from Exceptions.Exceptions import Error
+from Exceptions.Exceptions import VulkanError
 from discord import Embed
 from Config.Configs import Configs
 from Config.Colors import Colors
@@ -130,7 +130,7 @@ class Embeds:
         )
         return embed
 
-    def CUSTOM_ERROR(self, error: Error) -> Embed:
+    def CUSTOM_ERROR(self, error: VulkanError) -> Embed:
         embed = Embed(
             title=error.title,
             description=error.message,

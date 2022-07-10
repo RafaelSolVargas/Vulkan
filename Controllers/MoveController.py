@@ -3,7 +3,7 @@ from discord.ext.commands import Context
 from discord import Client
 from Controllers.AbstractController import AbstractController
 from Controllers.ControllerResponse import ControllerResponse
-from Exceptions.Exceptions import BadCommandUsage, Error, InvalidInput, NumberRequired, UnknownError, WrongLength
+from Exceptions.Exceptions import BadCommandUsage, VulkanError, InvalidInput, NumberRequired, UnknownError
 from Music.Downloader import Downloader
 
 
@@ -44,7 +44,7 @@ class MoveController(AbstractController):
             error = UnknownError()
             return ControllerResponse(self.ctx, embed, error)
 
-    def __validate_input(self, pos1: str, pos2: str) -> Union[Error, None]:
+    def __validate_input(self, pos1: str, pos2: str) -> Union[VulkanError, None]:
         try:
             pos1 = int(pos1)
             pos2 = int(pos2)

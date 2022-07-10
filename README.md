@@ -92,6 +92,10 @@ To run your Bot in Heroku 24/7, you will need the Procfile located in root, then
     - https://github.com/xrisk/heroku-opus.git
 
 
+## Testing
+The tests were written manually with no package due to problems with async function in other packages, to execute them type in root: <br>
+`python run_tests.py`<br>
+
 ## License
 - This program is free software: you can redistribute it and/or modify it under the terms of the [MIT License](https://github.com/RafaelSolVargas/Vulkan/blob/master/LICENSE).
 
