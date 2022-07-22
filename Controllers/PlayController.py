@@ -1,4 +1,3 @@
-import asyncio
 from Exceptions.Exceptions import DownloadingError, InvalidInput, VulkanError
 from discord.ext.commands import Context
 from discord import Client
@@ -8,6 +7,8 @@ from Controllers.ControllerResponse import ControllerResponse
 from Music.Downloader import Downloader
 from Music.Searcher import Searcher
 from Music.Song import Song
+from Parallelism.ProcessManager import ProcessManager
+from Parallelism.Commands import VCommands, VCommandsType
 
 
 class PlayController(AbstractController):
@@ -24,13 +25,6 @@ class PlayController(AbstractController):
             error = ImpossibleMove()
             embed = self.embeds.NO_CHANNEL()
             return ControllerResponse(self.ctx, embed, error)
-
-        if not self.__is_connected():
-            success = await self.__connect()
-            if not success:
-                error = UnknownError()
-                embed = self.embeds.UNKNOWN_ERROR()
-                return ControllerResponse(self.ctx, embed, error)
 
         try:
             musics = await self.__searcher.search(track)
@@ -63,7 +57,26 @@ class PlayController(AbstractController):
                 embed = self.embeds.SONGS_ADDED(quant)
                 response = ControllerResponse(self.ctx, embed)
 
-            asyncio.create_task(self.player.play(self.ctx))
+            # Get the process context for the current guild
+            manager = ProcessManager(self.bot)
+            processContext = manager.getPlayerContext(self.guild, self.ctx)
+            # Add the downloaded song to the process playlist
+            # All access to shared memory should be protect by acquire the Lock
+            with processContext.getLock():
+                processContext.getPlaylist().add_song(song)
+
+            # If process already started send a command to the player process by queue
+            process = processContext.getProcess()
+            queue = processContext.getQueue()
+            if process.is_alive():
+                command = VCommands(VCommandsType.PLAY)
+                queue.put(command)
+            else:
+                # Start the process
+                command = VCommands(VCommandsType.CONTEXT, self.ctx)
+                queue.put(command)
+                process.start()
+
             return response
 
         except Exception as err:
@@ -72,6 +85,7 @@ class PlayController(AbstractController):
                 error = err
                 embed = self.embeds.CUSTOM_ERROR(error)
             else:
+                print(f'DEVELOPER NOTE -> PlayController Error: {err}')
                 error = UnknownError()
                 embed = self.embeds.UNKNOWN_ERROR()
 

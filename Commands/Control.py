@@ -44,7 +44,7 @@ class Control(commands.Cog):
             await ctx.send(embed=embed)
 
         else:
-            print(f'DEVELOPER NOTE -> Comand Error: {error}')
+            print(f'DEVELOPER NOTE -> Command Error: {error}')
             embed = self.__embeds.UNKNOWN_ERROR()
             await ctx.send(embed=embed)
 

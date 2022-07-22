@@ -6,7 +6,7 @@ from Controllers.ClearController import ClearController
 from Controllers.MoveController import MoveController
 from Controllers.NowPlayingController import NowPlayingController
 from Controllers.PlayController import PlayController
-from Controllers.PlayerController import PlayersController
+from Controllers.PlayersController import PlayersController
 from Controllers.PrevController import PrevController
 from Controllers.RemoveController import RemoveController
 from Controllers.ResetController import ResetController
@@ -21,7 +21,7 @@ from Controllers.QueueController import QueueController
 from Controllers.LoopController import LoopController
 from Views.EmoteView import EmoteView
 from Views.EmbedView import EmbedView
-
+from Parallelism.ProcessManager import ProcessManager
 
 helper = Helper()
 
@@ -29,6 +29,7 @@ helper = Helper()
 class Music(commands.Cog):
     def __init__(self, bot) -> None:
         self.__bot: Client = bot
+        self.__processManager = ProcessManager(bot)
         self.__cleaner = Cleaner(self.__bot)
         self.__controller = PlayersController(self.__bot)
 

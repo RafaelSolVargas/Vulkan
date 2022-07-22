@@ -3,7 +3,7 @@ from typing import List
 from discord.ext.commands import Context
 from discord import Client, Guild, ClientUser, Member
 from Config.Messages import Messages
-from Controllers.PlayerController import PlayersController
+from Controllers.PlayersController import PlayersController
 from Music.Player import Player
 from Controllers.ControllerResponse import ControllerResponse
 from Config.Configs import Configs

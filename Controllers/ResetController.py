@@ -1,8 +1,8 @@
 from discord.ext.commands import Context
-from discord import Client, Member
+from discord import Client
 from Controllers.AbstractController import AbstractController
 from Controllers.ControllerResponse import ControllerResponse
-from Controllers.PlayerController import PlayersController
+from Controllers.PlayersController import PlayersController
 
 
 class ResetController(AbstractController):

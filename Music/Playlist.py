@@ -8,7 +8,7 @@ import random
 class Playlist:
 
     def __init__(self) -> None:
-        self.__config = Configs()
+        self.__configs = Configs()
         self.__queue = deque()  # Store the musics to play
         self.__songs_history = deque()  # Store the musics played
 
@@ -16,6 +16,9 @@ class Playlist:
         self.__looping_all = False
 
         self.__current: Song = None
+
+    def getSongs(self) -> deque[Song]:
+        return self.__queue
 
     def validate_position(self, position: int) -> bool:
         if position not in range(1, len(self.__queue) + 1):
@@ -47,7 +50,7 @@ class Playlist:
 
     @property
     def songs_to_preload(self) -> List[Song]:
-        return list(self.__queue)[:self.__config.MAX_PRELOAD_SONGS]
+        return list(self.__queue)[:self.__configs.MAX_PRELOAD_SONGS]
 
     def __len__(self) -> int:
         return len(self.__queue)
@@ -64,7 +67,7 @@ class Playlist:
                 if played_song.problematic == False:
                     self.__songs_history.appendleft(played_song)
 
-                if len(self.__songs_history) > self.__config.MAX_SONGS_HISTORY:
+                if len(self.__songs_history) > self.__configs.MAX_SONGS_HISTORY:
                     self.__songs_history.pop()  # Remove the older
 
             elif self.__looping_one:  # Insert the current song to play again
