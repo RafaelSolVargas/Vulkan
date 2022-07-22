@@ -33,7 +33,7 @@ class MoveController(AbstractController):
         try:
             song = self.player.playlist.move_songs(pos1, pos2)
 
-            songs = self.player.playlist.songs_to_preload
+            songs = self.player.playlist.getSongsToPreload()
             await self.__down.preload(songs)
 
             song_name = song.title if song.title else song.identifier

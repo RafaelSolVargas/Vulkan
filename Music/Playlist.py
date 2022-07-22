@@ -32,24 +32,19 @@ class Playlist:
                 return False
         return True
 
-    @property
-    def songs_history(self) -> deque:
+    def getSongsHistory(self) -> deque:
         return self.__songs_history
 
-    @property
-    def looping_one(self) -> bool:
+    def isLoopingOne(self) -> bool:
         return self.__looping_one
 
-    @property
-    def looping_all(self) -> bool:
+    def isLoopingAll(self) -> bool:
         return self.__looping_all
 
-    @property
-    def current(self) -> Song:
+    def getCurrentSong(self) -> Song:
         return self.__current
 
-    @property
-    def songs_to_preload(self) -> List[Song]:
+    def getSongsToPreload(self) -> List[Song]:
         return list(self.__queue)[:self.__configs.MAX_PRELOAD_SONGS]
 
     def __len__(self) -> int:

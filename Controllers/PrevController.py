@@ -27,7 +27,7 @@ class PrevController(AbstractController):
                 embed = self.embeds.UNKNOWN_ERROR()
                 return ControllerResponse(self.ctx, embed, error)
 
-        if self.player.playlist.looping_all or self.player.playlist.looping_one:
+        if self.player.playlist.isLoopingAll() or self.player.playlist.isLoopingOne():
             error = BadCommandUsage()
             embed = self.embeds.FAIL_DUE_TO_LOOP_ON()
             return ControllerResponse(self.ctx, embed, error)

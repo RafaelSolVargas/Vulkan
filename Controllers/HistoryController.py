@@ -10,7 +10,7 @@ class HistoryController(AbstractController):
         super().__init__(ctx, bot)
 
     async def run(self) -> ControllerResponse:
-        history = self.player.playlist.songs_history
+        history = self.player.playlist.getSongsHistory()
 
         if len(history) == 0:
             text = self.messages.HISTORY_EMPTY

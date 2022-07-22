@@ -21,7 +21,7 @@ class PlayController(AbstractController):
         track = " ".join(args)
         requester = self.ctx.author.name
 
-        if not self.__user_connected():
+        if not self.__isUserConnected():
             error = ImpossibleMove()
             embed = self.embeds.NO_CHANNEL()
             return ControllerResponse(self.ctx, embed, error)
@@ -36,7 +36,7 @@ class PlayController(AbstractController):
                 self.player.playlist.add_song(song)
             quant = len(musics)
 
-            songs_preload = self.player.playlist.songs_to_preload
+            songs_preload = self.player.playlist.getSongsToPreload()
             await self.__down.preload(songs_preload)
 
             if quant == 1:
@@ -73,8 +73,6 @@ class PlayController(AbstractController):
                 queue.put(command)
             else:
                 # Start the process
-                command = VCommands(VCommandsType.CONTEXT, self.ctx)
-                queue.put(command)
                 process.start()
 
             return response
@@ -91,27 +89,8 @@ class PlayController(AbstractController):
 
             return ControllerResponse(self.ctx, embed, error)
 
-    def __user_connected(self) -> bool:
+    def __isUserConnected(self) -> bool:
         if self.ctx.author.voice:
             return True
         else:
-            return False
-
-    def __is_connected(self) -> bool:
-        try:
-            voice_channel = self.guild.voice_client.channel
-
-            if not self.guild.voice_client.is_connected():
-                return False
-            else:
-                return True
-        except:
-            return False
-
-    async def __connect(self) -> bool:
-        # if self.guild.voice_client is None:
-        try:
-            await self.ctx.author.voice.channel.connect(reconnect=True, timeout=None)
-            return True
-        except:
             return False

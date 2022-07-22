@@ -89,7 +89,7 @@ class Player(commands.Cog):
 
             await ctx.invoke(self.__bot.get_command('np'))
 
-            songs = self.__playlist.songs_to_preload
+            songs = self.__playlist.getSongsToPreload()
             asyncio.create_task(self.__down.preload(songs))
         except:
             self.__play_next(None, ctx)

@@ -15,7 +15,7 @@ class ShuffleController(AbstractController):
     async def run(self) -> ControllerResponse:
         try:
             self.player.playlist.shuffle()
-            songs = self.player.playlist.songs_to_preload
+            songs = self.player.playlist.getSongsToPreload()
 
             asyncio.create_task(self.__down.preload(songs))
             embed = self.embeds.SONGS_SHUFFLED()

@@ -1,10 +1,10 @@
 import asyncio
 from os import listdir
-from discord import Intents
+from discord import Intents, User
 from asyncio import AbstractEventLoop, Semaphore
 from multiprocessing import Process, Queue
 from threading import Lock, Thread
-from typing import Callable, Text
+from typing import Callable
 from discord import Client, Guild, FFmpegPCMAudio, VoiceChannel, TextChannel
 from discord.ext.commands import Context
 from Music.Playlist import Playlist
@@ -30,47 +30,58 @@ class TimeoutClock:
 class PlayerProcess(Process):
     """Process that will play songs, receive commands by a received Queue"""
 
-    def __init__(self, playlist: Playlist, lock: Lock, queue: Queue) -> None:
+    def __init__(self, playlist: Playlist, lock: Lock, queue: Queue, guildID: int, textID: int, voiceID: int, authorID: int) -> None:
+        """
+        Start a new process that will have his own bot instance 
+        Due to pickle serialization, no objects are stored, the values initialization are being made in the run method
+        """
         Process.__init__(self, group=None, target=None, args=(), kwargs={})
+        # Synchronization objects
         self.__playlist: Playlist = playlist
         self.__lock: Lock = lock
         self.__queue: Queue = queue
-
+        self.__semStopPlaying: Semaphore = None
+        self.__loop: AbstractEventLoop = None
+        # Discord context ID
+        self.__textChannelID = textID
+        self.__guildID = guildID
+        self.__voiceChannelID = voiceID
+        self.__authorID = authorID
         # All information of discord context will be retrieved directly with discord API
         self.__guild: Guild = None
         self.__bot: Client = None
         self.__voiceChannel: VoiceChannel = None
         self.__textChannel: TextChannel = None
-        self.__loop: AbstractEventLoop = None
+        self.__author: User = None
+
         self.__configs: Configs = None
-
         self.__playing = False
-
-        # Flag to control if the player should stop totally the playing
         self.__forceStop = False
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
 
     def run(self) -> None:
-        """Function called in process.start(), this will exec the actually _run method it in event loop"""
-        print('Run')
-
+        """Method called by process.start(), this will exec the actually _run method in a event loop"""
         self.__loop = asyncio.get_event_loop()
         self.__configs = Configs()
 
-        # self.__loop = self.__bot.loop
         self.__semStopPlaying = Semaphore(0)
         self.__stopped = asyncio.Event()
-        # task = self.__loop.create_task(self._run())
         self.__loop.run_until_complete(self._run())
 
     async def _run(self) -> None:
-        # Recreate the bot instance in this new process
+        # Recreate the bot instance and objects using discord API
         self.__bot = await self.__createBotInstance()
+        self.__guild = self.__bot.get_guild(self.__guildID)
+        self.__voiceChannel = self.__bot.get_channel(self.__voiceChannelID)
+        self.__textChannel = self.__bot.get_channel(self.__textChannelID)
+        self.__author = self.__bot.get_channel(self.__authorID)
+        # Connect to voice Channel
+        await self.__connectToVoiceChannel()
 
         # Start the timeout function
         self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
-        # Thread that will receive commands to execute in this Process
+        # Thread that will receive commands to be executed in this Process
         self.__commandsReceiver = Thread(target=self.__commandsReceiver, daemon=True)
         self.__commandsReceiver.start()
 
@@ -81,8 +92,10 @@ class PlayerProcess(Process):
         await self.__semStopPlaying.acquire()
 
     async def __playPlaylistSongs(self) -> None:
+        print(f'Playing: {self.__playing}')
         if not self.__playing:
             with self.__lock:
+                print('Next Song Aqui')
                 song = self.__playlist.next_song()
 
             await self.__playSong(song)
@@ -91,18 +104,19 @@ class PlayerProcess(Process):
         try:
             source = await self.__ensureSource(song)
             if source is None:
-                self.__playNext(None, self.__context)
+                self.__playNext(None)
             self.__playing = True
 
             player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
             voice = self.__guild.voice_client
-            voice.play(player, after=lambda e: self.__playNext(e, self.__context))
+            voice.play(player, after=lambda e: self.__playNext(e))
 
             self.__timer.cancel()
-            self.__timer = TimeoutClock(self.__timeout_handler)
+            self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
 
-            await self.__context.invoke(self.__bot.get_command('np'))
-        except:
+            # await self.__context.invoke(self.__bot.get_command('np'))
+        except Exception as e:
+            print(f'[ERROR IN PLAY SONG] -> {e}')
             self.__playNext(None)
 
     def __playNext(self, error) -> None:
@@ -120,11 +134,12 @@ class PlayerProcess(Process):
             self.__playing = False
 
     def __commandsReceiver(self) -> None:
-        for x in range(2):
+        while True:
             command: VCommands = self.__queue.get()
             type = command.getType()
             args = command.getArgs()
 
+            print(f'Command Received: {type}')
             if type == VCommandsType.PAUSE:
                 self.pause()
             elif type == VCommandsType.PLAY:
@@ -167,7 +182,9 @@ class PlayerProcess(Process):
             print(f'DEVELOPER NOTE -> Force Stop Error: {e}')
 
     async def __createBotInstance(self) -> Client:
-        # Load a new bot instance, this bot should not receive commands directly
+        """Load a new bot instance that should not be directly called.
+        Get the guild, voice and text Channel in discord API using IDs passed in constructor
+        """
         intents = Intents.default()
         intents.members = True
         bot = Bot(command_prefix='Rafael',
@@ -178,7 +195,6 @@ class PlayerProcess(Process):
 
         # Add the Cogs for this bot too
         for filename in listdir(f'./{self.__configs.COMMANDS_PATH}'):
-            print(filename)
             if filename.endswith('.py'):
                 bot.load_extension(f'{self.__configs.COMMANDS_PATH}.{filename[:-3]}')
 
@@ -187,10 +203,7 @@ class PlayerProcess(Process):
         await task
         self.__loop.create_task(bot.connect(reconnect=True))
         # Sleep to wait connection to be established
-        await asyncio.sleep(1)
-
-        self.__guild: Guild = bot.get_guild(651983781258985484)
-        self.__voiceChannel = self.__bot.get_channel(933437427350118450)
+        await asyncio.sleep(2)
 
         return bot
 
@@ -228,7 +241,7 @@ class PlayerProcess(Process):
         except:
             return False
 
-    async def __connect(self) -> bool:
+    async def __connectToVoiceChannel(self) -> bool:
         try:
             await self.__voiceChannel.connect(reconnect=True, timeout=None)
             return True

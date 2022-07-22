@@ -24,17 +24,34 @@ class ProcessManager(Singleton):
 
     def getPlayerContext(self, guild: Guild, context: Context) -> ProcessContext:
         try:
-            print('Get')
             if guild not in self.__playersProcess.keys():
-                playlist: Playlist = self.__manager.Playlist()
-                lock = Lock()
-                queue = Queue()
-                process = PlayerProcess(playlist, lock, queue)
-                processContext = ProcessContext(process, queue, playlist, lock)
-                self.__playersProcess[guild] = processContext
+                self.__playersProcess[guild] = self.__createProcess(context)
+            else:
+                if not self.__playersProcess[guild].getProcess().is_alive():
+                    self.__playersProcess[guild] = self.__createProcess(context)
+
             return self.__playersProcess[guild]
         except Exception as e:
-            print(e)
+            print(f'[Error In GetPlayerContext] -> {e}')
+
+    def getRunningPlayerContext(self, guild: Guild) -> ProcessContext:
+        if guild not in self.__playersProcess.keys():
+            return None
+
+        return self.__playersProcess[guild]
+
+    def __createProcess(self, context: Context):
+        guildID: int = context.guild.id
+        textID: int = context.channel.id
+        voiceID: int = context.author.voice.channel.id
+        authorID: int = context.author.id
+
+        playlist: Playlist = self.__manager.Playlist()
+        lock = Lock()
+        queue = Queue()
+        process = PlayerProcess(playlist, lock, queue, guildID, textID, voiceID, authorID)
+        processContext = ProcessContext(process, queue, playlist, lock)
+        return processContext
 
 
 class Manager(BaseManager):

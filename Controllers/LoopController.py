@@ -16,7 +16,7 @@ class LoopController(AbstractController):
             return ControllerResponse(self.ctx, embed)
 
         args = args.lower()
-        if self.player.playlist.current is None:
+        if self.player.playlist.getCurrentSong() is None:
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return ControllerResponse(self.ctx, embed, error)

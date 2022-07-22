@@ -10,7 +10,7 @@ class SkipController(AbstractController):
         super().__init__(ctx, bot)
 
     async def run(self) -> ControllerResponse:
-        if self.player.playlist.looping_one:
+        if self.player.playlist.isLoopingOne():
             embed = self.embeds.ERROR_DUE_LOOP_ONE_ON()
             error = BadCommandUsage()
             return ControllerResponse(self.ctx, embed, error)

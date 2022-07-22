@@ -15,12 +15,12 @@ class NowPlayingController(AbstractController):
             embed = self.embeds.NOT_PLAYING()
             return ControllerResponse(self.ctx, embed)
 
-        if self.player.playlist.looping_one:
+        if self.player.playlist.isLoopingOne():
             title = self.messages.ONE_SONG_LOOPING
         else:
             title = self.messages.SONG_PLAYING
         await self.__cleaner.clean_messages(self.ctx, self.config.CLEANER_MESSAGES_QUANT)
 
-        info = self.player.playlist.current.info
+        info = self.player.playlist.getCurrentSong().info
         embed = self.embeds.SONG_INFO(info, title)
         return ControllerResponse(self.ctx, embed)
