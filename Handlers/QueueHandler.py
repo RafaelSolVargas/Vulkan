@@ -16,14 +16,14 @@ class QueueHandler(AbstractHandler):
     async def run(self) -> HandlerResponse:
         # Retrieve the process of the guild
         process = ProcessManager()
-        processContext = process.getRunningPlayerContext(self.guild)
-        if not processContext:  # If no process return empty list
+        processInfo = process.getRunningPlayerInfo(self.guild)
+        if not processInfo:  # If no process return empty list
             embed = self.embeds.EMPTY_QUEUE()
             return HandlerResponse(self.ctx, embed)
 
         # Acquire the Lock to manipulate the playlist
-        with processContext.getLock():
-            playlist = processContext.getPlaylist()
+        with processInfo.getLock():
+            playlist = processInfo.getPlaylist()
 
             if playlist.isLoopingOne():
                 song = playlist.getCurrentSong()
@@ -31,6 +31,7 @@ class QueueHandler(AbstractHandler):
                 return HandlerResponse(self.ctx, embed)
 
             songs_preload = playlist.getSongsToPreload()
+            allSongs = playlist.getSongs()
             if len(songs_preload) == 0:
                 embed = self.embeds.EMPTY_QUEUE()
                 return HandlerResponse(self.ctx, embed)
@@ -43,7 +44,7 @@ class QueueHandler(AbstractHandler):
                 title = self.messages.QUEUE_TITLE
 
             total_time = Utils.format_time(sum([int(song.duration if song.duration else 0)
-                                                for song in songs_preload]))
+                                                for song in allSongs]))
             total_songs = len(playlist.getSongs())
 
             text = f'📜 Queue length: {total_songs} | ⌛ Duration: `{total_time}` downloaded  \n\n'

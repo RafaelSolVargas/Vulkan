@@ -13,10 +13,10 @@ class HistoryHandler(AbstractHandler):
     async def run(self) -> HandlerResponse:
         # Get the current process of the guild
         processManager = ProcessManager()
-        processContext = processManager.getRunningPlayerContext(self.guild)
-        if processContext:
-            with processContext.getLock():
-                playlist = processContext.getPlaylist()
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        if processInfo:
+            with processInfo.getLock():
+                playlist = processInfo.getPlaylist()
                 history = playlist.getSongsHistory()
         else:
             history = []

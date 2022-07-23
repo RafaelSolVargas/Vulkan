@@ -13,9 +13,9 @@ class SkipHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         processManager = ProcessManager()
-        processContext = processManager.getRunningPlayerContext(self.guild)
-        if processContext:  # Verify if there is a running process
-            playlist = processContext.getPlaylist()
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        if processInfo:  # Verify if there is a running process
+            playlist = processInfo.getPlaylist()
             if playlist.isLoopingOne():
                 embed = self.embeds.ERROR_DUE_LOOP_ONE_ON()
                 error = BadCommandUsage()
@@ -23,6 +23,6 @@ class SkipHandler(AbstractHandler):
 
             # Send a command to the player process to skip the music
             command = VCommands(VCommandsType.SKIP, None)
-            queue = processContext.getQueue()
+            queue = processInfo.getQueue()
             queue.put(command)
         return HandlerResponse(self.ctx)

@@ -15,14 +15,14 @@ class RemoveHandler(AbstractHandler):
     async def run(self, position: str) -> HandlerResponse:
         # Get the current process of the guild
         processManager = ProcessManager()
-        processContext = processManager.getRunningPlayerContext(self.guild)
-        if not processContext:
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        if not processInfo:
             # Clear the playlist
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)
 
-        playlist = processContext.getPlaylist()
+        playlist = processInfo.getPlaylist()
         if playlist.getCurrentSong() is None:
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
@@ -60,5 +60,5 @@ class RemoveHandler(AbstractHandler):
         position = int(position)
 
         if position == -1:
-            position = len(playlist)
+            position = len(playlist.getSongs())
         return position

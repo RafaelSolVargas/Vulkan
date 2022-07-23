@@ -38,7 +38,7 @@ class ProcessManager(Singleton):
         except Exception as e:
             print(f'[Error In GetPlayerContext] -> {e}')
 
-    def getRunningPlayerContext(self, guild: Guild) -> ProcessInfo:
+    def getRunningPlayerInfo(self, guild: Guild) -> ProcessInfo:
         """Return the process info for the guild, if not, return None"""
         if guild not in self.__playersProcess.keys():
             return None
@@ -54,10 +54,11 @@ class ProcessManager(Singleton):
         playlist: Playlist = self.__manager.Playlist()
         lock = Lock()
         queue = Queue()
-        process = PlayerProcess(playlist, lock, queue, guildID, textID, voiceID, authorID)
-        processContext = ProcessInfo(process, queue, playlist, lock)
+        process = PlayerProcess(context.guild.name, playlist, lock, queue,
+                                guildID, textID, voiceID, authorID)
+        processInfo = ProcessInfo(process, queue, playlist, lock)
 
-        return processContext
+        return processInfo
 
 
 class VManager(BaseManager):

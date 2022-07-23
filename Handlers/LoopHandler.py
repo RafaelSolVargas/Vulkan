@@ -13,15 +13,15 @@ class LoopHandler(AbstractHandler):
     async def run(self, args: str) -> HandlerResponse:
         # Get the current process of the guild
         processManager = ProcessManager()
-        processContext = processManager.getRunningPlayerContext(self.guild)
-        if not processContext:
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        if not processInfo:
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)
 
-        playlist = processContext.getPlaylist()
+        playlist = processInfo.getPlaylist()
 
-        with processContext.getLock():
+        with processInfo.getLock():
             if args == '' or args is None:
                 playlist.loop_all()
                 embed = self.embeds.LOOP_ALL_ACTIVATED()

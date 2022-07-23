@@ -12,11 +12,11 @@ class ResumeHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         processManager = ProcessManager()
-        processContext = processManager.getRunningPlayerContext(self.guild)
-        if processContext:
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        if processInfo:
             # Send Resume command to be execute by player process
             command = VCommands(VCommandsType.RESUME, None)
-            queue = processContext.getQueue()
+            queue = processInfo.getQueue()
             queue.put(command)
 
         return HandlerResponse(self.ctx)

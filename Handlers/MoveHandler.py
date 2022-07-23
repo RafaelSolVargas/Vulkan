@@ -14,19 +14,19 @@ class MoveHandler(AbstractHandler):
 
     async def run(self, pos1: str, pos2: str) -> HandlerResponse:
         processManager = ProcessManager()
-        processContext = processManager.getRunningPlayerContext(self.guild)
-        if not processContext:
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        if not processInfo:
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)
 
-        with processContext.getLock():
+        with processInfo.getLock():
             error = self.__validateInput(pos1, pos2)
             if error:
                 embed = self.embeds.ERROR_EMBED(error.message)
                 return HandlerResponse(self.ctx, embed, error)
 
-            playlist = processContext.getPlaylist()
+            playlist = processInfo.getPlaylist()
             pos1, pos2 = self.__sanitizeInput(playlist, pos1, pos2)
 
             if not playlist.validate_position(pos1) or not playlist.validate_position(pos2):

@@ -133,7 +133,7 @@ class Playlist:
 
         return song
 
-    def history(self) -> list:
+    def getHistory(self) -> list:
         titles = []
         for song in self.__songs_history:
             title = song.title if song.title else 'Unknown'

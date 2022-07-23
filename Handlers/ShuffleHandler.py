@@ -12,11 +12,11 @@ class ShuffleHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         processManager = ProcessManager()
-        processContext = processManager.getRunningPlayerContext(self.guild)
-        if processContext:
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        if processInfo:
             try:
-                with processContext.getLock():
-                    playlist = processContext.getPlaylist()
+                with processInfo.getLock():
+                    playlist = processInfo.getPlaylist()
                     playlist.shuffle()
 
                 embed = self.embeds.SONGS_SHUFFLED()

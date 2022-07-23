@@ -3,7 +3,7 @@ from typing import Tuple
 
 
 class VCommandsType(Enum):
-    PLAY_PREV = 'Play Prev'
+    PREV = 'Prev'
     SKIP = 'Skip'
     PAUSE = 'Pause'
     RESUME = 'Resume'

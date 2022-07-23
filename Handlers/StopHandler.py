@@ -12,11 +12,11 @@ class StopHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         processManager = ProcessManager()
-        processContext = processManager.getRunningPlayerContext(self.guild)
-        if processContext:
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        if processInfo:
             # Send command to player process stop
             command = VCommands(VCommandsType.STOP, None)
-            queue = processContext.getQueue()
+            queue = processInfo.getQueue()
             queue.put(command)
 
             return HandlerResponse(self.ctx)

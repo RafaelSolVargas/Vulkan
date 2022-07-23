@@ -21,7 +21,7 @@ class Configs(Singleton):
 
             self.MAX_PLAYLIST_LENGTH = 50
             self.MAX_PLAYLIST_FORCED_LENGTH = 5
-            self.MAX_PRELOAD_SONGS = 10
+            self.MAX_PRELOAD_SONGS = 15
             self.MAX_SONGS_HISTORY = 15
 
             self.INVITE_MESSAGE = """To invite Vulkan to your own server, click [here]({}). 

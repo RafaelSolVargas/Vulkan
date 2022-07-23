@@ -12,11 +12,11 @@ class ClearHandler(AbstractHandler):
     async def run(self) -> HandlerResponse:
         # Get the current process of the guild
         processManager = ProcessManager()
-        processContext = processManager.getRunningPlayerContext(self.guild)
-        if processContext:
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        if processInfo:
             # Clear the playlist
-            playlist = processContext.getPlaylist()
-            with processContext.getLock():
+            playlist = processInfo.getPlaylist()
+            with processInfo.getLock():
                 playlist.clear()
 
         return HandlerResponse(self.ctx)

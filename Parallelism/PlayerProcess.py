@@ -6,7 +6,6 @@ from multiprocessing import Process, Queue
 from threading import Lock, Thread
 from typing import Callable, List
 from discord import Client, Guild, FFmpegPCMAudio, VoiceChannel, TextChannel
-from discord.ext.commands import Context
 from Music.Playlist import Playlist
 from Music.Song import Song
 from Config.Configs import Configs
@@ -30,12 +29,12 @@ class TimeoutClock:
 class PlayerProcess(Process):
     """Process that will play songs, receive commands from the main process by a Queue"""
 
-    def __init__(self, playlist: Playlist, lock: Lock, queue: Queue, guildID: int, textID: int, voiceID: int, authorID: int) -> None:
+    def __init__(self, name: str, playlist: Playlist, lock: Lock, queue: Queue, guildID: int, textID: int, voiceID: int, authorID: int) -> None:
         """
         Start a new process that will have his own bot instance 
         Due to pickle serialization, no objects are stored, the values initialization are being made in the run method
         """
-        Process.__init__(self, group=None, target=None, args=(), kwargs={})
+        Process.__init__(self, name=name, group=None, target=None, args=(), kwargs={})
         # Synchronization objects
         self.__playlist: Playlist = playlist
         self.__lock: Lock = lock
@@ -64,6 +63,7 @@ class PlayerProcess(Process):
     def run(self) -> None:
         """Method called by process.start(), this will exec the actually _run method in a event loop"""
         try:
+            print(f'Starting Process {self.name}')
             self.__loop = asyncio.get_event_loop()
             self.__configs = Configs()
 
@@ -99,16 +99,17 @@ class PlayerProcess(Process):
         self.__timer.cancel()
 
     async def __playPlaylistSongs(self) -> None:
-        print(f'Playing: {self.__playing}')
         if not self.__playing:
             with self.__lock:
-                print('Next Song Aqui')
                 song = self.__playlist.next_song()
 
             await self.__playSong(song)
 
     async def __playSong(self, song: Song) -> None:
         try:
+            if song is None:
+                return
+
             if song.source is None:
                 return self.__playNext(None)
 
@@ -140,19 +141,38 @@ class PlayerProcess(Process):
         else:
             self.__playing = False
 
+    async def __playPrev(self, voiceChannelID: int) -> None:
+        with self.__lock:
+            song = self.__playlist.prev_song()
+
+        if song is not None:
+            if self.__guild.voice_client is None:  # If not connect, connect to the user voice channel
+                self.__voiceChannelID = voiceChannelID
+                self.__voiceChannel = self.__guild.get_channel(self.__voiceChannelID)
+                self.__connectToVoiceChannel()
+
+            # If already playing, stop the current play
+            if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
+                # Will forbidden next_song to execute after stopping current player
+                self.__forceStop = True
+                self.__guild.voice_client.stop()
+                self.__playing = False
+
+            await self.__playSong(song)
+
     def __commandsReceiver(self) -> None:
         while True:
             command: VCommands = self.__queue.get()
             type = command.getType()
             args = command.getArgs()
 
-            print(f'Command Received: {type}')
+            print(f'Process {self.name} receive Command: {type} with Args: {args}')
             if type == VCommandsType.PAUSE:
                 self.__pause()
             elif type == VCommandsType.PLAY:
                 self.__loop.create_task(self.__playPlaylistSongs())
-            elif type == VCommandsType.PLAY_PREV:
-                self.__playPrev()
+            elif type == VCommandsType.PREV:
+                self.__loop.create_task(self.__playPrev(args))
             elif type == VCommandsType.RESUME:
                 self.__resume()
             elif type == VCommandsType.SKIP:
@@ -199,18 +219,6 @@ class PlayerProcess(Process):
         if self.__guild.voice_client is not None:
             self.__guild.voice_client.stop()
 
-    async def __playPrev(self, ctx: Context) -> None:
-        with self.__lock:
-            song = self.__playlist.prev_song()
-        if song is not None:
-            if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
-                # Will forbidden next_song to execute after stopping current player
-                self.__forceStop = True
-                self.__guild.voice_client.stop()
-                self.__playing = False
-
-            await self.__playSong(ctx, song)
-
     async def __forceStop(self) -> None:
         try:
             if self.__guild.voice_client is None:
@@ -246,7 +254,7 @@ class PlayerProcess(Process):
         await task
         self.__loop.create_task(bot.connect(reconnect=True))
         # Sleep to wait connection to be established
-        await asyncio.sleep(2)
+        await self.__ensureDiscordConnection(bot)
 
         return bot
 
@@ -279,11 +287,19 @@ class PlayerProcess(Process):
         except:
             return False
 
+    async def __ensureDiscordConnection(self, bot: Client) -> None:
+        """Await in this point until connection to discord is established"""
+        guild = None
+        while guild is None:
+            guild = bot.get_guild(self.__guildID)
+            await asyncio.sleep(0.2)
+
     async def __connectToVoiceChannel(self) -> bool:
         try:
             await self.__voiceChannel.connect(reconnect=True, timeout=None)
             return True
-        except:
+        except Exception as e:
+            print(f'[ERROR CONNECTING TO VC] -> {e}')
             return False
 
     def __getBotMember(self) -> Member:

@@ -13,10 +13,10 @@ class ResetHandler(AbstractHandler):
     async def run(self) -> HandlerResponse:
         # Get the current process of the guild
         processManager = ProcessManager()
-        processContext = processManager.getRunningPlayerContext(self.guild)
-        if processContext:
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        if processInfo:
             command = VCommands(VCommandsType.RESET, None)
-            queue = processContext.getQueue()
+            queue = processInfo.getQueue()
             queue.put(command)
 
         return HandlerResponse(self.ctx)

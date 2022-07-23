@@ -1,3 +1,5 @@
+import asyncio
+from typing import List
 from Config.Exceptions import DownloadingError, InvalidInput, VulkanError
 from discord.ext.commands import Context
 from discord import Client
@@ -8,6 +10,7 @@ from Music.Downloader import Downloader
 from Music.Searcher import Searcher
 from Music.Song import Song
 from Parallelism.ProcessManager import ProcessManager
+from Parallelism.ProcessInfo import ProcessInfo
 from Parallelism.Commands import VCommands, VCommandsType
 
 
@@ -27,55 +30,56 @@ class PlayHandler(AbstractHandler):
             return HandlerResponse(self.ctx, embed, error)
 
         try:
-            musics = await self.__searcher.search(track)
-            if musics is None or len(musics) == 0:
+            # Search for musics and get the name of each song
+            musicsInfo = await self.__searcher.search(track)
+            if musicsInfo is None or len(musicsInfo) == 0:
                 raise InvalidInput(self.messages.INVALID_INPUT, self.messages.ERROR_TITLE)
-
-            for music in musics:
-                song = Song(music, self.player.playlist, requester)
-                self.player.playlist.add_song(song)
-            quant = len(musics)
-
-            songs_preload = self.player.playlist.getSongsToPreload()
-            await self.__down.preload(songs_preload)
-
-            if quant == 1:
-                pos = len(self.player.playlist)
-                song = self.__down.finish_one_song(song)
-                if song.problematic:
-                    embed = self.embeds.SONG_PROBLEMATIC()
-                    error = DownloadingError()
-                    response = HandlerResponse(self.ctx, embed, error)
-
-                elif not self.player.playing:
-                    embed = self.embeds.SONG_ADDED(song.title)
-                    response = HandlerResponse(self.ctx, embed)
-                else:
-                    embed = self.embeds.SONG_ADDED_TWO(song.info, pos)
-                    response = HandlerResponse(self.ctx, embed)
-            else:
-                embed = self.embeds.SONGS_ADDED(quant)
-                response = HandlerResponse(self.ctx, embed)
 
             # Get the process context for the current guild
             manager = ProcessManager()
-            processContext = manager.getPlayerContext(self.guild, self.ctx)
-            # Add the downloaded song to the process playlist
-            # All access to shared memory should be protect by acquire the Lock
-            with processContext.getLock():
-                processContext.getPlaylist().add_song(song)
-
-            # If process already started send a command to the player process by queue
-            process = processContext.getProcess()
-            queue = processContext.getQueue()
-            if process.is_alive():
-                command = VCommands(VCommandsType.PLAY)
-                queue.put(command)
-            else:
-                # Start the process
+            processInfo = manager.getPlayerContext(self.guild, self.ctx)
+            playlist = processInfo.getPlaylist()
+            process = processInfo.getProcess()
+            if not process.is_alive():  # If process has not yet started, start
+                print('Starting process')
                 process.start()
 
-            return response
+            # Create the Songs objects
+            songs: List[Song] = []
+            for musicInfo in musicsInfo:
+                songs.append(Song(musicInfo, playlist, requester))
+
+            if len(songs) == 1:
+                # If only one music, download it directly
+                song = self.__down.finish_one_song(songs[0])
+                if song.problematic:  # If error in download song return
+                    embed = self.embeds.SONG_PROBLEMATIC()
+                    error = DownloadingError()
+                    return HandlerResponse(self.ctx, embed, error)
+
+                # If not playing
+                if not playlist.getCurrentSong():
+                    embed = self.embeds.SONG_ADDED(song.title)
+                    response = HandlerResponse(self.ctx, embed)
+                else:  # If already playing
+                    pos = len(playlist.getSongs())
+                    embed = self.embeds.SONG_ADDED_TWO(song.info, pos)
+                    response = HandlerResponse(self.ctx, embed)
+
+                # Add the unique song to the playlist and send a command to player process
+                with processInfo.getLock():
+                    playlist.add_song(song)
+                    queue = processInfo.getQueue()
+                    playCommand = VCommands(VCommandsType.PLAY, None)
+                    queue.put(playCommand)
+                    return response
+
+            else:  # If multiple songs added
+                # Trigger a task to download all songs and then store them in the process playlist
+                asyncio.create_task(self.__downloadSongsAndStore(songs, processInfo))
+
+                embed = self.embeds.SONGS_ADDED(len(songs))
+                return HandlerResponse(self.ctx, embed)
 
         except Exception as err:
             if isinstance(err, VulkanError):  # If error was already processed
@@ -88,6 +92,25 @@ class PlayHandler(AbstractHandler):
                 embed = self.embeds.UNKNOWN_ERROR()
 
             return HandlerResponse(self.ctx, embed, error)
+
+    async def __downloadSongsAndStore(self, songs: List[Song], processInfo: ProcessInfo) -> None:
+        playlist = processInfo.getPlaylist()
+        queue = processInfo.getQueue()
+        playCommand = VCommands(VCommandsType.PLAY, None)
+        # Trigger a task for each song to be downloaded
+        tasks: List[asyncio.Task] = []
+        for song in songs:
+            task = asyncio.create_task(self.__down.download_song(song))
+            tasks.append(task)
+
+        # In the original order, await for the task and then if successfully downloaded add in the playlist
+        for index, task in enumerate(tasks):
+            await task
+            song = songs[index]
+            if not song.problematic:  # If downloaded add to the playlist and send play command
+                with processInfo.getLock():
+                    playlist.add_song(song)
+                    queue.put(playCommand)
 
     def __isUserConnected(self) -> bool:
         if self.ctx.author.voice:
