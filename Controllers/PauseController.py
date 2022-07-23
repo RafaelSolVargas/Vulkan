@@ -2,6 +2,8 @@ from discord.ext.commands import Context
 from discord import Client
 from Controllers.AbstractController import AbstractController
 from Controllers.ControllerResponse import ControllerResponse
+from Parallelism.ProcessManager import ProcessManager
+from Parallelism.Commands import VCommands, VCommandsType
 
 
 class PauseController(AbstractController):
@@ -9,8 +11,12 @@ class PauseController(AbstractController):
         super().__init__(ctx, bot)
 
     async def run(self) -> ControllerResponse:
-        if self.guild.voice_client is not None:
-            if self.guild.voice_client.is_playing():
-                self.guild.voice_client.pause()
+        processManager = ProcessManager()
+        processContext = processManager.getRunningPlayerContext(self.guild)
+        if processContext:
+            # Send Pause command to be execute by player process
+            command = VCommands(VCommandsType.PAUSE, None)
+            queue = processContext.getQueue()
+            queue.put(command)
 
         return ControllerResponse(self.ctx)

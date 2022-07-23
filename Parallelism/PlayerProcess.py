@@ -153,11 +153,24 @@ class PlayerProcess(Process):
                 self.__resume()
             elif type == VCommandsType.SKIP:
                 self.__skip()
+            elif type == VCommandsType.STOP:
+                self.__loop.create_task(self.__stop())
             else:
                 print(f'[ERROR] -> Unknown Command Received: {command}')
 
     def __pause(self) -> None:
-        pass
+        if self.__guild.voice_client is not None:
+            if self.__guild.voice_client.is_playing():
+                self.__guild.voice_client.pause()
+
+    async def __stop(self) -> None:
+        if self.__guild.voice_client is not None:
+            if self.__guild.voice_client.is_connected():
+                with self.__lock:
+                    self.__playlist.clear()
+                    self.__playlist.loop_off()
+                    self.__guild.voice_client.stop()
+                    await self.__guild.voice_client.disconnect()
 
     def __resume(self) -> None:
         pass

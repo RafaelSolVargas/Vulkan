@@ -9,6 +9,7 @@ class VCommandsType(Enum):
     RESUME = 'Resume'
     CONTEXT = 'Context'
     PLAY = 'Play'
+    STOP = 'Stop'
 
 
 class VCommands:
