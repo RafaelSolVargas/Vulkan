@@ -3,6 +3,7 @@ from discord import Client
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Utils.Cleaner import Cleaner
+from Parallelism.ProcessManager import ProcessManager
 
 
 class NowPlayingHandler(AbstractHandler):
@@ -11,16 +12,24 @@ class NowPlayingHandler(AbstractHandler):
         self.__cleaner = Cleaner()
 
     async def run(self) -> HandlerResponse:
-        if not self.player.playing:
+        # Get the current process of the guild
+        processManager = ProcessManager()
+        processContext = processManager.getRunningPlayerContext(self.guild)
+        if not processContext:
             embed = self.embeds.NOT_PLAYING()
             return HandlerResponse(self.ctx, embed)
 
-        if self.player.playlist.isLoopingOne():
+        playlist = processContext.getPlaylist()
+        if playlist.getCurrentSong() is None:
+            embed = self.embeds.NOT_PLAYING()
+            return HandlerResponse(self.ctx, embed)
+
+        if playlist.isLoopingOne():
             title = self.messages.ONE_SONG_LOOPING
         else:
             title = self.messages.SONG_PLAYING
         await self.__cleaner.clean_messages(self.ctx, self.config.CLEANER_MESSAGES_QUANT)
 
-        info = self.player.playlist.getCurrentSong().info
+        info = playlist.getCurrentSong().info
         embed = self.embeds.SONG_INFO(info, title)
         return HandlerResponse(self.ctx, embed)

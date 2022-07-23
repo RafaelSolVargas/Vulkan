@@ -4,6 +4,8 @@ from discord import Client
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Config.Exceptions import BadCommandUsage, VulkanError, ErrorRemoving, InvalidInput, NumberRequired
+from Music.Playlist import Playlist
+from Parallelism.ProcessManager import ProcessManager
 
 
 class RemoveHandler(AbstractHandler):
@@ -11,24 +13,34 @@ class RemoveHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self, position: str) -> HandlerResponse:
-        if not self.player.playlist:
+        # Get the current process of the guild
+        processManager = ProcessManager()
+        processContext = processManager.getRunningPlayerContext(self.guild)
+        if not processContext:
+            # Clear the playlist
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)
 
-        error = self.__validate_input(position)
+        playlist = processContext.getPlaylist()
+        if playlist.getCurrentSong() is None:
+            embed = self.embeds.NOT_PLAYING()
+            error = BadCommandUsage()
+            return HandlerResponse(self.ctx, embed, error)
+
+        error = self.__validateInput(position)
         if error:
             embed = self.embeds.ERROR_EMBED(error.message)
             return HandlerResponse(self.ctx, embed, error)
 
-        position = self.__sanitize_input(position)
-        if not self.player.playlist.validate_position(position):
+        position = self.__sanitizeInput(playlist, position)
+        if not playlist.validate_position(position):
             error = InvalidInput()
             embed = self.embeds.PLAYLIST_RANGE_ERROR()
             return HandlerResponse(self.ctx, embed, error)
 
         try:
-            song = self.player.playlist.remove_song(position)
+            song = playlist.remove_song(position)
             name = song.title if song.title else song.identifier
 
             embed = self.embeds.SONG_REMOVED(name)
@@ -38,15 +50,15 @@ class RemoveHandler(AbstractHandler):
             embed = self.embeds.ERROR_REMOVING()
             return HandlerResponse(self.ctx, embed, error)
 
-    def __validate_input(self, position: str) -> Union[VulkanError, None]:
+    def __validateInput(self, position: str) -> Union[VulkanError, None]:
         try:
             position = int(position)
         except:
             return NumberRequired(self.messages.ERROR_NUMBER)
 
-    def __sanitize_input(self, position: str) -> int:
+    def __sanitizeInput(self, playlist: Playlist, position: str) -> int:
         position = int(position)
 
         if position == -1:
-            position = len(self.player.playlist)
+            position = len(playlist)
         return position

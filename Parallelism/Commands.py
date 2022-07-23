@@ -10,6 +10,7 @@ class VCommandsType(Enum):
     CONTEXT = 'Context'
     PLAY = 'Play'
     STOP = 'Stop'
+    RESET = 'Reset'
 
 
 class VCommands:

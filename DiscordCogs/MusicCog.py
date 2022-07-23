@@ -21,7 +21,6 @@ from Handlers.QueueHandler import QueueHandler
 from Handlers.LoopHandler import LoopHandler
 from Views.EmoteView import EmoteView
 from Views.EmbedView import EmbedView
-from Parallelism.ProcessManager import ProcessManager
 
 helper = Helper()
 
@@ -120,7 +119,7 @@ class MusicCog(commands.Cog):
             await view1.run()
             await view2.run()
 
-    @commands.command(name='history', help=helper.HELP_HISTORY, description=helper.HELP_HISTORY_LONG, aliases=['historico', 'h'])
+    @commands.command(name='history', help=helper.HELP_HISTORY, description=helper.HELP_HISTORY_LONG, aliases=['historico', 'anteriores', 'hist'])
     async def history(self, ctx: Context) -> None:
         controller = HistoryHandler(ctx, self.__bot)
 
@@ -158,7 +157,7 @@ class MusicCog(commands.Cog):
         await view1.run()
         await view2.run()
 
-    @commands.command(name='shuffle', help=helper.HELP_SHUFFLE, description=helper.HELP_SHUFFLE_LONG, aliases=['aleatorio'])
+    @commands.command(name='shuffle', help=helper.HELP_SHUFFLE, description=helper.HELP_SHUFFLE_LONG, aliases=['aleatorio', 'misturar'])
     async def shuffle(self, ctx: Context) -> None:
         controller = ShuffleHandler(ctx, self.__bot)
 

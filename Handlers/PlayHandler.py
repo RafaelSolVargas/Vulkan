@@ -58,7 +58,7 @@ class PlayHandler(AbstractHandler):
                 response = HandlerResponse(self.ctx, embed)
 
             # Get the process context for the current guild
-            manager = ProcessManager(self.bot)
+            manager = ProcessManager()
             processContext = manager.getPlayerContext(self.guild, self.ctx)
             # Add the downloaded song to the process playlist
             # All access to shared memory should be protect by acquire the Lock

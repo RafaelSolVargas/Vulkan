@@ -42,6 +42,8 @@ class Messages(Singleton):
             self.LOOP_DISABLE = '➡️ Loop disabled'
             self.LOOP_ALREADY_DISABLE = '❌ Loop is already disabled'
             self.LOOP_ON = f'❌ This command cannot be invoked with any loop activated. Use {configs.BOT_PREFIX}loop off to disable loop'
+            self.BAD_USE_OF_LOOP = f"""❌ Invalid arguments of Loop command. Use {configs.BOT_PREFIX}help loop to more information.
+                                        -> Available Arguments: ["all", "off", "one", ""]"""
 
             self.SONGS_SHUFFLED = '🔀 Songs shuffled successfully'
             self.ERROR_SHUFFLING = '❌ Error while shuffling the songs'

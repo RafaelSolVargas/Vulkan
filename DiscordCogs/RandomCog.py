@@ -13,7 +13,7 @@ class RandomCog(Cog):
     def __init__(self, bot: Client):
         self.__embeds = Embeds()
 
-    @command(name='random', help=helper.HELP_RANDOM, description=helper.HELP_RANDOM_LONG, aliases=['rand', 'aleatorio'])
+    @command(name='random', help=helper.HELP_RANDOM, description=helper.HELP_RANDOM_LONG, aliases=['rand'])
     async def random(self, ctx: Context, arg: str) -> None:
         try:
             arg = int(arg)

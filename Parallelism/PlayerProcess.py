@@ -1,10 +1,10 @@
 import asyncio
 from os import listdir
-from discord import Intents, User
+from discord import Intents, User, Member
 from asyncio import AbstractEventLoop, Semaphore
 from multiprocessing import Process, Queue
 from threading import Lock, Thread
-from typing import Callable
+from typing import Callable, List
 from discord import Client, Guild, FFmpegPCMAudio, VoiceChannel, TextChannel
 from discord.ext.commands import Context
 from Music.Playlist import Playlist
@@ -53,6 +53,7 @@ class PlayerProcess(Process):
         self.__voiceChannel: VoiceChannel = None
         self.__textChannel: TextChannel = None
         self.__author: User = None
+        self.__botMember: Member = None
 
         self.__configs: Configs = None
         self.__playing = False
@@ -79,6 +80,7 @@ class PlayerProcess(Process):
         self.__voiceChannel = self.__bot.get_channel(self.__voiceChannelID)
         self.__textChannel = self.__bot.get_channel(self.__textChannelID)
         self.__author = self.__bot.get_channel(self.__authorID)
+        self.__botMember = self.__getBotMember()
         # Connect to voice Channel
         await self.__connectToVoiceChannel()
 
@@ -93,6 +95,8 @@ class PlayerProcess(Process):
         # Try to acquire a semaphore, it'll be release when timeout function trigger, we use the Semaphore
         # from the asyncio lib to not block the event loop
         await self.__semStopPlaying.acquire()
+        # In this point the process should finalize
+        self.__timer.cancel()
 
     async def __playPlaylistSongs(self) -> None:
         print(f'Playing: {self.__playing}')
@@ -153,6 +157,8 @@ class PlayerProcess(Process):
                 self.__resume()
             elif type == VCommandsType.SKIP:
                 self.__skip()
+            elif type == VCommandsType.RESET:
+                self.__loop.create_task(self.__reset())
             elif type == VCommandsType.STOP:
                 self.__loop.create_task(self.__stop())
             else:
@@ -162,6 +168,18 @@ class PlayerProcess(Process):
         if self.__guild.voice_client is not None:
             if self.__guild.voice_client.is_playing():
                 self.__guild.voice_client.pause()
+
+    async def __reset(self) -> None:
+        if self.__guild.voice_client is None:
+            return
+        # Reset the bot
+        self.__guild.voice_client.stop()
+        await self.__guild.voice_client.disconnect()
+        self.__playlist.clear()
+        self.__playlist.loop_off()
+        await self.__botMember.move_to(None)
+        # Release semaphore to finish the current player process
+        self.__semStopPlaying.release()
 
     async def __stop(self) -> None:
         if self.__guild.voice_client is not None:
@@ -236,15 +254,12 @@ class PlayerProcess(Process):
         try:
             print('TimeoutHandler')
             if self.__guild.voice_client is None:
-                print('return')
                 return
 
             if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
-                print('Resetting')
                 self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
 
             elif self.__guild.voice_client.is_connected():
-                print('Finish')
                 with self.__lock:
                     self.__playlist.clear()
                     self.__playlist.loop_off()
@@ -270,3 +285,9 @@ class PlayerProcess(Process):
             return True
         except:
             return False
+
+    def __getBotMember(self) -> Member:
+        guild_members: List[Member] = self.__guild.members
+        for member in guild_members:
+            if member.id == self.__bot.user.id:
+                return member
