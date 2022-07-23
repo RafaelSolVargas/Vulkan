@@ -62,12 +62,15 @@ class PlayerProcess(Process):
 
     def run(self) -> None:
         """Method called by process.start(), this will exec the actually _run method in a event loop"""
-        self.__loop = asyncio.get_event_loop()
-        self.__configs = Configs()
+        try:
+            self.__loop = asyncio.get_event_loop()
+            self.__configs = Configs()
 
-        self.__semStopPlaying = Semaphore(0)
-        self.__stopped = asyncio.Event()
-        self.__loop.run_until_complete(self._run())
+            self.__semStopPlaying = Semaphore(0)
+            self.__stopped = asyncio.Event()
+            self.__loop.run_until_complete(self._run())
+        except Exception as e:
+            print(f'[Error in Process {self.name}] -> {e}')
 
     async def _run(self) -> None:
         # Recreate the bot instance and objects using discord API
@@ -102,9 +105,9 @@ class PlayerProcess(Process):
 
     async def __playSong(self, song: Song) -> None:
         try:
-            source = await self.__ensureSource(song)
-            if source is None:
-                self.__playNext(None)
+            if song.source is None:
+                return self.__playNext(None)
+
             self.__playing = True
 
             player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
@@ -141,20 +144,27 @@ class PlayerProcess(Process):
 
             print(f'Command Received: {type}')
             if type == VCommandsType.PAUSE:
-                self.pause()
+                self.__pause()
             elif type == VCommandsType.PLAY:
                 self.__loop.create_task(self.__playPlaylistSongs())
             elif type == VCommandsType.PLAY_PREV:
                 self.__playPrev()
             elif type == VCommandsType.RESUME:
-                pass
+                self.__resume()
             elif type == VCommandsType.SKIP:
-                pass
+                self.__skip()
             else:
                 print(f'[ERROR] -> Unknown Command Received: {command}')
 
-    def pause(self):
-        print(id(self))
+    def __pause(self) -> None:
+        pass
+
+    def __resume(self) -> None:
+        pass
+
+    def __skip(self) -> None:
+        if self.__guild.voice_client is not None:
+            self.__guild.voice_client.stop()
 
     async def __playPrev(self, ctx: Context) -> None:
         with self.__lock:
@@ -208,29 +218,27 @@ class PlayerProcess(Process):
         return bot
 
     async def __timeoutHandler(self) -> None:
-        if self.__guild.voice_client is None:
-            return
+        try:
+            print('TimeoutHandler')
+            if self.__guild.voice_client is None:
+                print('return')
+                return
 
-        if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
-            self.__timer = TimeoutClock(self.__timeoutHandler)
+            if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
+                print('Resetting')
+                self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
 
-        elif self.__guild.voice_client.is_connected():
-            with self.__lock:
-                self.__playlist.clear()
-                self.__playlist.loop_off()
-            await self.__guild.voice_client.disconnect()
-            # Release semaphore to finish process
-            self.__semStopPlaying.release()
-
-    async def __ensureSource(self, song: Song) -> str:
-        while True:
-            if song.source is not None:  # If song got downloaded
-                return song.source
-
-            if song.problematic:  # If song got any error
-                return None
-
-            await asyncio.sleep(0.1)
+            elif self.__guild.voice_client.is_connected():
+                print('Finish')
+                with self.__lock:
+                    self.__playlist.clear()
+                    self.__playlist.loop_off()
+                self.__playing = False
+                await self.__guild.voice_client.disconnect()
+                # Release semaphore to finish process
+                self.__semStopPlaying.release()
+        except Exception as e:
+            print(f'[Error in Timeout] -> {e}')
 
     def __is_connected(self) -> bool:
         try:
