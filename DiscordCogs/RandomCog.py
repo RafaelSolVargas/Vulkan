@@ -1,22 +1,19 @@
 from random import randint, random
 from discord import Client
 from discord.ext.commands import Context, command, Cog
-from Config.Colors import Colors
-from Config.Configs import Configs
 from Config.Helper import Helper
 from Views.Embeds import Embeds
 
 helper = Helper()
 
 
-class Random(Cog):
+class RandomCog(Cog):
+    """Class to listen to commands of type Random"""
 
     def __init__(self, bot: Client):
-        self.__config = Configs()
-        self.__colors = Colors()
         self.__embeds = Embeds()
 
-    @command(name='random', help=helper.HELP_RANDOM, description=helper.HELP_RANDOM_LONG)
+    @command(name='random', help=helper.HELP_RANDOM, description=helper.HELP_RANDOM_LONG, aliases=['rand', 'aleatorio'])
     async def random(self, ctx: Context, arg: str) -> None:
         try:
             arg = int(arg)
@@ -37,7 +34,7 @@ class Random(Cog):
         embed = self.__embeds.RANDOM_NUMBER(a, b, x)
         await ctx.send(embed=embed)
 
-    @command(name='cara', help=helper.HELP_CARA, description=helper.HELP_CARA_LONG)
+    @command(name='cara', help=helper.HELP_CARA, description=helper.HELP_CARA_LONG, aliases=['coroa'])
     async def cara(self, ctx: Context) -> None:
         x = random()
         if x < 0.5:
@@ -48,7 +45,7 @@ class Random(Cog):
         embed = self.__embeds.CARA_COROA(result)
         await ctx.send(embed=embed)
 
-    @command(name='choose', help=helper.HELP_CHOOSE, description=helper.HELP_CHOOSE_LONG)
+    @command(name='choose', help=helper.HELP_CHOOSE, description=helper.HELP_CHOOSE_LONG, aliases=['escolha', 'pick'])
     async def choose(self, ctx, *args: str) -> None:
         try:
             user_input = " ".join(args)
@@ -64,4 +61,4 @@ class Random(Cog):
 
 
 def setup(bot):
-    bot.add_cog(Random(bot))
+    bot.add_cog(RandomCog(bot))

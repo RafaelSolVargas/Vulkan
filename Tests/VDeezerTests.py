@@ -1,5 +1,5 @@
 from Tests.TestBase import VulkanTesterBase
-from Exceptions.Exceptions import DeezerError
+from Config.Exceptions import DeezerError
 
 
 class VulkanDeezerTest(VulkanTesterBase):

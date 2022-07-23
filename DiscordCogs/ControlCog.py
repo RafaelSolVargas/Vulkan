@@ -1,5 +1,5 @@
 from discord import Client, Game, Status, Embed
-from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument, UserInputError
+from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument
 from discord.ext import commands
 from Config.Configs import Configs
 from Config.Helper import Helper
@@ -10,7 +10,8 @@ from Views.Embeds import Embeds
 helper = Helper()
 
 
-class Control(commands.Cog):
+class ControlCog(commands.Cog):
+    """Class to handle discord events"""
 
     def __init__(self, bot: Client):
         self.__bot = bot
@@ -99,10 +100,9 @@ class Control(commands.Cog):
             embedhelp.set_thumbnail(url=self.__bot.user.avatar_url)
             await ctx.send(embed=embedhelp)
 
-    @commands.command(name='invite', help=helper.HELP_INVITE, description=helper.HELP_INVITE_LONG)
+    @commands.command(name='invite', help=helper.HELP_INVITE, description=helper.HELP_INVITE_LONG, aliases=['convite', 'inv', 'convidar'])
     async def invite_bot(self, ctx):
         invite_url = self.__config.INVITE_URL.format(self.__bot.user.id)
-        print(invite_url)
         txt = self.__config.INVITE_MESSAGE.format(invite_url, invite_url)
 
         embed = Embed(
@@ -115,4 +115,4 @@ class Control(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Control(bot))
+    bot.add_cog(ControlCog(bot))

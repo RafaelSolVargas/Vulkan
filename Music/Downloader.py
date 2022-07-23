@@ -7,7 +7,7 @@ from Music.Song import Song
 from Utils.Utils import Utils, run_async
 
 
-class Downloader():
+class Downloader:
     config = Configs()
     __YDL_OPTIONS = {'format': 'bestaudio/best',
                      'default_search': 'auto',

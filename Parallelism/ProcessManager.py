@@ -2,27 +2,31 @@ from multiprocessing import Queue, Lock
 from multiprocessing.managers import BaseManager, NamespaceProxy
 from typing import Dict
 from Config.Singleton import Singleton
-from discord import Guild, Client
+from discord import Guild
 from discord.ext.commands import Context
 from Parallelism.PlayerProcess import PlayerProcess
 from Music.Playlist import Playlist
-from Parallelism.ProcessContext import ProcessContext
+from Parallelism.ProcessInfo import ProcessInfo
 
 
 class ProcessManager(Singleton):
-    def __init__(self, bot: Client = None) -> None:
-        if not super().created:
-            Manager.register('Playlist', Playlist)
-            self.__manager = Manager()
-            self.__manager.start()
-            if bot is not None:
-                self.__bot: Client = bot
-                self.__playersProcess: Dict[Guild, ProcessContext] = {}
+    """
+    Manage all running player process, creating and storing them for future calls
+    Deal with the creation of shared memory
+    """
 
-    def setPlayerContext(self, guild: Guild, context: ProcessContext):
+    def __init__(self) -> None:
+        if not super().created:
+            VManager.register('Playlist', Playlist)
+            self.__manager = VManager()
+            self.__manager.start()
+            self.__playersProcess: Dict[Guild, ProcessInfo] = {}
+
+    def setPlayerContext(self, guild: Guild, context: ProcessInfo):
         self.__playersProcess[guild] = context
 
-    def getPlayerContext(self, guild: Guild, context: Context) -> ProcessContext:
+    def getPlayerContext(self, guild: Guild, context: Context) -> ProcessInfo:
+        """Return the process info for the guild, if not, create one"""
         try:
             if guild not in self.__playersProcess.keys():
                 self.__playersProcess[guild] = self.__createProcess(context)
@@ -34,7 +38,8 @@ class ProcessManager(Singleton):
         except Exception as e:
             print(f'[Error In GetPlayerContext] -> {e}')
 
-    def getRunningPlayerContext(self, guild: Guild) -> ProcessContext:
+    def getRunningPlayerContext(self, guild: Guild) -> ProcessInfo:
+        """Return the process info for the guild, if not, return None"""
         if guild not in self.__playersProcess.keys():
             return None
 
@@ -50,13 +55,14 @@ class ProcessManager(Singleton):
         lock = Lock()
         queue = Queue()
         process = PlayerProcess(playlist, lock, queue, guildID, textID, voiceID, authorID)
-        processContext = ProcessContext(process, queue, playlist, lock)
+        processContext = ProcessInfo(process, queue, playlist, lock)
+
         return processContext
 
 
-class Manager(BaseManager):
+class VManager(BaseManager):
     pass
 
 
-class ProxyBase(NamespaceProxy):
+class VProxy(NamespaceProxy):
     _exposed_ = ('__getattribute__', '__setattr__', '__delattr__')

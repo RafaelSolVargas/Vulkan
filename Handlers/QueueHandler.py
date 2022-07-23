@@ -1,25 +1,25 @@
 import asyncio
 from discord.ext.commands import Context
 from discord import Client
-from Controllers.AbstractController import AbstractController
-from Controllers.ControllerResponse import ControllerResponse
+from Handlers.AbstractHandler import AbstractHandler
+from Handlers.HandlerResponse import HandlerResponse
 from Music.Downloader import Downloader
 from Utils.Utils import Utils
 from Parallelism.ProcessManager import ProcessManager
 
 
-class QueueController(AbstractController):
+class QueueHandler(AbstractHandler):
     def __init__(self, ctx: Context, bot: Client) -> None:
         super().__init__(ctx, bot)
         self.__down = Downloader()
 
-    async def run(self) -> ControllerResponse:
+    async def run(self) -> HandlerResponse:
         # Retrieve the process of the guild
         process = ProcessManager()
         processContext = process.getRunningPlayerContext(self.guild)
         if not processContext:  # If no process return empty list
             embed = self.embeds.EMPTY_QUEUE()
-            return ControllerResponse(self.ctx, embed)
+            return HandlerResponse(self.ctx, embed)
 
         # Acquire the Lock to manipulate the playlist
         with processContext.getLock():
@@ -28,12 +28,12 @@ class QueueController(AbstractController):
             if playlist.isLoopingOne():
                 song = playlist.getCurrentSong()
                 embed = self.embeds.ONE_SONG_LOOPING(song.info)
-                return ControllerResponse(self.ctx, embed)
+                return HandlerResponse(self.ctx, embed)
 
             songs_preload = playlist.getSongsToPreload()
             if len(songs_preload) == 0:
                 embed = self.embeds.EMPTY_QUEUE()
-                return ControllerResponse(self.ctx, embed)
+                return HandlerResponse(self.ctx, embed)
 
             asyncio.create_task(self.__down.preload(songs_preload))
 
@@ -53,4 +53,4 @@ class QueueController(AbstractController):
                 text += f"**`{pos}` - ** {song_name} - `{Utils.format_time(song.duration)}`\n"
 
             embed = self.embeds.QUEUE(title, text)
-            return ControllerResponse(self.ctx, embed)
+            return HandlerResponse(self.ctx, embed)

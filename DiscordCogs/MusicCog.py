@@ -2,23 +2,23 @@ from discord import Guild, Client
 from discord.ext import commands
 from discord.ext.commands import Context
 from Config.Helper import Helper
-from Controllers.ClearController import ClearController
-from Controllers.MoveController import MoveController
-from Controllers.NowPlayingController import NowPlayingController
-from Controllers.PlayController import PlayController
-from Controllers.PlayersController import PlayersController
-from Controllers.PrevController import PrevController
-from Controllers.RemoveController import RemoveController
-from Controllers.ResetController import ResetController
-from Controllers.ShuffleController import ShuffleController
+from Handlers.ClearHandler import ClearHandler
+from Handlers.MoveHandler import MoveHandler
+from Handlers.NowPlayingHandler import NowPlayingHandler
+from Handlers.PlayHandler import PlayHandler
+from Handlers.PlayersController import PlayersController
+from Handlers.PrevHandler import PrevHandler
+from Handlers.RemoveHandler import RemoveHandler
+from Handlers.ResetHandler import ResetHandler
+from Handlers.ShuffleHandler import ShuffleHandler
 from Utils.Cleaner import Cleaner
-from Controllers.SkipController import SkipController
-from Controllers.PauseController import PauseController
-from Controllers.StopController import StopController
-from Controllers.ResumeController import ResumeController
-from Controllers.HistoryController import HistoryController
-from Controllers.QueueController import QueueController
-from Controllers.LoopController import LoopController
+from Handlers.SkipHandler import SkipHandler
+from Handlers.PauseHandler import PauseHandler
+from Handlers.StopHandler import StopHandler
+from Handlers.ResumeHandler import ResumeHandler
+from Handlers.HistoryHandler import HistoryHandler
+from Handlers.QueueHandler import QueueHandler
+from Handlers.LoopHandler import LoopHandler
 from Views.EmoteView import EmoteView
 from Views.EmbedView import EmbedView
 from Parallelism.ProcessManager import ProcessManager
@@ -26,10 +26,15 @@ from Parallelism.ProcessManager import ProcessManager
 helper = Helper()
 
 
-class Music(commands.Cog):
+class MusicCog(commands.Cog):
+    """
+    Class to listen to Music commands
+    It'll listen for commands from discord, when triggered will create a specific Handler for the command
+    Execute the handler and then create a specific View to be showed in Discord
+    """
+
     def __init__(self, bot) -> None:
         self.__bot: Client = bot
-        self.__processManager = ProcessManager(bot)
         self.__cleaner = Cleaner(self.__bot)
         self.__controller = PlayersController(self.__bot)
 
@@ -43,7 +48,7 @@ class Music(commands.Cog):
 
     @commands.command(name="play", help=helper.HELP_PLAY, description=helper.HELP_PLAY_LONG, aliases=['p', 'tocar'])
     async def play(self, ctx: Context, *args) -> None:
-        controller = PlayController(ctx, self.__bot)
+        controller = PlayHandler(ctx, self.__bot)
 
         response = await controller.run(args)
         if response is not None:
@@ -52,17 +57,17 @@ class Music(commands.Cog):
             await view1.run()
             await view2.run()
 
-    @commands.command(name="queue", help=helper.HELP_QUEUE, description=helper.HELP_QUEUE_LONG, aliases=['q', 'fila'])
+    @commands.command(name="queue", help=helper.HELP_QUEUE, description=helper.HELP_QUEUE_LONG, aliases=['q', 'fila', 'musicas'])
     async def queue(self, ctx: Context) -> None:
-        controller = QueueController(ctx, self.__bot)
+        controller = QueueHandler(ctx, self.__bot)
 
         response = await controller.run()
         view2 = EmbedView(response)
         await view2.run()
 
-    @commands.command(name="skip", help=helper.HELP_SKIP, description=helper.HELP_SKIP_LONG, aliases=['s', 'pular'])
+    @commands.command(name="skip", help=helper.HELP_SKIP, description=helper.HELP_SKIP_LONG, aliases=['s', 'pular', 'next'])
     async def skip(self, ctx: Context) -> None:
-        controller = SkipController(ctx, self.__bot)
+        controller = SkipHandler(ctx, self.__bot)
 
         response = await controller.run()
         if response.success:
@@ -74,7 +79,7 @@ class Music(commands.Cog):
 
     @commands.command(name='stop', help=helper.HELP_STOP, description=helper.HELP_STOP_LONG, aliases=['parar'])
     async def stop(self, ctx: Context) -> None:
-        controller = StopController(ctx, self.__bot)
+        controller = StopHandler(ctx, self.__bot)
 
         response = await controller.run()
         if response.success:
@@ -84,9 +89,9 @@ class Music(commands.Cog):
 
         await view.run()
 
-    @commands.command(name='pause', help=helper.HELP_PAUSE, description=helper.HELP_PAUSE_LONG, aliases=['pausar'])
+    @commands.command(name='pause', help=helper.HELP_PAUSE, description=helper.HELP_PAUSE_LONG, aliases=['pausar', 'pare'])
     async def pause(self, ctx: Context) -> None:
-        controller = PauseController(ctx, self.__bot)
+        controller = PauseHandler(ctx, self.__bot)
 
         response = await controller.run()
         view1 = EmoteView(response)
@@ -94,9 +99,9 @@ class Music(commands.Cog):
         await view1.run()
         await view2.run()
 
-    @commands.command(name='resume', help=helper.HELP_RESUME, description=helper.HELP_RESUME_LONG, aliases=['soltar'])
+    @commands.command(name='resume', help=helper.HELP_RESUME, description=helper.HELP_RESUME_LONG, aliases=['soltar', 'despausar'])
     async def resume(self, ctx: Context) -> None:
-        controller = ResumeController(ctx, self.__bot)
+        controller = ResumeHandler(ctx, self.__bot)
 
         response = await controller.run()
         view1 = EmoteView(response)
@@ -104,9 +109,9 @@ class Music(commands.Cog):
         await view1.run()
         await view2.run()
 
-    @commands.command(name='prev', help=helper.HELP_PREV, description=helper.HELP_PREV_LONG, aliases=['anterior'])
+    @commands.command(name='prev', help=helper.HELP_PREV, description=helper.HELP_PREV_LONG, aliases=['anterior', 'return', 'previous'])
     async def prev(self, ctx: Context) -> None:
-        controller = PrevController(ctx, self.__bot)
+        controller = PrevHandler(ctx, self.__bot)
 
         response = await controller.run()
         if response is not None:
@@ -115,9 +120,9 @@ class Music(commands.Cog):
             await view1.run()
             await view2.run()
 
-    @commands.command(name='history', help=helper.HELP_HISTORY, description=helper.HELP_HISTORY_LONG, aliases=['historico'])
+    @commands.command(name='history', help=helper.HELP_HISTORY, description=helper.HELP_HISTORY_LONG, aliases=['historico', 'h'])
     async def history(self, ctx: Context) -> None:
-        controller = HistoryController(ctx, self.__bot)
+        controller = HistoryHandler(ctx, self.__bot)
 
         response = await controller.run()
         view1 = EmbedView(response)
@@ -127,7 +132,7 @@ class Music(commands.Cog):
 
     @commands.command(name='loop', help=helper.HELP_LOOP, description=helper.HELP_LOOP_LONG, aliases=['l', 'repeat'])
     async def loop(self, ctx: Context, args='') -> None:
-        controller = LoopController(ctx, self.__bot)
+        controller = LoopHandler(ctx, self.__bot)
 
         response = await controller.run(args)
         view1 = EmoteView(response)
@@ -137,15 +142,15 @@ class Music(commands.Cog):
 
     @commands.command(name='clear', help=helper.HELP_CLEAR, description=helper.HELP_CLEAR_LONG, aliases=['c', 'limpar'])
     async def clear(self, ctx: Context) -> None:
-        controller = ClearController(ctx, self.__bot)
+        controller = ClearHandler(ctx, self.__bot)
 
         response = await controller.run()
         view = EmoteView(response)
         await view.run()
 
-    @commands.command(name='np', help=helper.HELP_NP, description=helper.HELP_NP_LONG, aliases=['playing', 'now'])
+    @commands.command(name='np', help=helper.HELP_NP, description=helper.HELP_NP_LONG, aliases=['playing', 'now', 'this'])
     async def now_playing(self, ctx: Context) -> None:
-        controller = NowPlayingController(ctx, self.__bot)
+        controller = NowPlayingHandler(ctx, self.__bot)
 
         response = await controller.run()
         view1 = EmbedView(response)
@@ -155,7 +160,7 @@ class Music(commands.Cog):
 
     @commands.command(name='shuffle', help=helper.HELP_SHUFFLE, description=helper.HELP_SHUFFLE_LONG, aliases=['aleatorio'])
     async def shuffle(self, ctx: Context) -> None:
-        controller = ShuffleController(ctx, self.__bot)
+        controller = ShuffleHandler(ctx, self.__bot)
 
         response = await controller.run()
         view1 = EmbedView(response)
@@ -165,7 +170,7 @@ class Music(commands.Cog):
 
     @commands.command(name='move', help=helper.HELP_MOVE, description=helper.HELP_MOVE_LONG, aliases=['m', 'mover'])
     async def move(self, ctx: Context, pos1, pos2='1') -> None:
-        controller = MoveController(ctx, self.__bot)
+        controller = MoveHandler(ctx, self.__bot)
 
         response = await controller.run(pos1, pos2)
         view1 = EmbedView(response)
@@ -175,7 +180,7 @@ class Music(commands.Cog):
 
     @commands.command(name='remove', help=helper.HELP_REMOVE, description=helper.HELP_REMOVE_LONG, aliases=['remover'])
     async def remove(self, ctx: Context, position) -> None:
-        controller = RemoveController(ctx, self.__bot)
+        controller = RemoveHandler(ctx, self.__bot)
 
         response = await controller.run(position)
         view1 = EmbedView(response)
@@ -185,7 +190,7 @@ class Music(commands.Cog):
 
     @commands.command(name='reset', help=helper.HELP_RESET, description=helper.HELP_RESET_LONG, aliases=['resetar'])
     async def reset(self, ctx: Context) -> None:
-        controller = ResetController(ctx, self.__bot)
+        controller = ResetHandler(ctx, self.__bot)
 
         response = await controller.run()
         view1 = EmbedView(response)
@@ -195,4 +200,4 @@ class Music(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Music(bot))
+    bot.add_cog(MusicCog(bot))

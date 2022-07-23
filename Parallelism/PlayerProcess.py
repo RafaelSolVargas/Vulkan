@@ -28,7 +28,7 @@ class TimeoutClock:
 
 
 class PlayerProcess(Process):
-    """Process that will play songs, receive commands by a received Queue"""
+    """Process that will play songs, receive commands from the main process by a Queue"""
 
     def __init__(self, playlist: Playlist, lock: Lock, queue: Queue, guildID: int, textID: int, voiceID: int, authorID: int) -> None:
         """
@@ -173,7 +173,9 @@ class PlayerProcess(Process):
                     await self.__guild.voice_client.disconnect()
 
     def __resume(self) -> None:
-        pass
+        if self.__guild.voice_client is not None:
+            if self.__guild.voice_client.is_paused():
+                self.__guild.voice_client.resume()
 
     def __skip(self) -> None:
         if self.__guild.voice_client is not None:

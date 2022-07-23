@@ -1,16 +1,16 @@
 from discord.ext.commands import Context
 from discord import Client
-from Controllers.AbstractController import AbstractController
-from Controllers.ControllerResponse import ControllerResponse
+from Handlers.AbstractHandler import AbstractHandler
+from Handlers.HandlerResponse import HandlerResponse
 from Parallelism.ProcessManager import ProcessManager
 from Parallelism.Commands import VCommands, VCommandsType
 
 
-class StopController(AbstractController):
+class StopHandler(AbstractHandler):
     def __init__(self, ctx: Context, bot: Client) -> None:
         super().__init__(ctx, bot)
 
-    async def run(self) -> ControllerResponse:
+    async def run(self) -> HandlerResponse:
         processManager = ProcessManager()
         processContext = processManager.getRunningPlayerContext(self.guild)
         if processContext:
@@ -19,4 +19,4 @@ class StopController(AbstractController):
             queue = processContext.getQueue()
             queue.put(command)
 
-            return ControllerResponse(self.ctx)
+            return HandlerResponse(self.ctx)

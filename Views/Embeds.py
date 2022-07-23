@@ -1,5 +1,5 @@
 from Config.Messages import Messages
-from Exceptions.Exceptions import VulkanError
+from Config.Exceptions import VulkanError
 from discord import Embed
 from Config.Configs import Configs
 from Config.Colors import Colors

@@ -1,36 +1,36 @@
 from discord.ext.commands import Context
 from discord import Client
-from Controllers.AbstractController import AbstractController
-from Exceptions.Exceptions import BadCommandUsage, ImpossibleMove, UnknownError
-from Controllers.ControllerResponse import ControllerResponse
+from Handlers.AbstractHandler import AbstractHandler
+from Config.Exceptions import BadCommandUsage, ImpossibleMove, UnknownError
+from Handlers.HandlerResponse import HandlerResponse
 
 
-class PrevController(AbstractController):
+class PrevHandler(AbstractHandler):
     def __init__(self, ctx: Context, bot: Client) -> None:
         super().__init__(ctx, bot)
 
-    async def run(self) -> ControllerResponse:
+    async def run(self) -> HandlerResponse:
         if len(self.player.playlist.history()) == 0:
             error = ImpossibleMove()
             embed = self.embeds.NOT_PREVIOUS_SONG()
-            return ControllerResponse(self.ctx, embed, error)
+            return HandlerResponse(self.ctx, embed, error)
 
         if not self.__user_connected():
             error = ImpossibleMove()
             embed = self.embeds.NO_CHANNEL()
-            return ControllerResponse(self.ctx, embed, error)
+            return HandlerResponse(self.ctx, embed, error)
 
         if not self.__is_connected():
             success = await self.__connect()
             if not success:
                 error = UnknownError()
                 embed = self.embeds.UNKNOWN_ERROR()
-                return ControllerResponse(self.ctx, embed, error)
+                return HandlerResponse(self.ctx, embed, error)
 
         if self.player.playlist.isLoopingAll() or self.player.playlist.isLoopingOne():
             error = BadCommandUsage()
             embed = self.embeds.FAIL_DUE_TO_LOOP_ON()
-            return ControllerResponse(self.ctx, embed, error)
+            return HandlerResponse(self.ctx, embed, error)
 
         await self.player.play_prev(self.ctx)
 

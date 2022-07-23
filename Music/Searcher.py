@@ -1,7 +1,7 @@
-from Exceptions.Exceptions import DeezerError, InvalidInput, SpotifyError, YoutubeError
+from Config.Exceptions import DeezerError, InvalidInput, SpotifyError, YoutubeError
 from Music.Downloader import Downloader
 from Music.Types import Provider
-from Music.Spotify import SpotifySearch
+from Music.SpotifySearcher import SpotifySearch
 from Music.DeezerSearcher import DeezerSearcher
 from Utils.Utils import Utils
 from Utils.UrlAnalyzer import URLAnalyzer

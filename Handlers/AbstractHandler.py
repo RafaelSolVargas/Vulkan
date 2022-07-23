@@ -3,15 +3,15 @@ from typing import List
 from discord.ext.commands import Context
 from discord import Client, Guild, ClientUser, Member
 from Config.Messages import Messages
-from Controllers.PlayersController import PlayersController
+from Handlers.PlayersController import PlayersController
 from Music.Player import Player
-from Controllers.ControllerResponse import ControllerResponse
+from Handlers.HandlerResponse import HandlerResponse
 from Config.Configs import Configs
 from Config.Helper import Helper
 from Views.Embeds import Embeds
 
 
-class AbstractController(ABC):
+class AbstractHandler(ABC):
     def __init__(self, ctx: Context, bot: Client) -> None:
         self.__bot: Client = bot
         self.__controller = PlayersController(self.__bot)
@@ -27,7 +27,7 @@ class AbstractController(ABC):
         self.__bot_member: Member = self.__get_member()
 
     @abstractmethod
-    async def run(self) -> ControllerResponse:
+    async def run(self) -> HandlerResponse:
         pass
 
     @property

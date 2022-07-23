@@ -1,15 +1,15 @@
 from discord.ext.commands import Context
 from discord import Client
-from Controllers.AbstractController import AbstractController
-from Controllers.ControllerResponse import ControllerResponse
+from Handlers.AbstractHandler import AbstractHandler
+from Handlers.HandlerResponse import HandlerResponse
 from Utils.Utils import Utils
 
 
-class HistoryController(AbstractController):
+class HistoryHandler(AbstractHandler):
     def __init__(self, ctx: Context, bot: Client) -> None:
         super().__init__(ctx, bot)
 
-    async def run(self) -> ControllerResponse:
+    async def run(self) -> HandlerResponse:
         history = self.player.playlist.getSongsHistory()
 
         if len(history) == 0:
@@ -21,4 +21,4 @@ class HistoryController(AbstractController):
                 text += f"**`{pos}` - ** {song.title} - `{Utils.format_time(song.duration)}`\n"
 
         embed = self.embeds.HISTORY(text)
-        return ControllerResponse(self.ctx, embed)
+        return HandlerResponse(self.ctx, embed)

@@ -1,5 +1,5 @@
 from Tests.TestBase import VulkanTesterBase
-from Exceptions.Exceptions import SpotifyError
+from Config.Exceptions import SpotifyError
 
 
 class VulkanSpotifyTest(VulkanTesterBase):

@@ -1,9 +1,9 @@
-from Exceptions.Exceptions import DownloadingError, InvalidInput, VulkanError
+from Config.Exceptions import DownloadingError, InvalidInput, VulkanError
 from discord.ext.commands import Context
 from discord import Client
-from Controllers.AbstractController import AbstractController
-from Exceptions.Exceptions import ImpossibleMove, UnknownError
-from Controllers.ControllerResponse import ControllerResponse
+from Handlers.AbstractHandler import AbstractHandler
+from Config.Exceptions import ImpossibleMove, UnknownError
+from Handlers.HandlerResponse import HandlerResponse
 from Music.Downloader import Downloader
 from Music.Searcher import Searcher
 from Music.Song import Song
@@ -11,20 +11,20 @@ from Parallelism.ProcessManager import ProcessManager
 from Parallelism.Commands import VCommands, VCommandsType
 
 
-class PlayController(AbstractController):
+class PlayHandler(AbstractHandler):
     def __init__(self, ctx: Context, bot: Client) -> None:
         super().__init__(ctx, bot)
         self.__searcher = Searcher()
         self.__down = Downloader()
 
-    async def run(self, args: str) -> ControllerResponse:
+    async def run(self, args: str) -> HandlerResponse:
         track = " ".join(args)
         requester = self.ctx.author.name
 
         if not self.__isUserConnected():
             error = ImpossibleMove()
             embed = self.embeds.NO_CHANNEL()
-            return ControllerResponse(self.ctx, embed, error)
+            return HandlerResponse(self.ctx, embed, error)
 
         try:
             musics = await self.__searcher.search(track)
@@ -45,17 +45,17 @@ class PlayController(AbstractController):
                 if song.problematic:
                     embed = self.embeds.SONG_PROBLEMATIC()
                     error = DownloadingError()
-                    response = ControllerResponse(self.ctx, embed, error)
+                    response = HandlerResponse(self.ctx, embed, error)
 
                 elif not self.player.playing:
                     embed = self.embeds.SONG_ADDED(song.title)
-                    response = ControllerResponse(self.ctx, embed)
+                    response = HandlerResponse(self.ctx, embed)
                 else:
                     embed = self.embeds.SONG_ADDED_TWO(song.info, pos)
-                    response = ControllerResponse(self.ctx, embed)
+                    response = HandlerResponse(self.ctx, embed)
             else:
                 embed = self.embeds.SONGS_ADDED(quant)
-                response = ControllerResponse(self.ctx, embed)
+                response = HandlerResponse(self.ctx, embed)
 
             # Get the process context for the current guild
             manager = ProcessManager(self.bot)
@@ -87,7 +87,7 @@ class PlayController(AbstractController):
                 error = UnknownError()
                 embed = self.embeds.UNKNOWN_ERROR()
 
-            return ControllerResponse(self.ctx, embed, error)
+            return HandlerResponse(self.ctx, embed, error)
 
     def __isUserConnected(self) -> bool:
         if self.ctx.author.voice:
