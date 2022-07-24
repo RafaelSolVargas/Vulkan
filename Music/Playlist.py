@@ -44,6 +44,9 @@ class Playlist:
     def getCurrentSong(self) -> Song:
         return self.__current
 
+    def setCurrentSong(self, song: Song) -> Song:
+        self.__current = song
+
     def getSongsToPreload(self) -> List[Song]:
         return list(self.__queue)[:self.__configs.MAX_PRELOAD_SONGS]
 
@@ -73,6 +76,7 @@ class Playlist:
 
         # Get the new song
         if len(self.__queue) == 0:
+            self.__current = None
             return None
 
         self.__current = self.__queue.popleft()

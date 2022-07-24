@@ -23,29 +23,30 @@ class ProcessManager(Singleton):
             self.__playersProcess: Dict[Guild, ProcessInfo] = {}
 
     def setPlayerContext(self, guild: Guild, context: ProcessInfo):
-        self.__playersProcess[guild] = context
+        self.__playersProcess[guild.id] = context
 
-    def getPlayerContext(self, guild: Guild, context: Context) -> ProcessInfo:
+    def getPlayerInfo(self, guild: Guild, context: Context) -> ProcessInfo:
         """Return the process info for the guild, if not, create one"""
         try:
-            if guild not in self.__playersProcess.keys():
-                self.__playersProcess[guild] = self.__createProcess(context)
+            if guild.id not in self.__playersProcess.keys():
+                self.__playersProcess[guild.id] = self.__createProcessInfo(context)
             else:
-                if not self.__playersProcess[guild].getProcess().is_alive():
-                    self.__playersProcess[guild] = self.__createProcess(context)
+                # If the process has ended create a new one
+                if not self.__playersProcess[guild.id].getProcess().is_alive():
+                    self.__playersProcess[guild.id] = self.__recreateProcess(context)
 
-            return self.__playersProcess[guild]
+            return self.__playersProcess[guild.id]
         except Exception as e:
             print(f'[Error In GetPlayerContext] -> {e}')
 
     def getRunningPlayerInfo(self, guild: Guild) -> ProcessInfo:
         """Return the process info for the guild, if not, return None"""
-        if guild not in self.__playersProcess.keys():
+        if guild.id not in self.__playersProcess.keys():
             return None
 
-        return self.__playersProcess[guild]
+        return self.__playersProcess[guild.id]
 
-    def __createProcess(self, context: Context):
+    def __createProcessInfo(self, context: Context) -> ProcessInfo:
         guildID: int = context.guild.id
         textID: int = context.channel.id
         voiceID: int = context.author.voice.channel.id
@@ -54,6 +55,23 @@ class ProcessManager(Singleton):
         playlist: Playlist = self.__manager.Playlist()
         lock = Lock()
         queue = Queue()
+        process = PlayerProcess(context.guild.name, playlist, lock, queue,
+                                guildID, textID, voiceID, authorID)
+        processInfo = ProcessInfo(process, queue, playlist, lock)
+
+        return processInfo
+
+    def __recreateProcess(self, context: Context) -> ProcessInfo:
+        """Create a new process info using previous playlist"""
+        guildID: int = context.guild.id
+        textID: int = context.channel.id
+        voiceID: int = context.author.voice.channel.id
+        authorID: int = context.author.id
+
+        playlist: Playlist = self.__playersProcess[guildID].getPlaylist()
+        lock = Lock()
+        queue = Queue()
+
         process = PlayerProcess(context.guild.name, playlist, lock, queue,
                                 guildID, textID, voiceID, authorID)
         processInfo = ProcessInfo(process, queue, playlist, lock)

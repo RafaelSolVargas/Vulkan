@@ -2,14 +2,16 @@ import asyncio
 from os import listdir
 from discord import Intents, User, Member
 from asyncio import AbstractEventLoop, Semaphore
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, RLock
 from threading import Lock, Thread
 from typing import Callable, List
 from discord import Client, Guild, FFmpegPCMAudio, VoiceChannel, TextChannel
 from Music.Playlist import Playlist
 from Music.Song import Song
 from Config.Configs import Configs
+from Config.Messages import Messages
 from discord.ext.commands import Bot
+from Views.Embeds import Embeds
 from Parallelism.Commands import VCommands, VCommandsType
 
 
@@ -37,7 +39,8 @@ class PlayerProcess(Process):
         Process.__init__(self, name=name, group=None, target=None, args=(), kwargs={})
         # Synchronization objects
         self.__playlist: Playlist = playlist
-        self.__lock: Lock = lock
+        self.__playlistLock: Lock = lock
+        self.__playerLock: RLock = None
         self.__queue: Queue = queue
         self.__semStopPlaying: Semaphore = None
         self.__loop: AbstractEventLoop = None
@@ -55,6 +58,8 @@ class PlayerProcess(Process):
         self.__botMember: Member = None
 
         self.__configs: Configs = None
+        self.__embeds: Embeds = None
+        self.__messages: Messages = None
         self.__playing = False
         self.__forceStop = False
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
@@ -64,11 +69,14 @@ class PlayerProcess(Process):
         """Method called by process.start(), this will exec the actually _run method in a event loop"""
         try:
             print(f'Starting Process {self.name}')
+            self.__playerLock = RLock()
             self.__loop = asyncio.get_event_loop()
+
             self.__configs = Configs()
+            self.__messages = Messages()
+            self.__embeds = Embeds()
 
             self.__semStopPlaying = Semaphore(0)
-            self.__stopped = asyncio.Event()
             self.__loop.run_until_complete(self._run())
         except Exception as e:
             print(f'[Error in Process {self.name}] -> {e}')
@@ -100,12 +108,14 @@ class PlayerProcess(Process):
 
     async def __playPlaylistSongs(self) -> None:
         if not self.__playing:
-            with self.__lock:
+            with self.__playlistLock:
                 song = self.__playlist.next_song()
 
-            await self.__playSong(song)
+            if song is not None:
+                self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
 
     async def __playSong(self, song: Song) -> None:
+        """Function that will trigger the player to play the song"""
         try:
             if song is None:
                 return
@@ -113,36 +123,46 @@ class PlayerProcess(Process):
             if song.source is None:
                 return self.__playNext(None)
 
+            # If not connected, connect to bind channel
+            if self.__guild.voice_client is None:
+                self.__connectToVoiceChannel()
+
+            # If the player is already playing return
+            if self.__guild.voice_client.is_playing():
+                return
+
             self.__playing = True
 
             player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
-            voice = self.__guild.voice_client
-            voice.play(player, after=lambda e: self.__playNext(e))
+            self.__guild.voice_client.play(player, after=lambda e: self.__playNext(e))
 
             self.__timer.cancel()
             self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
 
-            # await self.__context.invoke(self.__bot.get_command('np'))
+            await self.__showNowPlaying()
         except Exception as e:
-            print(f'[ERROR IN PLAY SONG] -> {e}')
+            print(f'[ERROR IN PLAY SONG] -> {e}, {type(e)}')
             self.__playNext(None)
 
     def __playNext(self, error) -> None:
-        if self.__forceStop:  # If it's forced to stop player
-            self.__forceStop = False
-            return None
+        with self.__playerLock:
+            if self.__forceStop:  # If it's forced to stop player
+                self.__forceStop = False
+                return None
 
-        with self.__lock:
-            song = self.__playlist.next_song()
+            with self.__playlistLock:
+                song = self.__playlist.next_song()
 
-        if song is not None:
-            coro = self.__playSong(song)
-            self.__bot.loop.create_task(coro)
-        else:
-            self.__playing = False
+            if song is not None:
+                self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
+            else:
+                with self.__playlistLock:
+                    self.__playlist.loop_off()
+
+                self.__playing = False
 
     async def __playPrev(self, voiceChannelID: int) -> None:
-        with self.__lock:
+        with self.__playlistLock:
             song = self.__playlist.prev_song()
 
         if song is not None:
@@ -158,7 +178,7 @@ class PlayerProcess(Process):
                 self.__guild.voice_client.stop()
                 self.__playing = False
 
-            await self.__playSong(song)
+            self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
 
     def __commandsReceiver(self) -> None:
         while True:
@@ -166,23 +186,28 @@ class PlayerProcess(Process):
             type = command.getType()
             args = command.getArgs()
 
-            print(f'Process {self.name} receive Command: {type} with Args: {args}')
-            if type == VCommandsType.PAUSE:
-                self.__pause()
-            elif type == VCommandsType.PLAY:
-                self.__loop.create_task(self.__playPlaylistSongs())
-            elif type == VCommandsType.PREV:
-                self.__loop.create_task(self.__playPrev(args))
-            elif type == VCommandsType.RESUME:
-                self.__resume()
-            elif type == VCommandsType.SKIP:
-                self.__skip()
-            elif type == VCommandsType.RESET:
-                self.__loop.create_task(self.__reset())
-            elif type == VCommandsType.STOP:
-                self.__loop.create_task(self.__stop())
-            else:
-                print(f'[ERROR] -> Unknown Command Received: {command}')
+            try:
+                self.__playerLock.acquire()
+                if type == VCommandsType.PAUSE:
+                    self.__pause()
+                elif type == VCommandsType.RESUME:
+                    self.__resume()
+                elif type == VCommandsType.SKIP:
+                    self.__skip()
+                elif type == VCommandsType.PLAY:
+                    asyncio.run_coroutine_threadsafe(self.__playPlaylistSongs(), self.__loop)
+                elif type == VCommandsType.PREV:
+                    asyncio.run_coroutine_threadsafe(self.__playPrev(args), self.__loop)
+                elif type == VCommandsType.RESET:
+                    asyncio.run_coroutine_threadsafe(self.__reset(), self.__loop)
+                elif type == VCommandsType.STOP:
+                    asyncio.run_coroutine_threadsafe(self.__stop(), self.__loop)
+                else:
+                    print(f'[ERROR] -> Unknown Command Received: {command}')
+            except Exception as e:
+                print(f'[ERROR IN COMMAND RECEIVER] -> {type} - {e}')
+            finally:
+                self.__playerLock.release()
 
     def __pause(self) -> None:
         if self.__guild.voice_client is not None:
@@ -204,7 +229,7 @@ class PlayerProcess(Process):
     async def __stop(self) -> None:
         if self.__guild.voice_client is not None:
             if self.__guild.voice_client.is_connected():
-                with self.__lock:
+                with self.__playlistLock:
                     self.__playlist.clear()
                     self.__playlist.loop_off()
                     self.__guild.voice_client.stop()
@@ -220,17 +245,14 @@ class PlayerProcess(Process):
             self.__guild.voice_client.stop()
 
     async def __forceStop(self) -> None:
-        try:
-            if self.__guild.voice_client is None:
-                return
+        if self.__guild.voice_client is None:
+            return
 
-            self.__guild.voice_client.stop()
-            await self.__guild.voice_client.disconnect()
-            with self.__lock:
-                self.__playlist.clear()
-                self.__playlist.loop_off()
-        except Exception as e:
-            print(f'DEVELOPER NOTE -> Force Stop Error: {e}')
+        self.__guild.voice_client.stop()
+        await self.__guild.voice_client.disconnect()
+        with self.__playlistLock:
+            self.__playlist.clear()
+            self.__playlist.loop_off()
 
     async def __createBotInstance(self) -> Client:
         """Load a new bot instance that should not be directly called.
@@ -268,12 +290,14 @@ class PlayerProcess(Process):
                 self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
 
             elif self.__guild.voice_client.is_connected():
-                with self.__lock:
+                self.__playerLock.acquire()
+                with self.__playlistLock:
                     self.__playlist.clear()
                     self.__playlist.loop_off()
                 self.__playing = False
                 await self.__guild.voice_client.disconnect()
                 # Release semaphore to finish process
+                self.__playerLock.release()
                 self.__semStopPlaying.release()
         except Exception as e:
             print(f'[Error in Timeout] -> {e}')
@@ -307,3 +331,20 @@ class PlayerProcess(Process):
         for member in guild_members:
             if member.id == self.__bot.user.id:
                 return member
+
+    async def __showNowPlaying(self) -> None:
+        # Get the current process of the guild
+        with self.__playlistLock:
+            if not self.__playing or self.__playlist.getCurrentSong() is None:
+                embed = self.__embeds.NOT_PLAYING()
+                await self.__textChannel.send(embed=embed)
+                return
+
+            if self.__playlist.isLoopingOne():
+                title = self.__messages.ONE_SONG_LOOPING
+            else:
+                title = self.__messages.SONG_PLAYING
+
+            info = self.__playlist.getCurrentSong().info
+            embed = self.__embeds.SONG_INFO(info, title)
+            await self.__textChannel.send(embed=embed)

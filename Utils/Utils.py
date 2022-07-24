@@ -32,19 +32,6 @@ class Utils:
             return False
 
 
-class Timer:
-    def __init__(self, callback):
-        self.__callback = callback
-        self.__task = asyncio.create_task(self.__executor())
-
-    async def __executor(self):
-        await asyncio.sleep(config.VC_TIMEOUT)
-        await self.__callback()
-
-    def cancel(self):
-        self.__task.cancel()
-
-
 def run_async(func):
     @wraps(func)
     async def run(*args, loop=None, executor=None, **kwargs):

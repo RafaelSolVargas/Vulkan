@@ -37,11 +37,10 @@ class PlayHandler(AbstractHandler):
 
             # Get the process context for the current guild
             manager = ProcessManager()
-            processInfo = manager.getPlayerContext(self.guild, self.ctx)
+            processInfo = manager.getPlayerInfo(self.guild, self.ctx)
             playlist = processInfo.getPlaylist()
             process = processInfo.getProcess()
             if not process.is_alive():  # If process has not yet started, start
-                print('Starting process')
                 process.start()
 
             # Create the Songs objects
@@ -57,22 +56,21 @@ class PlayHandler(AbstractHandler):
                     error = DownloadingError()
                     return HandlerResponse(self.ctx, embed, error)
 
-                # If not playing
-                if not playlist.getCurrentSong():
-                    embed = self.embeds.SONG_ADDED(song.title)
-                    response = HandlerResponse(self.ctx, embed)
-                else:  # If already playing
-                    pos = len(playlist.getSongs())
-                    embed = self.embeds.SONG_ADDED_TWO(song.info, pos)
-                    response = HandlerResponse(self.ctx, embed)
-
                 # Add the unique song to the playlist and send a command to player process
                 with processInfo.getLock():
                     playlist.add_song(song)
                     queue = processInfo.getQueue()
                     playCommand = VCommands(VCommandsType.PLAY, None)
                     queue.put(playCommand)
-                    return response
+
+                # If not playing
+                if not playlist.getCurrentSong():
+                    embed = self.embeds.SONG_ADDED(song.title)
+                    return HandlerResponse(self.ctx, embed)
+                else:  # If already playing
+                    pos = len(playlist.getSongs())
+                    embed = self.embeds.SONG_ADDED_TWO(song.info, pos)
+                    return HandlerResponse(self.ctx, embed)
 
             else:  # If multiple songs added
                 # Trigger a task to download all songs and then store them in the process playlist
@@ -81,13 +79,15 @@ class PlayHandler(AbstractHandler):
                 embed = self.embeds.SONGS_ADDED(len(songs))
                 return HandlerResponse(self.ctx, embed)
 
-        except Exception as err:
-            if isinstance(err, VulkanError):  # If error was already processed
-                print(f'DEVELOPER NOTE -> PlayController Error: {err.message}')
-                error = err
+        except DownloadingError as error:
+            embed = self.embeds.DOWNLOADING_ERROR()
+            return HandlerResponse(self.ctx, embed, error)
+        except Exception as error:
+            if isinstance(error, VulkanError):  # If error was already processed
+                print(f'DEVELOPER NOTE -s> PlayController Error: {error.message}', {type(error)})
                 embed = self.embeds.CUSTOM_ERROR(error)
             else:
-                print(f'DEVELOPER NOTE -> PlayController Error: {err}')
+                print(f'DEVELOPER NOTE -> PlayController Error: {error}, {type(error)}')
                 error = UnknownError()
                 embed = self.embeds.UNKNOWN_ERROR()
 

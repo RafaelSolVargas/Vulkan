@@ -14,8 +14,8 @@ class Messages(Singleton):
             self.SONGINFO_REQUESTER = 'Requester: '
             self.SONGINFO_POSITION = 'Position: '
 
-            self.SONGS_ADDED = 'You added {} songs to the queue'
-            self.SONG_ADDED = 'You added the song `{}` to the queue'
+            self.SONGS_ADDED = 'Downloading `{}` songs to add to the queue'
+            self.SONG_ADDED = 'Downloading the song `{}` to add to the queue'
             self.SONG_ADDED_TWO = '🎧 Song added to the queue'
             self.SONG_PLAYING = '🎧 Song playing now'
             self.SONG_PLAYER = '🎧 Song Player'
@@ -61,7 +61,7 @@ class Messages(Singleton):
             self.NO_CHANNEL = 'To play some music, connect to any voice channel first.'
             self.NO_GUILD = f'This server does not has a Player, try {configs.BOT_PREFIX}reset'
             self.INVALID_INPUT = f'This URL was too strange, try something better or type {configs.BOT_PREFIX}help play'
-            self.DOWNLOADING_ERROR = '❌ An error occurred while downloading'
+            self.DOWNLOADING_ERROR = "❌ It's impossible to download and play this video"
             self.EXTRACTING_ERROR = '❌ An error ocurred while searching for the songs'
 
             self.MY_ERROR_BAD_COMMAND = 'This string serves to verify if some error was raised by myself on purpose'

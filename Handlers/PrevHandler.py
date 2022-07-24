@@ -13,7 +13,7 @@ class PrevHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         processManager = ProcessManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        processInfo = processManager.getPlayerInfo(self.guild, self.ctx)
         if not processInfo:
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
@@ -34,6 +34,11 @@ class PrevHandler(AbstractHandler):
             error = BadCommandUsage()
             embed = self.embeds.FAIL_DUE_TO_LOOP_ON()
             return HandlerResponse(self.ctx, embed, error)
+
+        # If not started, start the player process
+        process = processInfo.getProcess()
+        if not process.is_alive():
+            process.start()
 
         # Send a prev command, together with the user voice channel
         prevCommand = VCommands(VCommandsType.PREV, self.ctx.author.voice.channel.id)

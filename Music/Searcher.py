@@ -1,4 +1,4 @@
-from Config.Exceptions import DeezerError, InvalidInput, SpotifyError, YoutubeError
+from Config.Exceptions import DeezerError, InvalidInput, SpotifyError, VulkanError, YoutubeError
 from Music.Downloader import Downloader
 from Music.Types import Provider
 from Music.SpotifySearcher import SpotifySearch
@@ -25,7 +25,10 @@ class Searcher():
                 track = self.__cleanYoutubeInput(track)
                 musics = await self.__down.extract_info(track)
                 return musics
-            except:
+            except VulkanError as error:
+                raise error
+            except Exception as error:
+                print(f'[Error in Searcher] -> {error}, {type(error)}')
                 raise YoutubeError(self.__messages.YOUTUBE_NOT_FOUND, self.__messages.GENERIC_TITLE)
 
         elif provider == Provider.Spotify:

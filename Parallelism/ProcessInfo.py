@@ -13,6 +13,9 @@ class ProcessInfo:
         self.__playlist = playlist
         self.__lock = lock
 
+    def setProcess(self, newProcess: Process) -> None:
+        self.__process = newProcess
+
     def getProcess(self) -> Process:
         return self.__process
 

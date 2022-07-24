@@ -3,8 +3,6 @@ from typing import List
 from discord.ext.commands import Context
 from discord import Client, Guild, ClientUser, Member
 from Config.Messages import Messages
-from Handlers.PlayersController import PlayersController
-from Music.Player import Player
 from Handlers.HandlerResponse import HandlerResponse
 from Config.Configs import Configs
 from Config.Helper import Helper
@@ -14,8 +12,6 @@ from Views.Embeds import Embeds
 class AbstractHandler(ABC):
     def __init__(self, ctx: Context, bot: Client) -> None:
         self.__bot: Client = bot
-        self.__controller = PlayersController(self.__bot)
-        self.__player: Player = self.__controller.get_player(ctx.guild)
         self.__guild: Guild = ctx.guild
         self.__ctx: Context = ctx
         self.__bot_user: ClientUser = self.__bot.user
@@ -45,14 +41,6 @@ class AbstractHandler(ABC):
     @property
     def guild(self) -> Guild:
         return self.__guild
-
-    @property
-    def player(self) -> Player:
-        return self.__player
-
-    @property
-    def controller(self) -> PlayersController:
-        return self.__controller
 
     @property
     def bot(self) -> Client:

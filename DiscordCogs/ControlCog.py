@@ -19,7 +19,7 @@ class ControlCog(commands.Cog):
         self.__messages = Messages()
         self.__colors = Colors()
         self.__embeds = Embeds()
-        self.__comandos = {
+        self.__commands = {
             'MUSIC': ['resume', 'pause', 'loop', 'stop',
                       'skip', 'play', 'queue', 'clear',
                       'np', 'shuffle', 'move', 'remove',
@@ -80,10 +80,10 @@ class ControlCog(commands.Cog):
             help_help = '👾 `HELP`\n'
 
             for command in self.__bot.commands:
-                if command.name in self.__comandos['MUSIC']:
+                if command.name in self.__commands['MUSIC']:
                     help_music += f'**{command}** - {command.help}\n'
 
-                elif command.name in self.__comandos['RANDOM']:
+                elif command.name in self.__commands['RANDOM']:
                     help_random += f'**{command}** - {command.help}\n'
 
                 else:

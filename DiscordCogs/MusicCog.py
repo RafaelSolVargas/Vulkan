@@ -6,12 +6,10 @@ from Handlers.ClearHandler import ClearHandler
 from Handlers.MoveHandler import MoveHandler
 from Handlers.NowPlayingHandler import NowPlayingHandler
 from Handlers.PlayHandler import PlayHandler
-from Handlers.PlayersController import PlayersController
 from Handlers.PrevHandler import PrevHandler
 from Handlers.RemoveHandler import RemoveHandler
 from Handlers.ResetHandler import ResetHandler
 from Handlers.ShuffleHandler import ShuffleHandler
-from Utils.Cleaner import Cleaner
 from Handlers.SkipHandler import SkipHandler
 from Handlers.PauseHandler import PauseHandler
 from Handlers.StopHandler import StopHandler
@@ -34,16 +32,6 @@ class MusicCog(commands.Cog):
 
     def __init__(self, bot) -> None:
         self.__bot: Client = bot
-        self.__cleaner = Cleaner(self.__bot)
-        self.__controller = PlayersController(self.__bot)
-
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
-        self.__controller = PlayersController(self.__bot)
-
-    @commands.Cog.listener()
-    async def on_guild_join(self, guild: Guild) -> None:
-        self.__controller.create_player(guild)
 
     @commands.command(name="play", help=helper.HELP_PLAY, description=helper.HELP_PLAY_LONG, aliases=['p', 'tocar'])
     async def play(self, ctx: Context, *args) -> None:
