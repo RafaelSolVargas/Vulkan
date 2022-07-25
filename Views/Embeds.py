@@ -164,7 +164,7 @@ class Embeds:
 
     def COMMAND_NOT_FOUND(self) -> Embed:
         embed = Embed(
-            title=self.__messages.ERROR_TITLE,
+            title=self.__messages.COMMAND_NOT_FOUND_TITLE,
             description=self.__messages.COMMAND_NOT_FOUND,
             colour=self.__colors.BLACK
         )

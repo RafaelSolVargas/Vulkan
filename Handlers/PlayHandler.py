@@ -113,13 +113,20 @@ class PlayHandler(AbstractHandler):
             tasks.append(task)
 
         # In the original order, await for the task and then if successfully downloaded add in the playlist
+        processManager = ProcessManager()
         for index, task in enumerate(tasks):
             await task
             song = songs[index]
             if not song.problematic:  # If downloaded add to the playlist and send play command
-                with processInfo.getLock():
+                processInfo = processManager.getPlayerInfo(self.guild, self.ctx)
+                processLock = processInfo.getLock()
+                acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+                if acquired:
                     playlist.add_song(song)
                     queue.put(playCommand)
+                    processLock.release()
+                else:
+                    processManager.resetProcess(self.guild, self.ctx)
 
     def __isUserConnected(self) -> bool:
         if self.ctx.author.voice:

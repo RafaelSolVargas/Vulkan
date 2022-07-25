@@ -1,4 +1,3 @@
-import asyncio
 from discord.ext.commands import Context
 from discord import Client
 from Handlers.AbstractHandler import AbstractHandler
@@ -30,15 +29,15 @@ class QueueHandler(AbstractHandler):
             if playlist.isLoopingOne():
                 song = playlist.getCurrentSong()
                 embed = self.embeds.ONE_SONG_LOOPING(song.info)
+                processLock.release()  # Release the Lock
                 return HandlerResponse(self.ctx, embed)
 
             songs_preload = playlist.getSongsToPreload()
             allSongs = playlist.getSongs()
             if len(songs_preload) == 0:
                 embed = self.embeds.EMPTY_QUEUE()
+                processLock.release()  # Release the Lock
                 return HandlerResponse(self.ctx, embed)
-
-            asyncio.create_task(self.__down.preload(songs_preload))
 
             if playlist.isLoopingAll():
                 title = self.messages.ALL_SONGS_LOOPING

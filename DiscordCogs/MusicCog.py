@@ -114,7 +114,7 @@ class MusicCog(commands.Cog):
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
-    @commands.command(name='prev', help=helper.HELP_PREV, description=helper.HELP_PREV_LONG, aliases=['anterior', 'return', 'previous'])
+    @commands.command(name='prev', help=helper.HELP_PREV, description=helper.HELP_PREV_LONG, aliases=['anterior', 'return', 'previous', 'back'])
     async def prev(self, ctx: Context) -> None:
         try:
             controller = PrevHandler(ctx, self.__bot)

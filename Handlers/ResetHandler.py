@@ -19,4 +19,7 @@ class ResetHandler(AbstractHandler):
             queue = processInfo.getQueue()
             queue.put(command)
 
-        return HandlerResponse(self.ctx)
+            return HandlerResponse(self.ctx)
+        else:
+            embed = self.embeds.NOT_PLAYING()
+            return HandlerResponse(self.ctx, embed)

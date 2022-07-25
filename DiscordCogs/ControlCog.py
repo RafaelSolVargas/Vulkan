@@ -66,9 +66,9 @@ class ControlCog(commands.Cog):
                     return
 
             embedhelp = Embed(
-                title='Command Help',
-                description=f'Command {command_help} Not Found',
-                colour=self.__colors.RED
+                title='Help',
+                description=f'Command {command_help} do not exists, type {self.__config.BOT_PREFIX}help to see all commands',
+                colour=self.__colors.BLACK
             )
 
             await ctx.send(embed=embedhelp)

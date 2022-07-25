@@ -254,7 +254,7 @@ class PlayerProcess(Process):
         # Lock to work with Player
         with self.__playerLock:
             if self.__guild.voice_client is not None and self.__playing:
-                self.__playing = None
+                self.__playing = False
                 self.__guild.voice_client.stop()
 
     async def __forceStop(self) -> None:

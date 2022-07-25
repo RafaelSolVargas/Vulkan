@@ -27,6 +27,7 @@ class LoopHandler(AbstractHandler):
             if args == '' or args is None:
                 playlist.loop_all()
                 embed = self.embeds.LOOP_ALL_ACTIVATED()
+                processLock.release()
                 return HandlerResponse(self.ctx, embed)
 
             args = args.lower()
@@ -50,7 +51,7 @@ class LoopHandler(AbstractHandler):
                 embed = self.embeds.BAD_LOOP_USE()
 
             processLock.release()
-            return HandlerResponse(self.ctx, embed)
+            return HandlerResponse(self.ctx, embed, error)
         else:
             processManager.resetProcess(self.guild, self.ctx)
             embed = self.embeds.PLAYER_RESTARTED()

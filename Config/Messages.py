@@ -58,6 +58,7 @@ class Messages(Singleton):
             self.PLAYER_NOT_PLAYING = f'❌ No song playing. Use {configs.BOT_PREFIX}play to start the player'
             self.IMPOSSIBLE_MOVE = 'That is impossible :('
             self.ERROR_TITLE = 'Error :-('
+            self.COMMAND_NOT_FOUND_TITLE = 'This is strange :-('
             self.NO_CHANNEL = 'To play some music, connect to any voice channel first.'
             self.NO_GUILD = f'This server does not has a Player, try {configs.BOT_PREFIX}reset'
             self.INVALID_INPUT = f'This URL was too strange, try something better or type {configs.BOT_PREFIX}help play'

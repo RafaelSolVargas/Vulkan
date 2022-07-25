@@ -56,10 +56,6 @@ class Downloader:
         except DownloadError:
             raise DownloadingError()
 
-    async def preload(self, songs: List[Song]) -> None:
-        for song in songs:
-            asyncio.ensure_future(self.download_song(song))
-
     @run_async
     def extract_info(self, url: str) -> List[dict]:
         if url == '':

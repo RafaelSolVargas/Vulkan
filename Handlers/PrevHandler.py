@@ -44,6 +44,7 @@ class PrevHandler(AbstractHandler):
         prevCommand = VCommands(VCommandsType.PREV, self.ctx.author.voice.channel.id)
         queue = processInfo.getQueue()
         queue.put(prevCommand)
+        return HandlerResponse(self.ctx)
 
     def __user_connected(self) -> bool:
         if self.ctx.author.voice:
