@@ -16,7 +16,14 @@ class ClearHandler(AbstractHandler):
         if processInfo:
             # Clear the playlist
             playlist = processInfo.getPlaylist()
-            with processInfo.getLock():
+            processLock = processInfo.getLock()
+            acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+            if acquired:
                 playlist.clear()
-
+                processLock.release()
+                processLock.release()
+            else:
+                processManager.resetProcess(self.guild, self.ctx)
+                embed = self.embeds.PLAYER_RESTARTED()
+                return HandlerResponse(self.ctx, embed)
         return HandlerResponse(self.ctx)

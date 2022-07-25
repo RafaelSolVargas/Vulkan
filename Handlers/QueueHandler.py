@@ -15,14 +15,16 @@ class QueueHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         # Retrieve the process of the guild
-        process = ProcessManager()
-        processInfo = process.getRunningPlayerInfo(self.guild)
+        processManager = ProcessManager()
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
         if not processInfo:  # If no process return empty list
             embed = self.embeds.EMPTY_QUEUE()
             return HandlerResponse(self.ctx, embed)
 
         # Acquire the Lock to manipulate the playlist
-        with processInfo.getLock():
+        processLock = processInfo.getLock()
+        acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+        if acquired:
             playlist = processInfo.getPlaylist()
 
             if playlist.isLoopingOne():
@@ -54,4 +56,10 @@ class QueueHandler(AbstractHandler):
                 text += f"**`{pos}` - ** {song_name} - `{Utils.format_time(song.duration)}`\n"
 
             embed = self.embeds.QUEUE(title, text)
+            # Release the acquired Lock
+            processLock.release()
+            return HandlerResponse(self.ctx, embed)
+        else:
+            processManager.resetProcess(self.guild, self.ctx)
+            embed = self.embeds.PLAYER_RESTARTED()
             return HandlerResponse(self.ctx, embed)

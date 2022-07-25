@@ -15,9 +15,17 @@ class HistoryHandler(AbstractHandler):
         processManager = ProcessManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:
-            with processInfo.getLock():
+            processLock = processInfo.getLock()
+            acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+            if acquired:
                 playlist = processInfo.getPlaylist()
                 history = playlist.getSongsHistory()
+                processLock.release()
+            else:
+                # If the player doesn't respond in time we restart it
+                processManager.resetProcess(self.guild, self.ctx)
+                embed = self.embeds.PLAYER_RESTARTED()
+                return HandlerResponse(self.ctx, embed)
         else:
             history = []
 

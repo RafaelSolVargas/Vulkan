@@ -7,6 +7,7 @@ from discord.ext.commands import Context
 from Parallelism.PlayerProcess import PlayerProcess
 from Music.Playlist import Playlist
 from Parallelism.ProcessInfo import ProcessInfo
+from Parallelism.Commands import VCommands, VCommandsType
 
 
 class ProcessManager(Singleton):
@@ -38,6 +39,19 @@ class ProcessManager(Singleton):
             return self.__playersProcess[guild.id]
         except Exception as e:
             print(f'[Error In GetPlayerContext] -> {e}')
+
+    def resetProcess(self, guild: Guild, context: Context) -> None:
+        """Restart a running process, already start it to return to play"""
+        if guild.id not in self.__playersProcess.keys():
+            return None
+
+        # Recreate the process keeping the playlist
+        newProcessInfo = self.__recreateProcess(context)
+        newProcessInfo.getProcess().start()  # Start the process
+        # Send a command to start the play again
+        playCommand = VCommands(VCommandsType.PLAY)
+        newProcessInfo.getQueue().put(playCommand)
+        self.__playersProcess[guild.id] = newProcessInfo
 
     def getRunningPlayerInfo(self, guild: Guild) -> ProcessInfo:
         """Return the process info for the guild, if not, return None"""

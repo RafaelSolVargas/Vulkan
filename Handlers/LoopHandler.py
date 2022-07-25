@@ -21,13 +21,16 @@ class LoopHandler(AbstractHandler):
 
         playlist = processInfo.getPlaylist()
 
-        with processInfo.getLock():
+        processLock = processInfo.getLock()
+        acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+        if acquired:
             if args == '' or args is None:
                 playlist.loop_all()
                 embed = self.embeds.LOOP_ALL_ACTIVATED()
                 return HandlerResponse(self.ctx, embed)
 
             args = args.lower()
+            error = None
             if playlist.getCurrentSong() is None:
                 embed = self.embeds.NOT_PLAYING()
                 error = BadCommandUsage()
@@ -36,16 +39,19 @@ class LoopHandler(AbstractHandler):
             if args == 'one':
                 playlist.loop_one()
                 embed = self.embeds.LOOP_ONE_ACTIVATED()
-                return HandlerResponse(self.ctx, embed)
             elif args == 'all':
                 playlist.loop_all()
                 embed = self.embeds.LOOP_ALL_ACTIVATED()
-                return HandlerResponse(self.ctx, embed)
             elif args == 'off':
                 playlist.loop_off()
                 embed = self.embeds.LOOP_DISABLE()
-                return HandlerResponse(self.ctx, embed)
             else:
                 error = BadCommandUsage()
                 embed = self.embeds.BAD_LOOP_USE()
-                return HandlerResponse(self.ctx, embed, error)
+
+            processLock.release()
+            return HandlerResponse(self.ctx, embed)
+        else:
+            processManager.resetProcess(self.guild, self.ctx)
+            embed = self.embeds.PLAYER_RESTARTED()
+            return HandlerResponse(self.ctx, embed)

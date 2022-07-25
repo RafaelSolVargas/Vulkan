@@ -15,9 +15,17 @@ class ShuffleHandler(AbstractHandler):
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:
             try:
-                with processInfo.getLock():
+                processLock = processInfo.getLock()
+                acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+                if acquired:
                     playlist = processInfo.getPlaylist()
                     playlist.shuffle()
+                    # Release the acquired Lock
+                    processLock.release()
+                else:
+                    processManager.resetProcess(self.guild, self.ctx)
+                    embed = self.embeds.PLAYER_RESTARTED()
+                    return HandlerResponse(self.ctx, embed)
 
                 embed = self.embeds.SONGS_SHUFFLED()
                 return HandlerResponse(self.ctx, embed)

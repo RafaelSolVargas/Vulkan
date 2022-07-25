@@ -16,6 +16,7 @@ class Configs(Singleton):
                     '[ERROR] -> You must create and .env file with all required fields, see documentation for help')
 
             self.CLEANER_MESSAGES_QUANT = 5
+            self.ACQUIRE_LOCK_TIMEOUT = 10
             self.COMMANDS_PATH = 'DiscordCogs'
             self.VC_TIMEOUT = 600
 

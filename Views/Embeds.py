@@ -231,6 +231,13 @@ class Embeds:
             colour=self.__colors.BLACK)
         return embed
 
+    def PLAYER_RESTARTED(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.ERROR_TITLE,
+            description=self.__messages.ERROR_IN_PROCESS,
+            colour=self.__colors.BLACK)
+        return embed
+
     def NO_CHANNEL(self) -> Embed:
         embed = Embed(
             title=self.__messages.IMPOSSIBLE_MOVE,

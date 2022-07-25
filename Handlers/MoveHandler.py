@@ -20,10 +20,13 @@ class MoveHandler(AbstractHandler):
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)
 
-        with processInfo.getLock():
+        processLock = processInfo.getLock()
+        acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+        if acquired:
             error = self.__validateInput(pos1, pos2)
             if error:
                 embed = self.embeds.ERROR_EMBED(error.message)
+                processLock.release()
                 return HandlerResponse(self.ctx, embed, error)
 
             playlist = processInfo.getPlaylist()
@@ -32,17 +35,25 @@ class MoveHandler(AbstractHandler):
             if not playlist.validate_position(pos1) or not playlist.validate_position(pos2):
                 error = InvalidInput()
                 embed = self.embeds.PLAYLIST_RANGE_ERROR()
+                processLock.release()
                 return HandlerResponse(self.ctx, embed, error)
             try:
                 song = playlist.move_songs(pos1, pos2)
 
                 song_name = song.title if song.title else song.identifier
                 embed = self.embeds.SONG_MOVED(song_name, pos1, pos2)
+                processLock.release()
                 return HandlerResponse(self.ctx, embed)
             except:
+                # Release the acquired Lock
+                processLock.release()
                 embed = self.embeds.ERROR_MOVING()
                 error = UnknownError()
                 return HandlerResponse(self.ctx, embed, error)
+        else:
+            processManager.resetProcess(self.guild, self.ctx)
+            embed = self.embeds.PLAYER_RESTARTED()
+            return HandlerResponse(self.ctx, embed)
 
     def __validateInput(self, pos1: str, pos2: str) -> Union[VulkanError, None]:
         try:

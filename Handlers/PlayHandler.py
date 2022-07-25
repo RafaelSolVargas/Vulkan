@@ -36,8 +36,8 @@ class PlayHandler(AbstractHandler):
                 raise InvalidInput(self.messages.INVALID_INPUT, self.messages.ERROR_TITLE)
 
             # Get the process context for the current guild
-            manager = ProcessManager()
-            processInfo = manager.getPlayerInfo(self.guild, self.ctx)
+            processManager = ProcessManager()
+            processInfo = processManager.getPlayerInfo(self.guild, self.ctx)
             playlist = processInfo.getPlaylist()
             process = processInfo.getProcess()
             if not process.is_alive():  # If process has not yet started, start
@@ -56,22 +56,31 @@ class PlayHandler(AbstractHandler):
                     error = DownloadingError()
                     return HandlerResponse(self.ctx, embed, error)
 
-                # Add the unique song to the playlist and send a command to player process
-                with processInfo.getLock():
-                    playlist.add_song(song)
-                    queue = processInfo.getQueue()
-                    playCommand = VCommands(VCommandsType.PLAY, None)
-                    queue.put(playCommand)
-
                 # If not playing
                 if not playlist.getCurrentSong():
                     embed = self.embeds.SONG_ADDED(song.title)
-                    return HandlerResponse(self.ctx, embed)
+                    response = HandlerResponse(self.ctx, embed)
                 else:  # If already playing
                     pos = len(playlist.getSongs())
                     embed = self.embeds.SONG_ADDED_TWO(song.info, pos)
+                    response = HandlerResponse(self.ctx, embed)
+
+                # Add the unique song to the playlist and send a command to player process
+                processLock = processInfo.getLock()
+                acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+                if acquired:
+                    playlist.add_song(song)
+                    # Release the acquired Lock
+                    processLock.release()
+                    queue = processInfo.getQueue()
+                    playCommand = VCommands(VCommandsType.PLAY, None)
+                    queue.put(playCommand)
+                else:
+                    processManager.resetProcess(self.guild, self.ctx)
+                    embed = self.embeds.PLAYER_RESTARTED()
                     return HandlerResponse(self.ctx, embed)
 
+                return response
             else:  # If multiple songs added
                 # Trigger a task to download all songs and then store them in the process playlist
                 asyncio.create_task(self.__downloadSongsAndStore(songs, processInfo))

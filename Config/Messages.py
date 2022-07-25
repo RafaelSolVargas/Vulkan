@@ -64,6 +64,7 @@ class Messages(Singleton):
             self.DOWNLOADING_ERROR = "❌ It's impossible to download and play this video"
             self.EXTRACTING_ERROR = '❌ An error ocurred while searching for the songs'
 
+            self.ERROR_IN_PROCESS = "❌ Due to a internal error your player was restarted, skipping the song."
             self.MY_ERROR_BAD_COMMAND = 'This string serves to verify if some error was raised by myself on purpose'
             self.BAD_COMMAND_TITLE = 'Misuse of command'
             self.BAD_COMMAND = f'❌ Bad usage of this command, type {configs.BOT_PREFIX}help "command" to understand the command better'
