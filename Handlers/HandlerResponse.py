@@ -1,10 +1,10 @@
 from typing import Union
 from discord.ext.commands import Context
-from Exceptions.Exceptions import VulkanError
+from Config.Exceptions import VulkanError
 from discord import Embed
 
 
-class ControllerResponse:
+class HandlerResponse:
     def __init__(self, ctx: Context, embed: Embed = None, error: VulkanError = None) -> None:
         self.__ctx: Context = ctx
         self.__error: VulkanError = error

@@ -16,12 +16,13 @@ class Configs(Singleton):
                     '[ERROR] -> You must create and .env file with all required fields, see documentation for help')
 
             self.CLEANER_MESSAGES_QUANT = 5
-            self.COMMANDS_PATH = 'Commands'
+            self.ACQUIRE_LOCK_TIMEOUT = 10
+            self.COMMANDS_PATH = 'DiscordCogs'
             self.VC_TIMEOUT = 600
 
             self.MAX_PLAYLIST_LENGTH = 50
             self.MAX_PLAYLIST_FORCED_LENGTH = 5
-            self.MAX_PRELOAD_SONGS = 10
+            self.MAX_PRELOAD_SONGS = 15
             self.MAX_SONGS_HISTORY = 15
 
             self.INVITE_MESSAGE = """To invite Vulkan to your own server, click [here]({}). 

@@ -33,5 +33,6 @@ class VulkanInitializer:
         self.__bot.run(self.__config.BOT_TOKEN, bot=True, reconnect=True)
 
 
-vulkan = VulkanInitializer()
-vulkan.run()
+if __name__ == '__main__':
+    vulkan = VulkanInitializer()
+    vulkan.run()

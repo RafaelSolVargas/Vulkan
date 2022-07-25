@@ -14,8 +14,8 @@ class Messages(Singleton):
             self.SONGINFO_REQUESTER = 'Requester: '
             self.SONGINFO_POSITION = 'Position: '
 
-            self.SONGS_ADDED = 'You added {} songs to the queue'
-            self.SONG_ADDED = 'You added the song `{}` to the queue'
+            self.SONGS_ADDED = 'Downloading `{}` songs to add to the queue'
+            self.SONG_ADDED = 'Downloading the song `{}` to add to the queue'
             self.SONG_ADDED_TWO = '🎧 Song added to the queue'
             self.SONG_PLAYING = '🎧 Song playing now'
             self.SONG_PLAYER = '🎧 Song Player'
@@ -42,6 +42,8 @@ class Messages(Singleton):
             self.LOOP_DISABLE = '➡️ Loop disabled'
             self.LOOP_ALREADY_DISABLE = '❌ Loop is already disabled'
             self.LOOP_ON = f'❌ This command cannot be invoked with any loop activated. Use {configs.BOT_PREFIX}loop off to disable loop'
+            self.BAD_USE_OF_LOOP = f"""❌ Invalid arguments of Loop command. Use {configs.BOT_PREFIX}help loop to more information.
+                                        -> Available Arguments: ["all", "off", "one", ""]"""
 
             self.SONGS_SHUFFLED = '🔀 Songs shuffled successfully'
             self.ERROR_SHUFFLING = '❌ Error while shuffling the songs'
@@ -56,12 +58,14 @@ class Messages(Singleton):
             self.PLAYER_NOT_PLAYING = f'❌ No song playing. Use {configs.BOT_PREFIX}play to start the player'
             self.IMPOSSIBLE_MOVE = 'That is impossible :('
             self.ERROR_TITLE = 'Error :-('
+            self.COMMAND_NOT_FOUND_TITLE = 'This is strange :-('
             self.NO_CHANNEL = 'To play some music, connect to any voice channel first.'
             self.NO_GUILD = f'This server does not has a Player, try {configs.BOT_PREFIX}reset'
             self.INVALID_INPUT = f'This URL was too strange, try something better or type {configs.BOT_PREFIX}help play'
-            self.DOWNLOADING_ERROR = '❌ An error occurred while downloading'
+            self.DOWNLOADING_ERROR = "❌ It's impossible to download and play this video"
             self.EXTRACTING_ERROR = '❌ An error ocurred while searching for the songs'
 
+            self.ERROR_IN_PROCESS = "❌ Due to a internal error your player was restarted, skipping the song."
             self.MY_ERROR_BAD_COMMAND = 'This string serves to verify if some error was raised by myself on purpose'
             self.BAD_COMMAND_TITLE = 'Misuse of command'
             self.BAD_COMMAND = f'❌ Bad usage of this command, type {configs.BOT_PREFIX}help "command" to understand the command better'

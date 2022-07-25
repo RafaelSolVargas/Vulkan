@@ -1,5 +1,5 @@
 from Config.Messages import Messages
-from Exceptions.Exceptions import VulkanError
+from Config.Exceptions import VulkanError
 from discord import Embed
 from Config.Configs import Configs
 from Config.Colors import Colors
@@ -164,7 +164,7 @@ class Embeds:
 
     def COMMAND_NOT_FOUND(self) -> Embed:
         embed = Embed(
-            title=self.__messages.ERROR_TITLE,
+            title=self.__messages.COMMAND_NOT_FOUND_TITLE,
             description=self.__messages.COMMAND_NOT_FOUND,
             colour=self.__colors.BLACK
         )
@@ -228,6 +228,13 @@ class Embeds:
         embed = Embed(
             title=self.__messages.ERROR_TITLE,
             description=self.__messages.DOWNLOADING_ERROR,
+            colour=self.__colors.BLACK)
+        return embed
+
+    def PLAYER_RESTARTED(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.ERROR_TITLE,
+            description=self.__messages.ERROR_IN_PROCESS,
             colour=self.__colors.BLACK)
         return embed
 

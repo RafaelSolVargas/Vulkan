@@ -23,6 +23,7 @@ class Song:
             else:
                 print(f'DEVELOPER NOTE -> {key} not found in info of music: {self.identifier}')
                 self.destroy()
+                return
 
         for key in self.__useful_keys:
             if key in info.keys():

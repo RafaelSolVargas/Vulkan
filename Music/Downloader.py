@@ -1,13 +1,14 @@
 import asyncio
 from typing import List
 from Config.Configs import Configs
-from yt_dlp import YoutubeDL
+from yt_dlp import YoutubeDL, DownloadError
 from concurrent.futures import ThreadPoolExecutor
 from Music.Song import Song
 from Utils.Utils import Utils, run_async
+from Config.Exceptions import DownloadingError
 
 
-class Downloader():
+class Downloader:
     config = Configs()
     __YDL_OPTIONS = {'format': 'bestaudio/best',
                      'default_search': 'auto',
@@ -40,20 +41,20 @@ class Downloader():
         self.__playlist_keys = ['entries']
 
     def finish_one_song(self, song: Song) -> Song:
-        if song.identifier is None:
-            return None
+        try:
+            if song.identifier is None:
+                return None
 
-        if Utils.is_url(song.identifier):
-            song_info = self.__download_url(song.identifier)
-        else:
-            song_info = self.__download_title(song.identifier)
+            if Utils.is_url(song.identifier):
+                song_info = self.__download_url(song.identifier)
+            else:
+                song_info = self.__download_title(song.identifier)
 
-        song.finish_down(song_info)
-        return song
-
-    async def preload(self, songs: List[Song]) -> None:
-        for song in songs:
-            asyncio.ensure_future(self.download_song(song))
+            song.finish_down(song_info)
+            return song
+        # Convert yt_dlp error to my own error
+        except DownloadError:
+            raise DownloadingError()
 
     @run_async
     def extract_info(self, url: str) -> List[dict]:
@@ -81,8 +82,11 @@ class Downloader():
                     else:  # Failed to extract the songs
                         print(f'DEVELOPER NOTE -> Failed to Extract URL {url}')
                         return []
+                # Convert the yt_dlp download error to own error
+                except DownloadError:
+                    raise DownloadingError()
                 except Exception as e:
-                    print(f'DEVELOPER NOTE -> Error Extracting Music: {e}')
+                    print(f'DEVELOPER NOTE -> Error Extracting Music: {e}, {type(e)}')
                     raise e
         else:
             return []

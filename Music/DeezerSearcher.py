@@ -1,5 +1,5 @@
 import deezer
-from Exceptions.Exceptions import DeezerError
+from Config.Exceptions import DeezerError
 from Config.Messages import DeezerMessages
 
 
