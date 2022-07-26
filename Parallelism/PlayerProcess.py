@@ -70,7 +70,8 @@ class PlayerProcess(Process):
         try:
             print(f'Starting Process {self.name}')
             self.__playerLock = RLock()
-            self.__loop = asyncio.get_event_loop()
+            self.__loop = asyncio.get_event_loop_policy().new_event_loop()
+            asyncio.set_event_loop(self.__loop)
 
             self.__configs = Configs()
             self.__messages = Messages()
