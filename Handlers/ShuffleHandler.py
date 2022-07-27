@@ -3,7 +3,7 @@ from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Config.Exceptions import UnknownError
 from Parallelism.ProcessManager import ProcessManager
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 
 
 class ShuffleHandler(AbstractHandler):

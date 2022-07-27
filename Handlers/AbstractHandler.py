@@ -3,7 +3,7 @@ from typing import List
 from discord.ext.commands import Context
 from discord import Client, Guild, ClientUser, Member
 from Config.Messages import Messages
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 from Handlers.HandlerResponse import HandlerResponse
 from Config.Configs import Configs
 from Config.Helper import Helper

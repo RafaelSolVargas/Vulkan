@@ -2,9 +2,10 @@ from random import choices
 import string
 from discord.bot import Bot
 from discord import Intents
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 from os import listdir
 from Config.Configs import Configs
+from Config.Exceptions import VulkanError
 
 
 class VulkanInitializer:
@@ -35,9 +36,18 @@ class VulkanInitializer:
         try:
             for filename in listdir(f'./{self.__config.COMMANDS_PATH}'):
                 if filename.endswith('.py'):
-                    print(f'Loading {filename}')
-                    bot.load_extension(f'{self.__config.COMMANDS_PATH}.{filename[:-3]}')
+                    cogPath = f'{self.__config.COMMANDS_PATH}.{filename[:-3]}'
+                    bot.load_extension(cogPath, store=True)
 
-            bot.load_extension(f'DiscordCogs.MusicCog')
-        except Exception as e:
-            print(e)
+            if len(bot.cogs.keys()) != self.__getTotalCogs():
+                raise VulkanError(message='Failed to load some Cog')
+
+        except VulkanError as e:
+            print(f'[Error Loading Vulkan] -> {e.message}')
+
+    def __getTotalCogs(self) -> int:
+        quant = 0
+        for filename in listdir(f'./{self.__config.COMMANDS_PATH}'):
+            if filename.endswith('.py'):
+                quant += 1
+        return quant

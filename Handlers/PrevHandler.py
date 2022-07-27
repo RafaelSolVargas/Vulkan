@@ -4,7 +4,7 @@ from Config.Exceptions import BadCommandUsage, ImpossibleMove
 from Handlers.HandlerResponse import HandlerResponse
 from Parallelism.ProcessManager import ProcessManager
 from Parallelism.Commands import VCommands, VCommandsType
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 
 
 class PrevHandler(AbstractHandler):

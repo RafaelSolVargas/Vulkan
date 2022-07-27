@@ -2,7 +2,7 @@ from typing import List
 from discord.ext.commands import Context
 from discord import Message, Embed
 from Config.Singleton import Singleton
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 
 
 class Cleaner(Singleton):

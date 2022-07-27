@@ -2,12 +2,12 @@ from asyncio import AbstractEventLoop
 from discord import Guild, Status, Game, Message
 from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument
 from Config.Configs import Configs
-from discord.ext import commands
+from discord.ext.commands import Bot, Context
 from Config.Messages import Messages
 from Views.Embeds import Embeds
 
 
-class VulkanBot(commands.Bot):
+class VulkanBot(Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__configs = Configs()
@@ -68,6 +68,6 @@ class VulkanBot(commands.Bot):
         await self.invoke(ctx)
 
 
-class Context(commands.Context):
+class Context(Context):
     bot: VulkanBot
     guild: Guild

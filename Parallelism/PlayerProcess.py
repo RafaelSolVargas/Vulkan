@@ -10,7 +10,7 @@ from Music.Playlist import Playlist
 from Music.Song import Song
 from Config.Configs import Configs
 from Config.Messages import Messages
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 from Views.Embeds import Embeds
 from Parallelism.Commands import VCommands, VCommandsType
 

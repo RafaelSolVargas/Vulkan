@@ -3,7 +3,7 @@ from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Parallelism.ProcessManager import ProcessManager
 from Parallelism.Commands import VCommands, VCommandsType
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 
 
 class PauseHandler(AbstractHandler):

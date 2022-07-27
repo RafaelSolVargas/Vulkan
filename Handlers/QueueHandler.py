@@ -4,7 +4,7 @@ from Handlers.HandlerResponse import HandlerResponse
 from Music.Downloader import Downloader
 from Utils.Utils import Utils
 from Parallelism.ProcessManager import ProcessManager
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 
 
 class QueueHandler(AbstractHandler):

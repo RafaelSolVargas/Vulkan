@@ -5,7 +5,7 @@ from Handlers.HandlerResponse import HandlerResponse
 from Config.Exceptions import BadCommandUsage, VulkanError, ErrorRemoving, InvalidInput, NumberRequired
 from Music.Playlist import Playlist
 from Parallelism.ProcessManager import ProcessManager
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 
 
 class RemoveHandler(AbstractHandler):

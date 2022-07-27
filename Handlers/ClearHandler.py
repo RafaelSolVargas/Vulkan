@@ -1,5 +1,5 @@
 from discord.ext.commands import Context
-from discord import VulkanBot
+from Music.VulkanBot import VulkanBot
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Parallelism.ProcessManager import ProcessManager

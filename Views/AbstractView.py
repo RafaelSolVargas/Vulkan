@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from Handlers.HandlerResponse import HandlerResponse
 from discord.ext.commands import Context
 from discord import Message
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 
 
 class AbstractView(ABC):

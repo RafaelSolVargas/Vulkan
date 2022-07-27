@@ -1,7 +1,7 @@
 from discord.ext.commands import Context
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 from Utils.Cleaner import Cleaner
 from Parallelism.ProcessManager import ProcessManager
 

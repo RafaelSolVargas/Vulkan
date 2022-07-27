@@ -1,6 +1,6 @@
 from typing import Union
 from discord.ext.commands import Context
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Config.Exceptions import BadCommandUsage, VulkanError, InvalidInput, NumberRequired, UnknownError

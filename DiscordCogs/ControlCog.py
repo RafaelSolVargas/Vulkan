@@ -1,10 +1,9 @@
 from discord import Embed
-from discord.ext import commands
-from discord.ext.commands import Cog
+from discord.ext.commands import Cog, command
 from Config.Configs import Configs
 from Config.Helper import Helper
 from Config.Colors import Colors
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 from Views.Embeds import Embeds
 
 helper = Helper()
@@ -14,10 +13,7 @@ class ControlCog(Cog):
     """Class to handle discord events"""
 
     def __init__(self, bot: VulkanBot):
-        print('Eae3')
         self.__bot = bot
-        print(self.__bot)
-        print(bot.extensions)
         self.__config = Configs()
         self.__colors = Colors()
         self.__embeds = Embeds()
@@ -30,7 +26,7 @@ class ControlCog(Cog):
 
         }
 
-    @commands.command(name="help", help=helper.HELP_HELP, description=helper.HELP_HELP_LONG, aliases=['h', 'ajuda'])
+    @command(name="help", help=helper.HELP_HELP, description=helper.HELP_HELP_LONG, aliases=['h', 'ajuda'])
     async def help_msg(self, ctx, command_help=''):
         if command_help != '':
             for command in self.__bot.commands:
@@ -81,7 +77,7 @@ class ControlCog(Cog):
             embedhelp.set_thumbnail(url=self.__bot.user.avatar)
             await ctx.send(embed=embedhelp)
 
-    @commands.command(name='invite', help=helper.HELP_INVITE, description=helper.HELP_INVITE_LONG, aliases=['convite', 'inv', 'convidar'])
+    @command(name='invite', help=helper.HELP_INVITE, description=helper.HELP_INVITE_LONG, aliases=['convite', 'inv', 'convidar'])
     async def invite_bot(self, ctx):
         invite_url = self.__config.INVITE_URL.format(self.__bot.user.id)
         txt = self.__config.INVITE_MESSAGE.format(invite_url, invite_url)

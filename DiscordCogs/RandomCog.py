@@ -1,5 +1,5 @@
 from random import randint, random
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 from discord.ext.commands import Context, command, Cog
 from Config.Helper import Helper
 from Views.Embeds import Embeds
@@ -11,9 +11,6 @@ class RandomCog(Cog):
     """Class to listen to commands of type Random"""
 
     def __init__(self, bot: VulkanBot):
-        print('Eae2')
-        print(bot)
-        print(bot.extensions)
         self.__embeds = Embeds()
 
     @command(name='random', help=helper.HELP_RANDOM, description=helper.HELP_RANDOM_LONG, aliases=['rand'])

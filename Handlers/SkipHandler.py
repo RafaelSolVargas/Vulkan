@@ -2,7 +2,7 @@ from discord.ext.commands import Context
 from Handlers.AbstractHandler import AbstractHandler
 from Config.Exceptions import BadCommandUsage
 from Handlers.HandlerResponse import HandlerResponse
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 from Parallelism.ProcessManager import ProcessManager
 from Parallelism.Commands import VCommands, VCommandsType
 

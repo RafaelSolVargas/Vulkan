@@ -11,7 +11,7 @@ from Music.Song import Song
 from Parallelism.ProcessManager import ProcessManager
 from Parallelism.ProcessInfo import ProcessInfo
 from Parallelism.Commands import VCommands, VCommandsType
-from Music.MusicBot import VulkanBot
+from Music.VulkanBot import VulkanBot
 
 
 class PlayHandler(AbstractHandler):
