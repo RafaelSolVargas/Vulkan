@@ -5,9 +5,9 @@ from discord import Client, Guild, ClientUser, Member
 from Config.Messages import Messages
 from Music.VulkanBot import VulkanBot
 from Handlers.HandlerResponse import HandlerResponse
-from Config.Configs import Configs
+from Config.Configs import VConfigs
 from Config.Helper import Helper
-from Views.Embeds import Embeds
+from Config.Embeds import VEmbeds
 
 
 class AbstractHandler(ABC):
@@ -18,9 +18,9 @@ class AbstractHandler(ABC):
         self.__bot_user: ClientUser = self.__bot.user
         self.__id = self.__bot_user.id
         self.__messages = Messages()
-        self.__config = Configs()
+        self.__config = VConfigs()
         self.__helper = Helper()
-        self.__embeds = Embeds()
+        self.__embeds = VEmbeds()
         self.__bot_member: Member = self.__get_member()
 
     @abstractmethod
@@ -48,7 +48,7 @@ class AbstractHandler(ABC):
         return self.__bot
 
     @property
-    def config(self) -> Configs:
+    def config(self) -> VConfigs:
         return self.__config
 
     @property
@@ -64,7 +64,7 @@ class AbstractHandler(ABC):
         return self.__ctx
 
     @property
-    def embeds(self) -> Embeds:
+    def embeds(self) -> VEmbeds:
         return self.__embeds
 
     def __get_member(self) -> Member:

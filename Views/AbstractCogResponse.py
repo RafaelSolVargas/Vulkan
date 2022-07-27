@@ -5,7 +5,7 @@ from discord import Message
 from Music.VulkanBot import VulkanBot
 
 
-class AbstractView(ABC):
+class AbstractCommandResponse(ABC):
     def __init__(self, response: HandlerResponse) -> None:
         self.__response: HandlerResponse = response
         self.__context: Context = response.ctx

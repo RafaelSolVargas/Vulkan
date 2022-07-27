@@ -1,10 +1,10 @@
 from discord import Embed
 from discord.ext.commands import Cog, command
-from Config.Configs import Configs
+from Config.Configs import VConfigs
 from Config.Helper import Helper
-from Config.Colors import Colors
+from Config.Colors import VColors
 from Music.VulkanBot import VulkanBot
-from Views.Embeds import Embeds
+from Config.Embeds import VEmbeds
 
 helper = Helper()
 
@@ -14,9 +14,9 @@ class ControlCog(Cog):
 
     def __init__(self, bot: VulkanBot):
         self.__bot = bot
-        self.__config = Configs()
-        self.__colors = Colors()
-        self.__embeds = Embeds()
+        self.__config = VConfigs()
+        self.__colors = VColors()
+        self.__embeds = VEmbeds()
         self.__commands = {
             'MUSIC': ['resume', 'pause', 'loop', 'stop',
                       'skip', 'play', 'queue', 'clear',

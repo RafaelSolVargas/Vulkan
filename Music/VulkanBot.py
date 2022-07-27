@@ -1,18 +1,18 @@
 from asyncio import AbstractEventLoop
 from discord import Guild, Status, Game, Message
 from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument
-from Config.Configs import Configs
+from Config.Configs import VConfigs
 from discord.ext.commands import Bot, Context
 from Config.Messages import Messages
-from Views.Embeds import Embeds
+from Config.Embeds import VEmbeds
 
 
 class VulkanBot(Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.__configs = Configs()
+        self.__configs = VConfigs()
         self.__messages = Messages()
-        self.__embeds = Embeds()
+        self.__embeds = VEmbeds()
         self.remove_command("help")
 
     def startBot(self) -> None:

@@ -2,7 +2,7 @@ from decouple import config
 from Config.Singleton import Singleton
 
 
-class Configs(Singleton):
+class VConfigs(Singleton):
     def __init__(self) -> None:
         if not super().created:
             self.BOT_PREFIX = '!'

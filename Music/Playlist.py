@@ -1,6 +1,6 @@
 from collections import deque
 from typing import List
-from Config.Configs import Configs
+from Config.Configs import VConfigs
 from Music.Song import Song
 import random
 
@@ -8,7 +8,7 @@ import random
 class Playlist:
 
     def __init__(self) -> None:
-        self.__configs = Configs()
+        self.__configs = VConfigs()
         self.__queue = deque()  # Store the musics to play
         self.__songs_history = deque()  # Store the musics played
 
@@ -62,7 +62,7 @@ class Playlist:
         # Att played song info
         if played_song != None:
             if not self.__looping_one and not self.__looping_all:
-                if played_song.problematic == False:
+                if not played_song.problematic:
                     self.__songs_history.appendleft(played_song)
 
                 if len(self.__songs_history) > self.__configs.MAX_SONGS_HISTORY:
@@ -90,6 +90,7 @@ class Playlist:
                 self.__queue.appendleft(self.__current)
 
             last_song = self.__songs_history.popleft()  # Get the last song
+            print(f'Setando como {last_song} 2')
             self.__current = last_song
             return self.__current  # return the song
 

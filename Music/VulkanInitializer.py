@@ -4,13 +4,13 @@ from discord.bot import Bot
 from discord import Intents
 from Music.VulkanBot import VulkanBot
 from os import listdir
-from Config.Configs import Configs
+from Config.Configs import VConfigs
 from Config.Exceptions import VulkanError
 
 
 class VulkanInitializer:
     def __init__(self, willListen: bool) -> None:
-        self.__config = Configs()
+        self.__config = VConfigs()
         self.__intents = Intents.default()
         self.__intents.message_content = True
         self.__intents.members = True

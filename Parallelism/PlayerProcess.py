@@ -5,13 +5,13 @@ from asyncio import AbstractEventLoop, Semaphore
 from multiprocessing import Process, Queue, RLock
 from threading import Lock, Thread
 from typing import Callable, List
-from discord import Client, Guild, FFmpegPCMAudio, VoiceChannel, TextChannel
+from discord import Guild, FFmpegPCMAudio, VoiceChannel, TextChannel
 from Music.Playlist import Playlist
 from Music.Song import Song
-from Config.Configs import Configs
+from Config.Configs import VConfigs
 from Config.Messages import Messages
 from Music.VulkanBot import VulkanBot
-from Views.Embeds import Embeds
+from Config.Embeds import VEmbeds
 from Parallelism.Commands import VCommands, VCommandsType
 
 
@@ -21,7 +21,7 @@ class TimeoutClock:
         self.__task = loop.create_task(self.__executor())
 
     async def __executor(self):
-        await asyncio.sleep(Configs().VC_TIMEOUT)
+        await asyncio.sleep(VConfigs().VC_TIMEOUT)
         await self.__callback()
 
     def cancel(self):
@@ -56,8 +56,8 @@ class PlayerProcess(Process):
         self.__author: User = None
         self.__botMember: Member = None
 
-        self.__configs: Configs = None
-        self.__embeds: Embeds = None
+        self.__configs: VConfigs = None
+        self.__embeds: VEmbeds = None
         self.__messages: Messages = None
         self.__messagesToDelete: List[Message] = []
         self.__playing = False
@@ -73,9 +73,9 @@ class PlayerProcess(Process):
             self.__loop = asyncio.get_event_loop_policy().new_event_loop()
             asyncio.set_event_loop(self.__loop)
 
-            self.__configs = Configs()
+            self.__configs = VConfigs()
             self.__messages = Messages()
-            self.__embeds = Embeds()
+            self.__embeds = VEmbeds()
 
             self.__semStopPlaying = Semaphore(0)
             self.__loop.run_until_complete(self._run())
@@ -108,9 +108,13 @@ class PlayerProcess(Process):
         self.__timer.cancel()
 
     async def __playPlaylistSongs(self) -> None:
+        """If the player is not running trigger to play a new song"""
         if not self.__playing:
+            song = None
             with self.__playlistLock:
-                song = self.__playlist.next_song()
+                with self.__playerLock:
+                    if not (self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused()):
+                        song = self.__playlist.next_song()
 
             if song is not None:
                 self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
@@ -151,40 +155,40 @@ class PlayerProcess(Process):
             self.__playerLock.release()
 
     def __playNext(self, error) -> None:
-        with self.__playerLock:
-            if self.__forceStop:  # If it's forced to stop player
-                self.__forceStop = False
-                return None
+        with self.__playlistLock:
+            with self.__playerLock:
+                if self.__forceStop:  # If it's forced to stop player
+                    self.__forceStop = False
+                    return None
 
-            with self.__playlistLock:
                 song = self.__playlist.next_song()
 
-            if song is not None:
-                self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
-            else:
-                with self.__playlistLock:
+                if song is not None:
+                    self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
+                else:
                     self.__playlist.loop_off()
-                self.__playingSong = None
-                self.__playing = False
+                    self.__playingSong = None
+                    self.__playing = False
 
     async def __playPrev(self, voiceChannelID: int) -> None:
         with self.__playlistLock:
             song = self.__playlist.prev_song()
 
-        if song is not None:
-            if self.__guild.voice_client is None:  # If not connect, connect to the user voice channel
-                self.__voiceChannelID = voiceChannelID
-                self.__voiceChannel = self.__guild.get_channel(self.__voiceChannelID)
-                await self.__connectToVoiceChannel()
+            with self.__playerLock:
+                if song is not None:
+                    if self.__guild.voice_client is None:  # If not connect, connect to the user voice channel
+                        self.__voiceChannelID = voiceChannelID
+                        self.__voiceChannel = self.__guild.get_channel(self.__voiceChannelID)
+                        await self.__connectToVoiceChannel()
 
-            # If already playing, stop the current play
-            if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
-                # Will forbidden next_song to execute after stopping current player
-                self.__forceStop = True
-                self.__guild.voice_client.stop()
-                self.__playing = False
+                    # If already playing, stop the current play
+                    if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
+                        # Will forbidden next_song to execute after stopping current player
+                        self.__forceStop = True
+                        self.__guild.voice_client.stop()
+                        self.__playing = False
 
-            self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
+                    self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
 
     def __commandsReceiver(self) -> None:
         while True:
