@@ -232,4 +232,6 @@ class MusicCog(commands.Cog):
 
 
 def setup(bot):
+    print('Loading Music')
     bot.add_cog(MusicCog(bot))
+    print('Voltou')

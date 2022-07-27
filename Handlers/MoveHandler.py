@@ -1,6 +1,6 @@
 from typing import Union
 from discord.ext.commands import Context
-from discord import Client
+from Music.MusicBot import VulkanBot
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Config.Exceptions import BadCommandUsage, VulkanError, InvalidInput, NumberRequired, UnknownError
@@ -9,7 +9,7 @@ from Parallelism.ProcessManager import ProcessManager
 
 
 class MoveHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: Client) -> None:
+    def __init__(self, ctx: Context, bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
 
     async def run(self, pos1: str, pos2: str) -> HandlerResponse:

@@ -1,5 +1,5 @@
 from discord.ext.commands import Context
-from discord import Client
+from Music.MusicBot import VulkanBot
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Utils.Utils import Utils
@@ -7,7 +7,7 @@ from Parallelism.ProcessManager import ProcessManager
 
 
 class HistoryHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: Client) -> None:
+    def __init__(self, ctx: Context, bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:

@@ -334,7 +334,7 @@ class Embeds:
 
     def CARA_COROA(self, result: str) -> Embed:
         embed = Embed(
-            title='Cara Cora',
+            title='Cara Coroa',
             description=f'Result: {result}',
             colour=self.__colors.GREEN
         )

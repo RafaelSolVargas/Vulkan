@@ -1,6 +1,6 @@
 import asyncio
-from os import listdir
-from discord import Intents, User, Member, Message, Embed
+from Music.VulkanInitializer import VulkanInitializer
+from discord import User, Member, Message, Embed
 from asyncio import AbstractEventLoop, Semaphore
 from multiprocessing import Process, Queue, RLock
 from threading import Lock, Thread
@@ -10,7 +10,7 @@ from Music.Playlist import Playlist
 from Music.Song import Song
 from Config.Configs import Configs
 from Config.Messages import Messages
-from discord.ext.commands import Bot
+from Music.MusicBot import VulkanBot
 from Views.Embeds import Embeds
 from Parallelism.Commands import VCommands, VCommandsType
 
@@ -50,7 +50,7 @@ class PlayerProcess(Process):
         self.__authorID = authorID
         # All information of discord context will be retrieved directly with discord API
         self.__guild: Guild = None
-        self.__bot: Client = None
+        self.__bot: VulkanBot = None
         self.__voiceChannel: VoiceChannel = None
         self.__textChannel: TextChannel = None
         self.__author: User = None
@@ -270,30 +270,13 @@ class PlayerProcess(Process):
                 self.__playlist.clear()
                 self.__playlist.loop_off()
 
-    async def __createBotInstance(self) -> Client:
-        """Load a new bot instance that should not be directly called.
-        Get the guild, voice and text Channel in discord API using IDs passed in constructor
-        """
-        intents = Intents.default()
-        intents.members = True
-        bot = Bot(command_prefix='Rafael',
-                  pm_help=True,
-                  case_insensitive=True,
-                  intents=intents)
-        bot.remove_command('help')
+    async def __createBotInstance(self) -> VulkanBot:
+        """Load a new bot instance that should not be directly called."""
+        initializer = VulkanInitializer(willListen=False)
+        bot = initializer.getBot()
 
-        # Add the Cogs for this bot too
-        for filename in listdir(f'./{self.__configs.COMMANDS_PATH}'):
-            if filename.endswith('.py'):
-                bot.load_extension(f'{self.__configs.COMMANDS_PATH}.{filename[:-3]}')
-
-        # Login and connect the bot instance to discord API
-        task = self.__loop.create_task(bot.login(token=self.__configs.BOT_TOKEN, bot=True))
-        await task
-        self.__loop.create_task(bot.connect(reconnect=True))
-        # Sleep to wait connection to be established
+        await bot.startBotCoro(self.__loop)
         await self.__ensureDiscordConnection(bot)
-
         return bot
 
     async def __timeoutHandler(self) -> None:
@@ -316,7 +299,7 @@ class PlayerProcess(Process):
         except Exception as e:
             print(f'[Error in Timeout] -> {e}')
 
-    async def __ensureDiscordConnection(self, bot: Client) -> None:
+    async def __ensureDiscordConnection(self, bot: VulkanBot) -> None:
         """Await in this point until connection to discord is established"""
         guild = None
         while guild is None:

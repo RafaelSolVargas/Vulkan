@@ -2,7 +2,6 @@ import asyncio
 from typing import List
 from Config.Exceptions import DownloadingError, InvalidInput, VulkanError
 from discord.ext.commands import Context
-from discord import Client
 from Handlers.AbstractHandler import AbstractHandler
 from Config.Exceptions import ImpossibleMove, UnknownError
 from Handlers.HandlerResponse import HandlerResponse
@@ -12,10 +11,11 @@ from Music.Song import Song
 from Parallelism.ProcessManager import ProcessManager
 from Parallelism.ProcessInfo import ProcessInfo
 from Parallelism.Commands import VCommands, VCommandsType
+from Music.MusicBot import VulkanBot
 
 
 class PlayHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: Client) -> None:
+    def __init__(self, ctx: Context, bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
         self.__searcher = Searcher()
         self.__down = Downloader()

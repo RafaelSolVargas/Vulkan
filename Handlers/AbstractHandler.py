@@ -3,6 +3,7 @@ from typing import List
 from discord.ext.commands import Context
 from discord import Client, Guild, ClientUser, Member
 from Config.Messages import Messages
+from Music.MusicBot import VulkanBot
 from Handlers.HandlerResponse import HandlerResponse
 from Config.Configs import Configs
 from Config.Helper import Helper
@@ -10,8 +11,8 @@ from Views.Embeds import Embeds
 
 
 class AbstractHandler(ABC):
-    def __init__(self, ctx: Context, bot: Client) -> None:
-        self.__bot: Client = bot
+    def __init__(self, ctx: Context, bot: VulkanBot) -> None:
+        self.__bot: VulkanBot = bot
         self.__guild: Guild = ctx.guild
         self.__ctx: Context = ctx
         self.__bot_user: ClientUser = self.__bot.user

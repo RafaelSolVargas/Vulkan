@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from Handlers.HandlerResponse import HandlerResponse
 from discord.ext.commands import Context
-from discord import Client, Message
+from discord import Message
+from Music.MusicBot import VulkanBot
 
 
 class AbstractView(ABC):
@@ -9,14 +10,14 @@ class AbstractView(ABC):
         self.__response: HandlerResponse = response
         self.__context: Context = response.ctx
         self.__message: Message = response.ctx.message
-        self.__bot: Client = response.ctx.bot
+        self.__bot: VulkanBot = response.ctx.bot
 
     @property
     def response(self) -> HandlerResponse:
         return self.__response
 
     @property
-    def bot(self) -> Client:
+    def bot(self) -> VulkanBot:
         return self.__bot
 
     @property

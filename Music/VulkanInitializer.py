@@ -41,9 +41,3 @@ class VulkanInitializer:
             bot.load_extension(f'DiscordCogs.MusicCog')
         except Exception as e:
             print(e)
-
-
-if __name__ == '__main__':
-    initializer = VulkanInitializer(willListen=True)
-    vulkanBot = initializer.getBot()
-    vulkanBot.startBot()

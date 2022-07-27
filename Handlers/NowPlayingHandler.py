@@ -1,13 +1,13 @@
 from discord.ext.commands import Context
-from discord import Client
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
+from Music.MusicBot import VulkanBot
 from Utils.Cleaner import Cleaner
 from Parallelism.ProcessManager import ProcessManager
 
 
 class NowPlayingHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: Client) -> None:
+    def __init__(self, ctx: Context, bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
         self.__cleaner = Cleaner()
 
