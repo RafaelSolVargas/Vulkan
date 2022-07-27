@@ -11,14 +11,12 @@ class BackButton(Button):
         self.__bot = bot
 
     async def callback(self, interaction: Interaction) -> None:
+        """Callback to when Button is clicked"""
+        # Return to Discord that this command is being processed
         await interaction.response.defer()
 
         handler = PrevHandler(interaction, self.__bot)
         response = await handler.run()
-        print(response)
-        print(response.success)
-        print(response.error)
-        print(response.error)
-        print(response.embed)
+
         if response.embed:
             await interaction.followup.send(embed=response.embed)
