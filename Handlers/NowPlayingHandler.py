@@ -4,10 +4,12 @@ from Handlers.HandlerResponse import HandlerResponse
 from Music.VulkanBot import VulkanBot
 from Utils.Cleaner import Cleaner
 from Parallelism.ProcessManager import ProcessManager
+from typing import Union
+from discord import Interaction
 
 
 class NowPlayingHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: VulkanBot) -> None:
+    def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
         self.__cleaner = Cleaner()
 

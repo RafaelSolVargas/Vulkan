@@ -5,10 +5,12 @@ from Music.Downloader import Downloader
 from Utils.Utils import Utils
 from Parallelism.ProcessManager import ProcessManager
 from Music.VulkanBot import VulkanBot
+from typing import Union
+from discord import Interaction
 
 
 class QueueHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: VulkanBot) -> None:
+    def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
         self.__down = Downloader()
 

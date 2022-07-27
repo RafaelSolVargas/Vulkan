@@ -1,8 +1,8 @@
 from multiprocessing import Queue, Lock
 from multiprocessing.managers import BaseManager, NamespaceProxy
-from typing import Dict
+from typing import Dict, Union
 from Config.Singleton import Singleton
-from discord import Guild
+from discord import Guild, Interaction
 from discord.ext.commands import Context
 from Parallelism.PlayerProcess import PlayerProcess
 from Music.Playlist import Playlist
@@ -23,12 +23,19 @@ class ProcessManager(Singleton):
             self.__manager.start()
             self.__playersProcess: Dict[Guild, ProcessInfo] = {}
 
-    def setPlayerContext(self, guild: Guild, context: ProcessInfo):
-        self.__playersProcess[guild.id] = context
+    def setPlayerInfo(self, guild: Guild, info: ProcessInfo):
+        self.__playersProcess[guild.id] = info
 
-    def getPlayerInfo(self, guild: Guild, context: Context) -> ProcessInfo:
-        """Return the process info for the guild, if not, create one"""
+    def getPlayerInfo(self, guild: Guild, context: Union[Context, Interaction]) -> ProcessInfo:
+        """Return the process info for the guild, if not and context is a instance
+        of discord.Context then create one, else return None"""
         try:
+            if isinstance(context, Interaction):
+                if guild.id not in self.__playersProcess.keys():
+                    return None
+                else:
+                    return self.__playersProcess[guild.id]
+
             if guild.id not in self.__playersProcess.keys():
                 self.__playersProcess[guild.id] = self.__createProcessInfo(context)
             else:

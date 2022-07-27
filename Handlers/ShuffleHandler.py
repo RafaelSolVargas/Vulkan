@@ -4,10 +4,12 @@ from Handlers.HandlerResponse import HandlerResponse
 from Config.Exceptions import UnknownError
 from Parallelism.ProcessManager import ProcessManager
 from Music.VulkanBot import VulkanBot
+from typing import Union
+from discord import Interaction
 
 
 class ShuffleHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: VulkanBot) -> None:
+    def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:

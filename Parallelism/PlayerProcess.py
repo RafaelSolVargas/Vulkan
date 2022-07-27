@@ -195,6 +195,7 @@ class PlayerProcess(Process):
             command: VCommands = self.__queue.get()
             type = command.getType()
             args = command.getArgs()
+            print(f'{self.name} received command {type}')
 
             try:
                 self.__playerLock.acquire()

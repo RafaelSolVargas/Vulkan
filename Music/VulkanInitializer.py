@@ -34,12 +34,14 @@ class VulkanInitializer:
 
     def __add_cogs(self, bot: Bot) -> None:
         try:
+            cogsStatus = []
             for filename in listdir(f'./{self.__config.COMMANDS_PATH}'):
                 if filename.endswith('.py'):
                     cogPath = f'{self.__config.COMMANDS_PATH}.{filename[:-3]}'
-                    bot.load_extension(cogPath, store=True)
+                    cogsStatus.append(bot.load_extension(cogPath, store=True))
 
             if len(bot.cogs.keys()) != self.__getTotalCogs():
+                print(cogsStatus)
                 raise VulkanError(message='Failed to load some Cog')
 
         except VulkanError as e:

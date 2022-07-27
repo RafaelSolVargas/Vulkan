@@ -4,10 +4,12 @@ from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Config.Exceptions import BadCommandUsage
 from Parallelism.ProcessManager import ProcessManager
+from typing import Union
+from discord import Interaction
 
 
 class LoopHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: VulkanBot) -> None:
+    def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
 
     async def run(self, args: str) -> HandlerResponse:

@@ -15,9 +15,9 @@ from Handlers.ResumeHandler import ResumeHandler
 from Handlers.HistoryHandler import HistoryHandler
 from Handlers.QueueHandler import QueueHandler
 from Handlers.LoopHandler import LoopHandler
-from Views.EmoteCogResponse import EmoteCommandResponse
-from Views.EmbedCogResponse import EmbedCommandResponse
-from Views.PlayerView import PlayerView
+from UI.Responses.EmoteCogResponse import EmoteCommandResponse
+from UI.Responses.EmbedCogResponse import EmbedCommandResponse
+from UI.Views.PlayerView import PlayerView
 from Music.VulkanBot import VulkanBot
 
 helper = Helper()
@@ -232,7 +232,7 @@ class MusicCog(Cog):
 
     @command(name='rafael')
     async def rafael(self, ctx: Context) -> None:
-        view = PlayerView()
+        view = PlayerView(self.__bot)
         await ctx.send(view=view)
 
 

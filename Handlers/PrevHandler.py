@@ -5,10 +5,12 @@ from Handlers.HandlerResponse import HandlerResponse
 from Parallelism.ProcessManager import ProcessManager
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
+from typing import Union
+from discord import Interaction
 
 
 class PrevHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: VulkanBot) -> None:
+    def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:
@@ -41,13 +43,13 @@ class PrevHandler(AbstractHandler):
             process.start()
 
         # Send a prev command, together with the user voice channel
-        prevCommand = VCommands(VCommandsType.PREV, self.ctx.author.voice.channel.id)
+        prevCommand = VCommands(VCommandsType.PREV, self.author.voice.channel.id)
         queue = processInfo.getQueue()
         queue.put(prevCommand)
         return HandlerResponse(self.ctx)
 
     def __user_connected(self) -> bool:
-        if self.ctx.author.voice:
+        if self.author.voice:
             return True
         else:
             return False

@@ -1,5 +1,5 @@
 from Config.Emojis import VEmojis
-from Views.AbstractCogResponse import AbstractCommandResponse
+from UI.Responses.AbstractCogResponse import AbstractCommandResponse
 from Handlers.HandlerResponse import HandlerResponse
 
 

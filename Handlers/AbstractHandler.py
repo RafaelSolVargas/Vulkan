@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Union
 from discord.ext.commands import Context
-from discord import Client, Guild, ClientUser, Member
+from discord import Client, Guild, ClientUser, Interaction, Member, User
 from Config.Messages import Messages
 from Music.VulkanBot import VulkanBot
 from Handlers.HandlerResponse import HandlerResponse
@@ -11,7 +11,7 @@ from Config.Embeds import VEmbeds
 
 
 class AbstractHandler(ABC):
-    def __init__(self, ctx: Context, bot: VulkanBot) -> None:
+    def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
         self.__bot: VulkanBot = bot
         self.__guild: Guild = ctx.guild
         self.__ctx: Context = ctx
@@ -22,6 +22,10 @@ class AbstractHandler(ABC):
         self.__helper = Helper()
         self.__embeds = VEmbeds()
         self.__bot_member: Member = self.__get_member()
+        if isinstance(ctx, Context):
+            self.__author = ctx.author
+        else:
+            self.__author = ctx.user
 
     @abstractmethod
     async def run(self) -> HandlerResponse:
@@ -38,6 +42,10 @@ class AbstractHandler(ABC):
     @property
     def bot_user(self) -> ClientUser:
         return self.__bot_user
+
+    @property
+    def author(self) -> User:
+        return self.__author
 
     @property
     def guild(self) -> Guild:
@@ -60,7 +68,7 @@ class AbstractHandler(ABC):
         return self.__helper
 
     @property
-    def ctx(self) -> Context:
+    def ctx(self) -> Union[Context, Interaction]:
         return self.__ctx
 
     @property

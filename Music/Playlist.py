@@ -90,7 +90,6 @@ class Playlist:
                 self.__queue.appendleft(self.__current)
 
             last_song = self.__songs_history.popleft()  # Get the last song
-            print(f'Setando como {last_song} 2')
             self.__current = last_song
             return self.__current  # return the song
 
