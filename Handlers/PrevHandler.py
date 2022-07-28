@@ -2,7 +2,6 @@ from discord.ext.commands import Context
 from Handlers.AbstractHandler import AbstractHandler
 from Config.Exceptions import BadCommandUsage, ImpossibleMove
 from Handlers.HandlerResponse import HandlerResponse
-from Parallelism.ProcessManager import ProcessManager
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
 from typing import Union
@@ -14,7 +13,7 @@ class PrevHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:
-        processManager = ProcessManager()
+        processManager = self.config.getProcessManager()
         processInfo = processManager.getPlayerInfo(self.guild, self.ctx)
         if not processInfo:
             embed = self.embeds.NOT_PLAYING()
@@ -44,7 +43,7 @@ class PrevHandler(AbstractHandler):
 
         # Send a prev command, together with the user voice channel
         prevCommand = VCommands(VCommandsType.PREV, self.author.voice.channel.id)
-        queue = processInfo.getQueue()
+        queue = processInfo.getQueueToPlayer()
         queue.put(prevCommand)
         return HandlerResponse(self.ctx)
 

@@ -4,7 +4,6 @@ from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Utils.Utils import Utils
 from typing import Union
-from Parallelism.ProcessManager import ProcessManager
 from discord import Interaction
 
 
@@ -14,7 +13,7 @@ class HistoryHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         # Get the current process of the guild
-        processManager = ProcessManager()
+        processManager = self.config.getProcessManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:
             processLock = processInfo.getLock()

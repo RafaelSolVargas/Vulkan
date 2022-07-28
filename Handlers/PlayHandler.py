@@ -8,7 +8,6 @@ from Handlers.HandlerResponse import HandlerResponse
 from Music.Downloader import Downloader
 from Music.Searcher import Searcher
 from Music.Song import Song
-from Parallelism.ProcessManager import ProcessManager
 from Parallelism.ProcessInfo import ProcessInfo
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
@@ -38,7 +37,7 @@ class PlayHandler(AbstractHandler):
                 raise InvalidInput(self.messages.INVALID_INPUT, self.messages.ERROR_TITLE)
 
             # Get the process context for the current guild
-            processManager = ProcessManager()
+            processManager = self.config.getProcessManager()
             processInfo = processManager.getPlayerInfo(self.guild, self.ctx)
             playlist = processInfo.getPlaylist()
             process = processInfo.getProcess()
@@ -74,7 +73,7 @@ class PlayHandler(AbstractHandler):
                     playlist.add_song(song)
                     # Release the acquired Lock
                     processLock.release()
-                    queue = processInfo.getQueue()
+                    queue = processInfo.getQueueToPlayer()
                     playCommand = VCommands(VCommandsType.PLAY, None)
                     queue.put(playCommand)
                 else:
@@ -106,7 +105,7 @@ class PlayHandler(AbstractHandler):
 
     async def __downloadSongsAndStore(self, songs: List[Song], processInfo: ProcessInfo) -> None:
         playlist = processInfo.getPlaylist()
-        queue = processInfo.getQueue()
+        queue = processInfo.getQueueToPlayer()
         playCommand = VCommands(VCommandsType.PLAY, None)
         # Trigger a task for each song to be downloaded
         tasks: List[asyncio.Task] = []
@@ -115,7 +114,7 @@ class PlayHandler(AbstractHandler):
             tasks.append(task)
 
         # In the original order, await for the task and then if successfully downloaded add in the playlist
-        processManager = ProcessManager()
+        processManager = self.config.getProcessManager()
         for index, task in enumerate(tasks):
             await task
             song = songs[index]

@@ -3,7 +3,6 @@ from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Music.Downloader import Downloader
 from Utils.Utils import Utils
-from Parallelism.ProcessManager import ProcessManager
 from Music.VulkanBot import VulkanBot
 from typing import Union
 from discord import Interaction
@@ -16,7 +15,7 @@ class QueueHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         # Retrieve the process of the guild
-        processManager = ProcessManager()
+        processManager = self.config.getProcessManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if not processInfo:  # If no process return empty list
             embed = self.embeds.EMPTY_QUEUE()

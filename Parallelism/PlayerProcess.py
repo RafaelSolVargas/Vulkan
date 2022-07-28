@@ -1,9 +1,9 @@
 import asyncio
 from Music.VulkanInitializer import VulkanInitializer
 from discord import User, Member, Message, Embed
-from asyncio import AbstractEventLoop, Semaphore
-from multiprocessing import Process, Queue, RLock
-from threading import Lock, Thread
+from asyncio import AbstractEventLoop, Semaphore, Queue
+from multiprocessing import Process, RLock, Lock
+from threading import Thread
 from typing import Callable, List
 from discord import Guild, FFmpegPCMAudio, VoiceChannel, TextChannel
 from Music.Playlist import Playlist
@@ -31,7 +31,7 @@ class TimeoutClock:
 class PlayerProcess(Process):
     """Process that will play songs, receive commands from the main process by a Queue"""
 
-    def __init__(self, name: str, playlist: Playlist, lock: Lock, queue: Queue, guildID: int, textID: int, voiceID: int, authorID: int) -> None:
+    def __init__(self, name: str, playlist: Playlist, lock: Lock, queueToReceive: Queue,  queueToSend: Queue, guildID: int, textID: int, voiceID: int, authorID: int) -> None:
         """
         Start a new process that will have his own bot instance 
         Due to pickle serialization, no objects are stored, the values initialization are being made in the run method
@@ -40,7 +40,8 @@ class PlayerProcess(Process):
         # Synchronization objects
         self.__playlist: Playlist = playlist
         self.__playlistLock: Lock = lock
-        self.__queue: Queue = queue
+        self.__queueReceive: Queue = queueToReceive
+        self.__queueSend: Queue = queueToSend
         self.__semStopPlaying: Semaphore = None
         self.__loop: AbstractEventLoop = None
         # Discord context ID
@@ -96,8 +97,7 @@ class PlayerProcess(Process):
         # Start the timeout function
         self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
         # Thread that will receive commands to be executed in this Process
-        self.__commandsReceiver = Thread(target=self.__commandsReceiver, daemon=True)
-        self.__commandsReceiver.start()
+        self.__loop.create_task(self.__commandsReceiver())
 
         # Start a Task to play songs
         self.__loop.create_task(self.__playPlaylistSongs())
@@ -146,8 +146,10 @@ class PlayerProcess(Process):
             self.__timer.cancel()
             self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
 
-            await self.__deletePrevNowPlaying()
-            await self.__showNowPlaying()
+            nowPlayingCommand = VCommands(VCommandsType.NOW_PLAYING, song)
+            await self.__queueSend.put(nowPlayingCommand)
+            # await self.__deletePrevNowPlaying()
+            # await self.__showNowPlaying()
         except Exception as e:
             print(f'[ERROR IN PLAY SONG] -> {e}, {type(e)}')
             self.__playNext(None)
@@ -190,12 +192,11 @@ class PlayerProcess(Process):
 
                     self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
 
-    def __commandsReceiver(self) -> None:
+    async def __commandsReceiver(self) -> None:
         while True:
-            command: VCommands = self.__queue.get()
+            command: VCommands = await self.__queueReceive.get()
             type = command.getType()
             args = command.getArgs()
-            print(f'{self.name} received command {type}')
 
             try:
                 self.__playerLock.acquire()
@@ -206,13 +207,13 @@ class PlayerProcess(Process):
                 elif type == VCommandsType.SKIP:
                     self.__skip()
                 elif type == VCommandsType.PLAY:
-                    asyncio.run_coroutine_threadsafe(self.__playPlaylistSongs(), self.__loop)
+                    await self.__playPlaylistSongs()
                 elif type == VCommandsType.PREV:
-                    asyncio.run_coroutine_threadsafe(self.__playPrev(args), self.__loop)
+                    await self.__playPrev(args)
                 elif type == VCommandsType.RESET:
-                    asyncio.run_coroutine_threadsafe(self.__reset(), self.__loop)
+                    await self.__reset()
                 elif type == VCommandsType.STOP:
-                    asyncio.run_coroutine_threadsafe(self.__stop(), self.__loop)
+                    await self.__stop()
                 else:
                     print(f'[ERROR] -> Unknown Command Received: {command}')
             except Exception as e:

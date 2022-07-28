@@ -3,7 +3,6 @@ from Handlers.AbstractHandler import AbstractHandler
 from Config.Exceptions import BadCommandUsage
 from Handlers.HandlerResponse import HandlerResponse
 from Music.VulkanBot import VulkanBot
-from Parallelism.ProcessManager import ProcessManager
 from Parallelism.Commands import VCommands, VCommandsType
 from typing import Union
 from discord import Interaction
@@ -14,7 +13,7 @@ class SkipHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:
-        processManager = ProcessManager()
+        processManager = self.config.getProcessManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:  # Verify if there is a running process
             playlist = processInfo.getPlaylist()
@@ -25,7 +24,7 @@ class SkipHandler(AbstractHandler):
 
             # Send a command to the player process to skip the music
             command = VCommands(VCommandsType.SKIP, None)
-            queue = processInfo.getQueue()
+            queue = processInfo.getQueueToPlayer()
             queue.put(command)
 
             return HandlerResponse(self.ctx)

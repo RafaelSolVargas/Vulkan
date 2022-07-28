@@ -1,13 +1,21 @@
-from multiprocessing import Queue, Lock
+from asyncio import Queue, Task
+import asyncio
+from multiprocessing import Lock
 from multiprocessing.managers import BaseManager, NamespaceProxy
-from typing import Dict, Union
+from queue import Empty
+from threading import Thread
+from typing import Dict, Tuple, Union
 from Config.Singleton import Singleton
 from discord import Guild, Interaction
 from discord.ext.commands import Context
+from Music.MessagesController import MessagesController
+from Music.Song import Song
 from Parallelism.PlayerProcess import PlayerProcess
 from Music.Playlist import Playlist
 from Parallelism.ProcessInfo import ProcessInfo
 from Parallelism.Commands import VCommands, VCommandsType
+from Music.VulkanBot import VulkanBot
+from Tests.LoopRunner import LoopRunner
 
 
 class ProcessManager(Singleton):
@@ -16,12 +24,16 @@ class ProcessManager(Singleton):
     Deal with the creation of shared memory
     """
 
-    def __init__(self) -> None:
+    def __init__(self, bot: VulkanBot = None) -> None:
         if not super().created:
+            self.__bot = bot
             VManager.register('Playlist', Playlist)
             self.__manager = VManager()
             self.__manager.start()
             self.__playersProcess: Dict[Guild, ProcessInfo] = {}
+            # self.__playersListeners: Dict[Guild, Tuple[Thread, bool]] = {}
+            self.__playersListeners: Dict[Guild, Task] = {}
+            self.__playersMessages: Dict[Guild, MessagesController] = {}
 
     def setPlayerInfo(self, guild: Guild, info: ProcessInfo):
         self.__playersProcess[guild.id] = info
@@ -37,11 +49,11 @@ class ProcessManager(Singleton):
                     return self.__playersProcess[guild.id]
 
             if guild.id not in self.__playersProcess.keys():
-                self.__playersProcess[guild.id] = self.__createProcessInfo(context)
+                self.__playersProcess[guild.id] = self.__createProcessInfo(guild, context)
             else:
                 # If the process has ended create a new one
                 if not self.__playersProcess[guild.id].getProcess().is_alive():
-                    self.__playersProcess[guild.id] = self.__recreateProcess(context)
+                    self.__playersProcess[guild.id] = self.__recreateProcess(guild, context)
 
             return self.__playersProcess[guild.id]
         except Exception as e:
@@ -53,11 +65,11 @@ class ProcessManager(Singleton):
             return None
 
         # Recreate the process keeping the playlist
-        newProcessInfo = self.__recreateProcess(context)
+        newProcessInfo = self.__recreateProcess(guild, context)
         newProcessInfo.getProcess().start()  # Start the process
         # Send a command to start the play again
         playCommand = VCommands(VCommandsType.PLAY)
-        newProcessInfo.getQueue().put(playCommand)
+        newProcessInfo.getQueueToPlayer().put(playCommand)
         self.__playersProcess[guild.id] = newProcessInfo
 
     def getRunningPlayerInfo(self, guild: Guild) -> ProcessInfo:
@@ -67,7 +79,7 @@ class ProcessManager(Singleton):
 
         return self.__playersProcess[guild.id]
 
-    def __createProcessInfo(self, context: Context) -> ProcessInfo:
+    def __createProcessInfo(self, guild: Guild, context: Context) -> ProcessInfo:
         guildID: int = context.guild.id
         textID: int = context.channel.id
         voiceID: int = context.author.voice.channel.id
@@ -75,14 +87,25 @@ class ProcessManager(Singleton):
 
         playlist: Playlist = self.__manager.Playlist()
         lock = Lock()
-        queue = Queue()
-        process = PlayerProcess(context.guild.name, playlist, lock, queue,
-                                guildID, textID, voiceID, authorID)
-        processInfo = ProcessInfo(process, queue, playlist, lock)
+        queueToListen = Queue()
+        queueToSend = Queue()
+        process = PlayerProcess(context.guild.name, playlist, lock, queueToSend,
+                                queueToListen, guildID, textID, voiceID, authorID)
+        processInfo = ProcessInfo(process, queueToSend, queueToListen,
+                                  playlist, lock, context.channel)
+
+        task = asyncio.create_task(self.__listenToCommands(queueToListen, guild))
+        # Create a Thread to listen for the queue coming from the Player Process
+        # thread = Thread(target=self.__listenToCommands, args=(queueToListen, guild), daemon=True)
+        self.__playersListeners[guildID] = task
+        # thread.start()
+
+        # Create a Message Controller for this player
+        self.__playersMessages[guildID] = MessagesController(self.__bot)
 
         return processInfo
 
-    def __recreateProcess(self, context: Context) -> ProcessInfo:
+    def __recreateProcess(self, guild: Guild, context: Context) -> ProcessInfo:
         """Create a new process info using previous playlist"""
         guildID: int = context.guild.id
         textID: int = context.channel.id
@@ -91,13 +114,77 @@ class ProcessManager(Singleton):
 
         playlist: Playlist = self.__playersProcess[guildID].getPlaylist()
         lock = Lock()
-        queue = Queue()
+        queueToListen = Queue()
+        queueToSend = Queue()
+        process = PlayerProcess(context.guild.name, playlist, lock, queueToSend,
+                                queueToListen, guildID, textID, voiceID, authorID)
+        processInfo = ProcessInfo(process, queueToSend, queueToListen, playlist, lock)
 
-        process = PlayerProcess(context.guild.name, playlist, lock, queue,
-                                guildID, textID, voiceID, authorID)
-        processInfo = ProcessInfo(process, queue, playlist, lock)
+        task = asyncio.create_task(self.__listenToCommands(queueToListen, guild))
+        # Create a Thread to listen for the queue coming from the Player Process
+        # thread = Thread(target=self.__listenToCommands, args=(queueToListen, guild), daemon=True)
+        self.__playersListeners[guildID] = task
+        # thread.start()
+
+        # Create a Message Controller for this player
+        self.__playersMessages[guildID] = MessagesController(self.__bot)
 
         return processInfo
+
+    async def __listenToCommands(self, queue: Queue, guild: Guild) -> None:
+        shouldEnd = False
+        guildID = guild.id
+        while not shouldEnd:
+            shouldEnd = self.__playersListeners[guildID][1]
+            try:
+                print('Esperando')
+                command: VCommands = await queue.get()
+                commandType = command.getType()
+                args = command.getArgs()
+
+                print(f'Process {guild.name} sended command {commandType}')
+                if commandType == VCommandsType.NOW_PLAYING:
+                    print('Aqui dentro')
+                    await self.__showNowPlaying(args, guildID)
+                elif commandType == VCommandsType.TERMINATE:
+                    # Delete the process elements and return, to finish task
+                    self.__terminateProcess()
+                    return
+                elif commandType == VCommandsType.SLEEPING:
+                    # The process might be used again
+                    self.__sleepingProcess()
+                    return
+                else:
+                    print(f'[ERROR] -> Unknown Command Received from Process: {commandType}')
+            except Empty:
+                continue
+            except Exception as e:
+                print(e)
+                print(f'[ERROR IN LISTENING PROCESS] -> {guild.name} - {e}')
+
+    def __terminateProcess(self, guildID: int) -> None:
+        # Delete all structures associated with the Player
+        del self.__playersProcess[guildID]
+        del self.__playersMessages[guildID]
+        threadListening = self.__playersListeners[guildID]
+        threadListening._stop()
+        del self.__playersListeners[guildID]
+
+    def __sleepingProcess(self, guildID: int) -> None:
+        # Disable all process structures, except Playlist
+        queue1 = self.__playersProcess[guildID].getQueueToMain()
+        queue2 = self.__playersProcess[guildID].getQueueToPlayer()
+        queue1.close()
+        queue1.join_thread()
+        queue2.close()
+        queue2.join_thread()
+
+    async def __showNowPlaying(self, guildID: int, song: Song) -> None:
+        messagesController = self.__playersMessages[guildID]
+        processInfo = self.__playersProcess[guildID]
+        print('Aq1')
+        await messagesController.sendNowPlaying(processInfo, song)
+        print('Aq2')
 
 
 class VManager(BaseManager):

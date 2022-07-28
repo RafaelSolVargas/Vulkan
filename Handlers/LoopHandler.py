@@ -3,7 +3,6 @@ from Music.VulkanBot import VulkanBot
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Config.Exceptions import BadCommandUsage
-from Parallelism.ProcessManager import ProcessManager
 from typing import Union
 from discord import Interaction
 
@@ -14,7 +13,7 @@ class LoopHandler(AbstractHandler):
 
     async def run(self, args: str) -> HandlerResponse:
         # Get the current process of the guild
-        processManager = ProcessManager()
+        processManager = self.config.getProcessManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if not processInfo:
             embed = self.embeds.NOT_PLAYING()

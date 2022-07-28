@@ -11,6 +11,9 @@ class VCommandsType(Enum):
     PLAY = 'Play'
     STOP = 'Stop'
     RESET = 'Reset'
+    NOW_PLAYING = 'Now Playing'
+    TERMINATE = 'Terminate'
+    SLEEPING = 'Sleeping'
 
 
 class VCommands:

@@ -4,7 +4,6 @@ from discord.ext.commands import Context
 from Music.VulkanBot import VulkanBot
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
-from Parallelism.ProcessManager import ProcessManager
 
 
 class ClearHandler(AbstractHandler):
@@ -13,7 +12,7 @@ class ClearHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         # Get the current process of the guild
-        processManager = ProcessManager()
+        processManager = self.config.getProcessManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:
             # Clear the playlist

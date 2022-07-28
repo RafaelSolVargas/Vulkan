@@ -1,4 +1,3 @@
-from typing import Optional
 from discord.ui import View
 from Config.Emojis import VEmojis
 from UI.Buttons.PauseButton import PauseButton
