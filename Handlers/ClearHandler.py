@@ -22,7 +22,6 @@ class ClearHandler(AbstractHandler):
             if acquired:
                 playlist.clear()
                 processLock.release()
-                processLock.release()
                 return HandlerResponse(self.ctx)
             else:
                 processManager.resetProcess(self.guild, self.ctx)

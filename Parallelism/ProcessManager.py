@@ -1,6 +1,5 @@
-from asyncio import Queue, Task
 import asyncio
-from multiprocessing import Lock
+from multiprocessing import Lock, Queue
 from multiprocessing.managers import BaseManager, NamespaceProxy
 from queue import Empty
 from threading import Thread
@@ -15,7 +14,6 @@ from Music.Playlist import Playlist
 from Parallelism.ProcessInfo import ProcessInfo
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
-from Tests.LoopRunner import LoopRunner
 
 
 class ProcessManager(Singleton):
@@ -31,8 +29,7 @@ class ProcessManager(Singleton):
             self.__manager = VManager()
             self.__manager.start()
             self.__playersProcess: Dict[Guild, ProcessInfo] = {}
-            # self.__playersListeners: Dict[Guild, Tuple[Thread, bool]] = {}
-            self.__playersListeners: Dict[Guild, Task] = {}
+            self.__playersListeners: Dict[Guild, Tuple[Thread, bool]] = {}
             self.__playersMessages: Dict[Guild, MessagesController] = {}
 
     def setPlayerInfo(self, guild: Guild, info: ProcessInfo):
@@ -94,11 +91,11 @@ class ProcessManager(Singleton):
         processInfo = ProcessInfo(process, queueToSend, queueToListen,
                                   playlist, lock, context.channel)
 
-        task = asyncio.create_task(self.__listenToCommands(queueToListen, guild))
-        # Create a Thread to listen for the queue coming from the Player Process
-        # thread = Thread(target=self.__listenToCommands, args=(queueToListen, guild), daemon=True)
-        self.__playersListeners[guildID] = task
-        # thread.start()
+        # Create a Thread to listen for the queue coming from the Player Process, this will redirect the Queue to a async
+        thread = Thread(target=self.__listenToCommands,
+                        args=(queueToListen, guild), daemon=True)
+        self.__playersListeners[guildID] = (thread, False)
+        thread.start()
 
         # Create a Message Controller for this player
         self.__playersMessages[guildID] = MessagesController(self.__bot)
@@ -118,48 +115,46 @@ class ProcessManager(Singleton):
         queueToSend = Queue()
         process = PlayerProcess(context.guild.name, playlist, lock, queueToSend,
                                 queueToListen, guildID, textID, voiceID, authorID)
-        processInfo = ProcessInfo(process, queueToSend, queueToListen, playlist, lock)
+        processInfo = ProcessInfo(process, queueToSend, queueToListen,
+                                  playlist, lock, context.channel)
 
-        task = asyncio.create_task(self.__listenToCommands(queueToListen, guild))
-        # Create a Thread to listen for the queue coming from the Player Process
-        # thread = Thread(target=self.__listenToCommands, args=(queueToListen, guild), daemon=True)
-        self.__playersListeners[guildID] = task
-        # thread.start()
-
-        # Create a Message Controller for this player
-        self.__playersMessages[guildID] = MessagesController(self.__bot)
+        # Create a Thread to listen for the queue coming from the Player Process, this will redirect the Queue to a async
+        thread = Thread(target=self.__listenToCommands,
+                        args=(queueToListen, guild), daemon=True)
+        self.__playersListeners[guildID] = (thread, False)
+        thread.start()
 
         return processInfo
 
-    async def __listenToCommands(self, queue: Queue, guild: Guild) -> None:
-        shouldEnd = False
+    def __listenToCommands(self, queue: Queue, guild: Guild) -> None:
         guildID = guild.id
-        while not shouldEnd:
+        while True:
             shouldEnd = self.__playersListeners[guildID][1]
+            if shouldEnd:
+                break
+
             try:
-                print('Esperando')
-                command: VCommands = await queue.get()
+                command: VCommands = queue.get(timeout=5)
                 commandType = command.getType()
                 args = command.getArgs()
 
                 print(f'Process {guild.name} sended command {commandType}')
                 if commandType == VCommandsType.NOW_PLAYING:
-                    print('Aqui dentro')
-                    await self.__showNowPlaying(args, guildID)
+                    asyncio.run_coroutine_threadsafe(self.showNowPlaying(
+                        guild.id, args), self.__bot.loop)
                 elif commandType == VCommandsType.TERMINATE:
                     # Delete the process elements and return, to finish task
-                    self.__terminateProcess()
+                    self.__terminateProcess(guildID)
                     return
                 elif commandType == VCommandsType.SLEEPING:
                     # The process might be used again
-                    self.__sleepingProcess()
+                    self.__sleepingProcess(guildID)
                     return
                 else:
                     print(f'[ERROR] -> Unknown Command Received from Process: {commandType}')
             except Empty:
                 continue
             except Exception as e:
-                print(e)
                 print(f'[ERROR IN LISTENING PROCESS] -> {guild.name} - {e}')
 
     def __terminateProcess(self, guildID: int) -> None:
@@ -179,12 +174,10 @@ class ProcessManager(Singleton):
         queue2.close()
         queue2.join_thread()
 
-    async def __showNowPlaying(self, guildID: int, song: Song) -> None:
+    async def showNowPlaying(self, guildID: int, song: Song) -> None:
         messagesController = self.__playersMessages[guildID]
         processInfo = self.__playersProcess[guildID]
-        print('Aq1')
         await messagesController.sendNowPlaying(processInfo, song)
-        print('Aq2')
 
 
 class VManager(BaseManager):

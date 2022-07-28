@@ -1,5 +1,5 @@
 from typing import List
-from discord import Embed, Message
+from discord import Embed, Message, TextChannel
 from Music.VulkanBot import VulkanBot
 from Parallelism.ProcessInfo import ProcessInfo
 from Config.Configs import VConfigs
@@ -19,23 +19,25 @@ class MessagesController:
 
     async def sendNowPlaying(self, processInfo: ProcessInfo, song: Song) -> None:
         # Get the lock of the playlist
-        print('Entrei')
-        playlistLock = processInfo.getLock()
         playlist = processInfo.getPlaylist()
-        with playlistLock:
-            print('A')
-            if playlist.isLoopingOne():
-                title = self.__messages.ONE_SONG_LOOPING
-            else:
-                title = self.__messages.SONG_PLAYING
+        if playlist.isLoopingOne():
+            title = self.__messages.ONE_SONG_LOOPING
+        else:
+            title = self.__messages.SONG_PLAYING
 
-            embed = self.__embeds.SONG_INFO(song.info, title)
-            view = PlayerView(self.__bot)
-            channel = processInfo.getTextChannel()
+        # Create View and Embed
+        embed = self.__embeds.SONG_INFO(song.info, title)
+        view = PlayerView(self.__bot)
+        channel = processInfo.getTextChannel()
+        # Delete the previous and send the message
+        await self.__deletePreviousNPMessages()
+        await channel.send(embed=embed, view=view)
 
-            await self.__deletePreviousNPMessages()
-            await channel.send(embed=embed, view=view)
-            self.__previousMessages.append(await self.__getSendedMessage())
+        # Get the sended message
+        sendedMessage = await self.__getSendedMessage(channel)
+        # Set the message witch contains the view
+        view.set_message(message=sendedMessage)
+        self.__previousMessages.append(sendedMessage)
 
     async def __deletePreviousNPMessages(self) -> None:
         for message in self.__previousMessages:
@@ -45,9 +47,9 @@ class MessagesController:
                 pass
         self.__previousMessages.clear()
 
-    async def __getSendedMessage(self) -> Message:
+    async def __getSendedMessage(self, channel: TextChannel) -> Message:
         stringToIdentify = 'Uploader:'
-        last_messages: List[Message] = await self.__textChannel.history(limit=5).flatten()
+        last_messages: List[Message] = await channel.history(limit=5).flatten()
 
         for message in last_messages:
             try:

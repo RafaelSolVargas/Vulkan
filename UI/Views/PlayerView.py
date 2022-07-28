@@ -1,3 +1,4 @@
+from discord import Message
 from discord.ui import View
 from Config.Emojis import VEmojis
 from UI.Buttons.PauseButton import PauseButton
@@ -15,9 +16,10 @@ emojis = VEmojis()
 
 
 class PlayerView(View):
-    def __init__(self, bot: VulkanBot, timeout: float = 180):
+    def __init__(self, bot: VulkanBot, timeout: float = 6000):
         super().__init__(timeout=timeout)
         self.__bot = bot
+        self.__message: Message = None
         self.add_item(BackButton(self.__bot))
         self.add_item(PauseButton(self.__bot))
         self.add_item(PlayButton(self.__bot))
@@ -27,3 +29,12 @@ class PlayerView(View):
         self.add_item(LoopOneButton(self.__bot))
         self.add_item(LoopOffButton(self.__bot))
         self.add_item(LoopAllButton(self.__bot))
+
+    async def on_timeout(self) -> None:
+        # Disable all itens and, if has the message, edit it
+        self.disable_all_items()
+        if self.__message is not None and isinstance(self.__message, Message):
+            await self.__message.edit(view=self)
+
+    def set_message(self, message: Message) -> None:
+        self.__message = message

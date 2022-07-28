@@ -1,8 +1,8 @@
 import asyncio
 from Music.VulkanInitializer import VulkanInitializer
-from discord import User, Member, Message, Embed
+from discord import User, Member, Message
 from asyncio import AbstractEventLoop, Semaphore, Queue
-from multiprocessing import Process, RLock, Lock
+from multiprocessing import Process, RLock, Lock, Queue
 from threading import Thread
 from typing import Callable, List
 from discord import Guild, FFmpegPCMAudio, VoiceChannel, TextChannel
@@ -97,7 +97,8 @@ class PlayerProcess(Process):
         # Start the timeout function
         self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
         # Thread that will receive commands to be executed in this Process
-        self.__loop.create_task(self.__commandsReceiver())
+        self.__commandsReceiver = Thread(target=self.__commandsReceiver, daemon=True)
+        self.__commandsReceiver.start()
 
         # Start a Task to play songs
         self.__loop.create_task(self.__playPlaylistSongs())
@@ -147,9 +148,7 @@ class PlayerProcess(Process):
             self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
 
             nowPlayingCommand = VCommands(VCommandsType.NOW_PLAYING, song)
-            await self.__queueSend.put(nowPlayingCommand)
-            # await self.__deletePrevNowPlaying()
-            # await self.__showNowPlaying()
+            self.__queueSend.put(nowPlayingCommand)
         except Exception as e:
             print(f'[ERROR IN PLAY SONG] -> {e}, {type(e)}')
             self.__playNext(None)
@@ -171,6 +170,11 @@ class PlayerProcess(Process):
                     self.__playlist.loop_off()
                     self.__playingSong = None
                     self.__playing = False
+                    # Send a command to the main process put this one to sleep
+                    sleepCommand = VCommands(VCommandsType.SLEEPING)
+                    self.__queueSend.put(sleepCommand)
+                    # Release the semaphore to finish the process
+                    self.__semStopPlaying.release()
 
     async def __playPrev(self, voiceChannelID: int) -> None:
         with self.__playlistLock:
@@ -192,9 +196,9 @@ class PlayerProcess(Process):
 
                     self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
 
-    async def __commandsReceiver(self) -> None:
+    def __commandsReceiver(self) -> None:
         while True:
-            command: VCommands = await self.__queueReceive.get()
+            command: VCommands = self.__queueReceive.get()
             type = command.getType()
             args = command.getArgs()
 
@@ -207,13 +211,13 @@ class PlayerProcess(Process):
                 elif type == VCommandsType.SKIP:
                     self.__skip()
                 elif type == VCommandsType.PLAY:
-                    await self.__playPlaylistSongs()
+                    asyncio.run_coroutine_threadsafe(self.__playPlaylistSongs(), self.__loop)
                 elif type == VCommandsType.PREV:
-                    await self.__playPrev(args)
+                    asyncio.run_coroutine_threadsafe(self.__playPrev(args), self.__loop)
                 elif type == VCommandsType.RESET:
-                    await self.__reset()
+                    asyncio.run_coroutine_threadsafe(self.__reset(), self.__loop)
                 elif type == VCommandsType.STOP:
-                    await self.__stop()
+                    asyncio.run_coroutine_threadsafe(self.__stop(), self.__loop)
                 else:
                     print(f'[ERROR] -> Unknown Command Received: {command}')
             except Exception as e:
@@ -242,9 +246,11 @@ class PlayerProcess(Process):
         if self.__guild.voice_client is not None:
             if self.__guild.voice_client.is_connected():
                 with self.__playlistLock:
-                    self.__playlist.clear()
                     self.__playlist.loop_off()
 
+                # Send a command to the main process put this to sleep
+                sleepCommand = VCommands(VCommandsType.SLEEPING)
+                self.__queueSend.put(sleepCommand)
                 self.__guild.voice_client.stop()
                 self.__playingSong = None
                 await self.__guild.voice_client.disconnect()
@@ -291,19 +297,34 @@ class PlayerProcess(Process):
                 return
 
             if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
-                self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
+                if not self.__isBotAloneInChannel():  # If bot is not alone continue to play
+                    self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
+                    return
 
-            elif self.__guild.voice_client.is_connected():
+            # Finish the process
+            if self.__guild.voice_client.is_connected():
                 with self.__playerLock:
                     with self.__playlistLock:
-                        self.__playlist.clear()
                         self.__playlist.loop_off()
                     self.__playing = False
                     await self.__guild.voice_client.disconnect()
+                    # Send command to main process to finish this one
+                    sleepCommand = VCommands(VCommandsType.SLEEPING)
+                    self.__queueSend.put(sleepCommand)
                     # Release semaphore to finish process
                     self.__semStopPlaying.release()
         except Exception as e:
             print(f'[Error in Timeout] -> {e}')
+
+    def __isBotAloneInChannel(self) -> bool:
+        try:
+            if len(self.__guild.voice_client.channel.members) <= 1:
+                return True
+            else:
+                return False
+        except Exception as e:
+            print(f'[ERROR IN CHECK BOT ALONE] -> {e}')
+            return False
 
     async def __ensureDiscordConnection(self, bot: VulkanBot) -> None:
         """Await in this point until connection to discord is established"""
@@ -325,46 +346,3 @@ class PlayerProcess(Process):
         for member in guild_members:
             if member.id == self.__bot.user.id:
                 return member
-
-    async def __showNowPlaying(self) -> None:
-        # Get the lock of the playlist
-        with self.__playlistLock:
-            if not self.__playing or self.__playingSong is None:
-                embed = self.__embeds.NOT_PLAYING()
-                await self.__textChannel.send(embed=embed)
-                return
-
-            if self.__playlist.isLoopingOne():
-                title = self.__messages.ONE_SONG_LOOPING
-            else:
-                title = self.__messages.SONG_PLAYING
-
-            info = self.__playingSong.info
-            embed = self.__embeds.SONG_INFO(info, title)
-            await self.__textChannel.send(embed=embed)
-            self.__messagesToDelete.append(await self.__getSendedMessage())
-
-    async def __deletePrevNowPlaying(self) -> None:
-        for message in self.__messagesToDelete:
-            try:
-                await message.delete()
-            except:
-                pass
-        self.__messagesToDelete.clear()
-
-    async def __getSendedMessage(self) -> Message:
-        stringToIdentify = 'Uploader:'
-        last_messages: List[Message] = await self.__textChannel.history(limit=5).flatten()
-
-        for message in last_messages:
-            try:
-                if message.author == self.__bot.user:
-                    if len(message.embeds) > 0:
-                        embed: Embed = message.embeds[0]
-                        if len(embed.fields) > 0:
-                            if embed.fields[0].name == stringToIdentify:
-                                return message
-
-            except Exception as e:
-                print(f'DEVELOPER NOTE -> Error cleaning messages {e}')
-                continue
