@@ -1,17 +1,17 @@
 import asyncio
-from os import listdir
-from discord import Intents, User, Member, Message, Embed
-from asyncio import AbstractEventLoop, Semaphore
-from multiprocessing import Process, Queue, RLock
-from threading import Lock, Thread
+from Music.VulkanInitializer import VulkanInitializer
+from discord import User, Member, Message
+from asyncio import AbstractEventLoop, Semaphore, Queue
+from multiprocessing import Process, RLock, Lock, Queue
+from threading import Thread
 from typing import Callable, List
-from discord import Client, Guild, FFmpegPCMAudio, VoiceChannel, TextChannel
+from discord import Guild, FFmpegPCMAudio, VoiceChannel, TextChannel
 from Music.Playlist import Playlist
 from Music.Song import Song
-from Config.Configs import Configs
+from Config.Configs import VConfigs
 from Config.Messages import Messages
-from discord.ext.commands import Bot
-from Views.Embeds import Embeds
+from Music.VulkanBot import VulkanBot
+from Config.Embeds import VEmbeds
 from Parallelism.Commands import VCommands, VCommandsType
 
 
@@ -21,7 +21,7 @@ class TimeoutClock:
         self.__task = loop.create_task(self.__executor())
 
     async def __executor(self):
-        await asyncio.sleep(Configs().VC_TIMEOUT)
+        await asyncio.sleep(VConfigs().VC_TIMEOUT)
         await self.__callback()
 
     def cancel(self):
@@ -31,7 +31,7 @@ class TimeoutClock:
 class PlayerProcess(Process):
     """Process that will play songs, receive commands from the main process by a Queue"""
 
-    def __init__(self, name: str, playlist: Playlist, lock: Lock, queue: Queue, guildID: int, textID: int, voiceID: int, authorID: int) -> None:
+    def __init__(self, name: str, playlist: Playlist, lock: Lock, queueToReceive: Queue,  queueToSend: Queue, guildID: int, textID: int, voiceID: int, authorID: int) -> None:
         """
         Start a new process that will have his own bot instance 
         Due to pickle serialization, no objects are stored, the values initialization are being made in the run method
@@ -40,7 +40,8 @@ class PlayerProcess(Process):
         # Synchronization objects
         self.__playlist: Playlist = playlist
         self.__playlistLock: Lock = lock
-        self.__queue: Queue = queue
+        self.__queueReceive: Queue = queueToReceive
+        self.__queueSend: Queue = queueToSend
         self.__semStopPlaying: Semaphore = None
         self.__loop: AbstractEventLoop = None
         # Discord context ID
@@ -50,14 +51,14 @@ class PlayerProcess(Process):
         self.__authorID = authorID
         # All information of discord context will be retrieved directly with discord API
         self.__guild: Guild = None
-        self.__bot: Client = None
+        self.__bot: VulkanBot = None
         self.__voiceChannel: VoiceChannel = None
         self.__textChannel: TextChannel = None
         self.__author: User = None
         self.__botMember: Member = None
 
-        self.__configs: Configs = None
-        self.__embeds: Embeds = None
+        self.__configs: VConfigs = None
+        self.__embeds: VEmbeds = None
         self.__messages: Messages = None
         self.__messagesToDelete: List[Message] = []
         self.__playing = False
@@ -70,11 +71,12 @@ class PlayerProcess(Process):
         try:
             print(f'Starting Process {self.name}')
             self.__playerLock = RLock()
-            self.__loop = asyncio.get_event_loop()
+            self.__loop = asyncio.get_event_loop_policy().new_event_loop()
+            asyncio.set_event_loop(self.__loop)
 
-            self.__configs = Configs()
+            self.__configs = VConfigs()
             self.__messages = Messages()
-            self.__embeds = Embeds()
+            self.__embeds = VEmbeds()
 
             self.__semStopPlaying = Semaphore(0)
             self.__loop.run_until_complete(self._run())
@@ -107,9 +109,13 @@ class PlayerProcess(Process):
         self.__timer.cancel()
 
     async def __playPlaylistSongs(self) -> None:
+        """If the player is not running trigger to play a new song"""
         if not self.__playing:
+            song = None
             with self.__playlistLock:
-                song = self.__playlist.next_song()
+                with self.__playerLock:
+                    if not (self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused()):
+                        song = self.__playlist.next_song()
 
             if song is not None:
                 self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
@@ -141,8 +147,8 @@ class PlayerProcess(Process):
             self.__timer.cancel()
             self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
 
-            await self.__deletePrevNowPlaying()
-            await self.__showNowPlaying()
+            nowPlayingCommand = VCommands(VCommandsType.NOW_PLAYING, song)
+            self.__queueSend.put(nowPlayingCommand)
         except Exception as e:
             print(f'[ERROR IN PLAY SONG] -> {e}, {type(e)}')
             self.__playNext(None)
@@ -150,44 +156,49 @@ class PlayerProcess(Process):
             self.__playerLock.release()
 
     def __playNext(self, error) -> None:
-        with self.__playerLock:
-            if self.__forceStop:  # If it's forced to stop player
-                self.__forceStop = False
-                return None
+        with self.__playlistLock:
+            with self.__playerLock:
+                if self.__forceStop:  # If it's forced to stop player
+                    self.__forceStop = False
+                    return None
 
-            with self.__playlistLock:
                 song = self.__playlist.next_song()
 
-            if song is not None:
-                self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
-            else:
-                with self.__playlistLock:
+                if song is not None:
+                    self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
+                else:
                     self.__playlist.loop_off()
-                self.__playingSong = None
-                self.__playing = False
+                    self.__playingSong = None
+                    self.__playing = False
+                    # Send a command to the main process put this one to sleep
+                    sleepCommand = VCommands(VCommandsType.SLEEPING)
+                    self.__queueSend.put(sleepCommand)
+                    # Release the semaphore to finish the process
+                    self.__semStopPlaying.release()
 
     async def __playPrev(self, voiceChannelID: int) -> None:
         with self.__playlistLock:
             song = self.__playlist.prev_song()
 
-        if song is not None:
-            if self.__guild.voice_client is None:  # If not connect, connect to the user voice channel
-                self.__voiceChannelID = voiceChannelID
-                self.__voiceChannel = self.__guild.get_channel(self.__voiceChannelID)
-                await self.__connectToVoiceChannel()
+            with self.__playerLock:
+                if song is not None:
+                    if self.__guild.voice_client is None:  # If not connect, connect to the user voice channel
+                        self.__voiceChannelID = voiceChannelID
+                        self.__voiceChannel = self.__guild.get_channel(self.__voiceChannelID)
+                        await self.__connectToVoiceChannel()
 
-            # If already playing, stop the current play
-            if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
-                # Will forbidden next_song to execute after stopping current player
-                self.__forceStop = True
-                self.__guild.voice_client.stop()
-                self.__playing = False
+                    # If already playing, stop the current play
+                    if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
+                        # Will forbidden next_song to execute after stopping current player
+                        self.__forceStop = True
+                        self.__guild.voice_client.stop()
+                        self.__playing = False
 
-            self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
+                    self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
 
     def __commandsReceiver(self) -> None:
         while True:
-            command: VCommands = self.__queue.get()
+            command: VCommands = self.__queueReceive.get()
             type = command.getType()
             args = command.getArgs()
 
@@ -235,9 +246,11 @@ class PlayerProcess(Process):
         if self.__guild.voice_client is not None:
             if self.__guild.voice_client.is_connected():
                 with self.__playlistLock:
-                    self.__playlist.clear()
                     self.__playlist.loop_off()
 
+                # Send a command to the main process put this to sleep
+                sleepCommand = VCommands(VCommandsType.SLEEPING)
+                self.__queueSend.put(sleepCommand)
                 self.__guild.voice_client.stop()
                 self.__playingSong = None
                 await self.__guild.voice_client.disconnect()
@@ -269,30 +282,13 @@ class PlayerProcess(Process):
                 self.__playlist.clear()
                 self.__playlist.loop_off()
 
-    async def __createBotInstance(self) -> Client:
-        """Load a new bot instance that should not be directly called.
-        Get the guild, voice and text Channel in discord API using IDs passed in constructor
-        """
-        intents = Intents.default()
-        intents.members = True
-        bot = Bot(command_prefix='Rafael',
-                  pm_help=True,
-                  case_insensitive=True,
-                  intents=intents)
-        bot.remove_command('help')
+    async def __createBotInstance(self) -> VulkanBot:
+        """Load a new bot instance that should not be directly called."""
+        initializer = VulkanInitializer(willListen=False)
+        bot = initializer.getBot()
 
-        # Add the Cogs for this bot too
-        for filename in listdir(f'./{self.__configs.COMMANDS_PATH}'):
-            if filename.endswith('.py'):
-                bot.load_extension(f'{self.__configs.COMMANDS_PATH}.{filename[:-3]}')
-
-        # Login and connect the bot instance to discord API
-        task = self.__loop.create_task(bot.login(token=self.__configs.BOT_TOKEN, bot=True))
-        await task
-        self.__loop.create_task(bot.connect(reconnect=True))
-        # Sleep to wait connection to be established
+        await bot.startBotCoro(self.__loop)
         await self.__ensureDiscordConnection(bot)
-
         return bot
 
     async def __timeoutHandler(self) -> None:
@@ -301,21 +297,36 @@ class PlayerProcess(Process):
                 return
 
             if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
-                self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
+                if not self.__isBotAloneInChannel():  # If bot is not alone continue to play
+                    self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
+                    return
 
-            elif self.__guild.voice_client.is_connected():
+            # Finish the process
+            if self.__guild.voice_client.is_connected():
                 with self.__playerLock:
                     with self.__playlistLock:
-                        self.__playlist.clear()
                         self.__playlist.loop_off()
                     self.__playing = False
                     await self.__guild.voice_client.disconnect()
+                    # Send command to main process to finish this one
+                    sleepCommand = VCommands(VCommandsType.SLEEPING)
+                    self.__queueSend.put(sleepCommand)
                     # Release semaphore to finish process
                     self.__semStopPlaying.release()
         except Exception as e:
             print(f'[Error in Timeout] -> {e}')
 
-    async def __ensureDiscordConnection(self, bot: Client) -> None:
+    def __isBotAloneInChannel(self) -> bool:
+        try:
+            if len(self.__guild.voice_client.channel.members) <= 1:
+                return True
+            else:
+                return False
+        except Exception as e:
+            print(f'[ERROR IN CHECK BOT ALONE] -> {e}')
+            return False
+
+    async def __ensureDiscordConnection(self, bot: VulkanBot) -> None:
         """Await in this point until connection to discord is established"""
         guild = None
         while guild is None:
@@ -335,46 +346,3 @@ class PlayerProcess(Process):
         for member in guild_members:
             if member.id == self.__bot.user.id:
                 return member
-
-    async def __showNowPlaying(self) -> None:
-        # Get the lock of the playlist
-        with self.__playlistLock:
-            if not self.__playing or self.__playingSong is None:
-                embed = self.__embeds.NOT_PLAYING()
-                await self.__textChannel.send(embed=embed)
-                return
-
-            if self.__playlist.isLoopingOne():
-                title = self.__messages.ONE_SONG_LOOPING
-            else:
-                title = self.__messages.SONG_PLAYING
-
-            info = self.__playingSong.info
-            embed = self.__embeds.SONG_INFO(info, title)
-            await self.__textChannel.send(embed=embed)
-            self.__messagesToDelete.append(await self.__getSendedMessage())
-
-    async def __deletePrevNowPlaying(self) -> None:
-        for message in self.__messagesToDelete:
-            try:
-                await message.delete()
-            except:
-                pass
-        self.__messagesToDelete.clear()
-
-    async def __getSendedMessage(self) -> Message:
-        stringToIdentify = 'Uploader:'
-        last_messages: List[Message] = await self.__textChannel.history(limit=5).flatten()
-
-        for message in last_messages:
-            try:
-                if message.author == self.__bot.user:
-                    if len(message.embeds) > 0:
-                        embed: Embed = message.embeds[0]
-                        if len(embed.fields) > 0:
-                            if embed.fields[0].name == stringToIdentify:
-                                return message
-
-            except Exception as e:
-                print(f'DEVELOPER NOTE -> Error cleaning messages {e}')
-                continue

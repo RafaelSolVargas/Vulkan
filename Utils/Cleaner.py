@@ -1,16 +1,17 @@
 from typing import List
 from discord.ext.commands import Context
-from discord import Client, Message, Embed
+from discord import Message, Embed
 from Config.Singleton import Singleton
+from Music.VulkanBot import VulkanBot
 
 
 class Cleaner(Singleton):
-    def __init__(self, bot: Client = None) -> None:
+    def __init__(self, bot: VulkanBot = None) -> None:
         if not super().created:
             self.__bot = bot
             self.__clean_str = 'Uploader:'
 
-    def set_bot(self, bot: Client) -> None:
+    def set_bot(self, bot: VulkanBot) -> None:
         self.__bot = bot
 
     async def clean_messages(self, ctx: Context, quant: int) -> None:

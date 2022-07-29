@@ -1,18 +1,24 @@
 from discord.ext.commands import Context
-from discord import Client
 from Handlers.AbstractHandler import AbstractHandler
-from Config.Exceptions import BadCommandUsage
+from Config.Exceptions import BadCommandUsage, ImpossibleMove
 from Handlers.HandlerResponse import HandlerResponse
-from Parallelism.ProcessManager import ProcessManager
+from Music.VulkanBot import VulkanBot
 from Parallelism.Commands import VCommands, VCommandsType
+from typing import Union
+from discord import Interaction
 
 
 class SkipHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: Client) -> None:
+    def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:
-        processManager = ProcessManager()
+        if not self.__user_connected():
+            error = ImpossibleMove()
+            embed = self.embeds.NO_CHANNEL()
+            return HandlerResponse(self.ctx, embed, error)
+
+        processManager = self.config.getProcessManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:  # Verify if there is a running process
             playlist = processInfo.getPlaylist()
@@ -23,10 +29,16 @@ class SkipHandler(AbstractHandler):
 
             # Send a command to the player process to skip the music
             command = VCommands(VCommandsType.SKIP, None)
-            queue = processInfo.getQueue()
+            queue = processInfo.getQueueToPlayer()
             queue.put(command)
 
             return HandlerResponse(self.ctx)
         else:
             embed = self.embeds.NOT_PLAYING()
             return HandlerResponse(self.ctx, embed)
+
+    def __user_connected(self) -> bool:
+        if self.author.voice:
+            return True
+        else:
+            return False

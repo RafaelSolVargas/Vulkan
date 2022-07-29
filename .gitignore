@@ -1,5 +1,4 @@
 .vscode
-assets/
 __pycache__
 .env
 .cache

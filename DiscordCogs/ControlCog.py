@@ -1,24 +1,22 @@
-from discord import Client, Game, Status, Embed
-from discord.ext.commands.errors import CommandNotFound, MissingRequiredArgument
-from discord.ext import commands
-from Config.Configs import Configs
+from discord import Embed
+from discord.ext.commands import Cog, command
+from Config.Configs import VConfigs
 from Config.Helper import Helper
-from Config.Messages import Messages
-from Config.Colors import Colors
-from Views.Embeds import Embeds
+from Config.Colors import VColors
+from Music.VulkanBot import VulkanBot
+from Config.Embeds import VEmbeds
 
 helper = Helper()
 
 
-class ControlCog(commands.Cog):
+class ControlCog(Cog):
     """Class to handle discord events"""
 
-    def __init__(self, bot: Client):
+    def __init__(self, bot: VulkanBot):
         self.__bot = bot
-        self.__config = Configs()
-        self.__messages = Messages()
-        self.__colors = Colors()
-        self.__embeds = Embeds()
+        self.__config = VConfigs()
+        self.__colors = VColors()
+        self.__embeds = VEmbeds()
         self.__commands = {
             'MUSIC': ['resume', 'pause', 'loop', 'stop',
                       'skip', 'play', 'queue', 'clear',
@@ -28,28 +26,7 @@ class ControlCog(commands.Cog):
 
         }
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print(self.__messages.STARTUP_MESSAGE)
-        await self.__bot.change_presence(status=Status.online, activity=Game(name=f"Vulkan | {self.__config.BOT_PREFIX}help"))
-        print(self.__messages.STARTUP_COMPLETE_MESSAGE)
-
-    @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, MissingRequiredArgument):
-            embed = self.__embeds.MISSING_ARGUMENTS()
-            await ctx.send(embed=embed)
-
-        elif isinstance(error, CommandNotFound):
-            embed = self.__embeds.COMMAND_NOT_FOUND()
-            await ctx.send(embed=embed)
-
-        else:
-            print(f'DEVELOPER NOTE -> Command Error: {error}')
-            embed = self.__embeds.UNKNOWN_ERROR()
-            await ctx.send(embed=embed)
-
-    @commands.command(name="help", help=helper.HELP_HELP, description=helper.HELP_HELP_LONG, aliases=['h', 'ajuda'])
+    @command(name="help", help=helper.HELP_HELP, description=helper.HELP_HELP_LONG, aliases=['h', 'ajuda'])
     async def help_msg(self, ctx, command_help=''):
         if command_help != '':
             for command in self.__bot.commands:
@@ -97,10 +74,10 @@ class ControlCog(commands.Cog):
                 colour=self.__colors.BLUE
             )
 
-            embedhelp.set_thumbnail(url=self.__bot.user.avatar_url)
+            embedhelp.set_thumbnail(url=self.__bot.user.avatar)
             await ctx.send(embed=embedhelp)
 
-    @commands.command(name='invite', help=helper.HELP_INVITE, description=helper.HELP_INVITE_LONG, aliases=['convite', 'inv', 'convidar'])
+    @command(name='invite', help=helper.HELP_INVITE, description=helper.HELP_INVITE_LONG, aliases=['convite', 'inv', 'convidar'])
     async def invite_bot(self, ctx):
         invite_url = self.__config.INVITE_URL.format(self.__bot.user.id)
         txt = self.__config.INVITE_MESSAGE.format(invite_url, invite_url)

@@ -1,17 +1,18 @@
 from discord.ext.commands import Context
-from discord import Client
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Config.Exceptions import UnknownError
-from Parallelism.ProcessManager import ProcessManager
+from Music.VulkanBot import VulkanBot
+from typing import Union
+from discord import Interaction
 
 
 class ShuffleHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: Client) -> None:
+    def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:
-        processManager = ProcessManager()
+        processManager = self.config.getProcessManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:
             try:

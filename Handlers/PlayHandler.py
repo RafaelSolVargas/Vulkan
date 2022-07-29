@@ -2,20 +2,21 @@ import asyncio
 from typing import List
 from Config.Exceptions import DownloadingError, InvalidInput, VulkanError
 from discord.ext.commands import Context
-from discord import Client
 from Handlers.AbstractHandler import AbstractHandler
 from Config.Exceptions import ImpossibleMove, UnknownError
 from Handlers.HandlerResponse import HandlerResponse
 from Music.Downloader import Downloader
 from Music.Searcher import Searcher
 from Music.Song import Song
-from Parallelism.ProcessManager import ProcessManager
 from Parallelism.ProcessInfo import ProcessInfo
 from Parallelism.Commands import VCommands, VCommandsType
+from Music.VulkanBot import VulkanBot
+from typing import Union
+from discord import Interaction
 
 
 class PlayHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: Client) -> None:
+    def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
         self.__searcher = Searcher()
         self.__down = Downloader()
@@ -36,8 +37,8 @@ class PlayHandler(AbstractHandler):
                 raise InvalidInput(self.messages.INVALID_INPUT, self.messages.ERROR_TITLE)
 
             # Get the process context for the current guild
-            processManager = ProcessManager()
-            processInfo = processManager.getPlayerInfo(self.guild, self.ctx)
+            processManager = self.config.getProcessManager()
+            processInfo = processManager.getOrCreatePlayerInfo(self.guild, self.ctx)
             playlist = processInfo.getPlaylist()
             process = processInfo.getProcess()
             if not process.is_alive():  # If process has not yet started, start
@@ -72,7 +73,7 @@ class PlayHandler(AbstractHandler):
                     playlist.add_song(song)
                     # Release the acquired Lock
                     processLock.release()
-                    queue = processInfo.getQueue()
+                    queue = processInfo.getQueueToPlayer()
                     playCommand = VCommands(VCommandsType.PLAY, None)
                     queue.put(playCommand)
                 else:
@@ -104,7 +105,7 @@ class PlayHandler(AbstractHandler):
 
     async def __downloadSongsAndStore(self, songs: List[Song], processInfo: ProcessInfo) -> None:
         playlist = processInfo.getPlaylist()
-        queue = processInfo.getQueue()
+        queue = processInfo.getQueueToPlayer()
         playCommand = VCommands(VCommandsType.PLAY, None)
         # Trigger a task for each song to be downloaded
         tasks: List[asyncio.Task] = []
@@ -113,12 +114,12 @@ class PlayHandler(AbstractHandler):
             tasks.append(task)
 
         # In the original order, await for the task and then if successfully downloaded add in the playlist
-        processManager = ProcessManager()
+        processManager = self.config.getProcessManager()
         for index, task in enumerate(tasks):
             await task
             song = songs[index]
             if not song.problematic:  # If downloaded add to the playlist and send play command
-                processInfo = processManager.getPlayerInfo(self.guild, self.ctx)
+                processInfo = processManager.getOrCreatePlayerInfo(self.guild, self.ctx)
                 processLock = processInfo.getLock()
                 acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
                 if acquired:

@@ -1,16 +1,16 @@
 from Config.Messages import Messages
 from Config.Exceptions import VulkanError
 from discord import Embed
-from Config.Configs import Configs
-from Config.Colors import Colors
+from Config.Configs import VConfigs
+from Config.Colors import VColors
 from datetime import timedelta
 
 
-class Embeds:
+class VEmbeds:
     def __init__(self) -> None:
-        self.__config = Configs()
+        self.__config = VConfigs()
         self.__messages = Messages()
-        self.__colors = Colors()
+        self.__colors = VColors()
 
     def ONE_SONG_LOOPING(self, info: dict) -> Embed:
         title = self.__messages.ONE_SONG_LOOPING
@@ -334,7 +334,7 @@ class Embeds:
 
     def CARA_COROA(self, result: str) -> Embed:
         embed = Embed(
-            title='Cara Cora',
+            title='Cara Coroa',
             description=f'Result: {result}',
             colour=self.__colors.GREEN
         )

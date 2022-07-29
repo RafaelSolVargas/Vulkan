@@ -1,7 +1,7 @@
 from Config.Singleton import Singleton
 
 
-class Colors(Singleton):
+class VColors(Singleton):
     def __init__(self) -> None:
         self.__red = 0xDC143C
         self.__green = 0x1F8B4C

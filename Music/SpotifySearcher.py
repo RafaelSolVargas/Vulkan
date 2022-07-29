@@ -2,14 +2,14 @@ from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.exceptions import SpotifyException
 from Config.Exceptions import SpotifyError
-from Config.Configs import Configs
+from Config.Configs import VConfigs
 from Config.Messages import SpotifyMessages
 
 
 class SpotifySearch():
     def __init__(self) -> None:
         self.__messages = SpotifyMessages()
-        self.__config = Configs()
+        self.__config = VConfigs()
         self.__connected = False
         self.__connect()
 

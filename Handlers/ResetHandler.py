@@ -1,22 +1,23 @@
 from discord.ext.commands import Context
-from discord import Client
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
-from Parallelism.ProcessManager import ProcessManager
 from Parallelism.Commands import VCommands, VCommandsType
+from Music.VulkanBot import VulkanBot
+from typing import Union
+from discord import Interaction
 
 
 class ResetHandler(AbstractHandler):
-    def __init__(self, ctx: Context, bot: Client) -> None:
+    def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:
         # Get the current process of the guild
-        processManager = ProcessManager()
+        processManager = self.config.getProcessManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:
             command = VCommands(VCommandsType.RESET, None)
-            queue = processInfo.getQueue()
+            queue = processInfo.getQueueToPlayer()
             queue.put(command)
 
             return HandlerResponse(self.ctx)

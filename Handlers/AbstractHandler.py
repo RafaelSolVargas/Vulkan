@@ -1,26 +1,31 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Union
 from discord.ext.commands import Context
-from discord import Client, Guild, ClientUser, Member
+from discord import Client, Guild, ClientUser, Interaction, Member, User
 from Config.Messages import Messages
+from Music.VulkanBot import VulkanBot
 from Handlers.HandlerResponse import HandlerResponse
-from Config.Configs import Configs
+from Config.Configs import VConfigs
 from Config.Helper import Helper
-from Views.Embeds import Embeds
+from Config.Embeds import VEmbeds
 
 
 class AbstractHandler(ABC):
-    def __init__(self, ctx: Context, bot: Client) -> None:
-        self.__bot: Client = bot
+    def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
+        self.__bot: VulkanBot = bot
         self.__guild: Guild = ctx.guild
         self.__ctx: Context = ctx
         self.__bot_user: ClientUser = self.__bot.user
         self.__id = self.__bot_user.id
         self.__messages = Messages()
-        self.__config = Configs()
+        self.__config = VConfigs()
         self.__helper = Helper()
-        self.__embeds = Embeds()
+        self.__embeds = VEmbeds()
         self.__bot_member: Member = self.__get_member()
+        if isinstance(ctx, Context):
+            self.__author = ctx.author
+        else:
+            self.__author = ctx.user
 
     @abstractmethod
     async def run(self) -> HandlerResponse:
@@ -39,6 +44,10 @@ class AbstractHandler(ABC):
         return self.__bot_user
 
     @property
+    def author(self) -> User:
+        return self.__author
+
+    @property
     def guild(self) -> Guild:
         return self.__guild
 
@@ -47,7 +56,7 @@ class AbstractHandler(ABC):
         return self.__bot
 
     @property
-    def config(self) -> Configs:
+    def config(self) -> VConfigs:
         return self.__config
 
     @property
@@ -59,11 +68,11 @@ class AbstractHandler(ABC):
         return self.__helper
 
     @property
-    def ctx(self) -> Context:
+    def ctx(self) -> Union[Context, Interaction]:
         return self.__ctx
 
     @property
-    def embeds(self) -> Embeds:
+    def embeds(self) -> VEmbeds:
         return self.__embeds
 
     def __get_member(self) -> Member:

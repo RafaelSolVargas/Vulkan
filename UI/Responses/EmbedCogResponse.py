@@ -1,8 +1,8 @@
-from Views.AbstractView import AbstractView
+from UI.Responses.AbstractCogResponse import AbstractCommandResponse
 from Handlers.HandlerResponse import HandlerResponse
 
 
-class EmbedView(AbstractView):
+class EmbedCommandResponse(AbstractCommandResponse):
     def __init__(self, response: HandlerResponse) -> None:
         super().__init__(response)
 

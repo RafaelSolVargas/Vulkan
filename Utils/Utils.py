@@ -1,8 +1,8 @@
 import re
 import asyncio
-from Config.Configs import Configs
+from Config.Configs import VConfigs
 from functools import wraps, partial
-config = Configs()
+config = VConfigs()
 
 
 class Utils:

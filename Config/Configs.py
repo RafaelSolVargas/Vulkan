@@ -2,7 +2,7 @@ from decouple import config
 from Config.Singleton import Singleton
 
 
-class Configs(Singleton):
+class VConfigs(Singleton):
     def __init__(self) -> None:
         if not super().created:
             self.BOT_PREFIX = '!'
@@ -18,7 +18,7 @@ class Configs(Singleton):
             self.CLEANER_MESSAGES_QUANT = 5
             self.ACQUIRE_LOCK_TIMEOUT = 10
             self.COMMANDS_PATH = 'DiscordCogs'
-            self.VC_TIMEOUT = 600
+            self.VC_TIMEOUT = 300
 
             self.MAX_PLAYLIST_LENGTH = 50
             self.MAX_PLAYLIST_FORCED_LENGTH = 5
@@ -30,3 +30,9 @@ class Configs(Singleton):
 
             self.MY_ERROR_BAD_COMMAND = 'This string serves to verify if some error was raised by myself on purpose'
             self.INVITE_URL = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot'
+
+    def getProcessManager(self):
+        return self.__manager
+
+    def setProcessManager(self, newManager):
+        self.__manager = newManager

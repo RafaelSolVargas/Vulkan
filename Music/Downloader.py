@@ -1,6 +1,6 @@
 import asyncio
 from typing import List
-from Config.Configs import Configs
+from Config.Configs import VConfigs
 from yt_dlp import YoutubeDL, DownloadError
 from concurrent.futures import ThreadPoolExecutor
 from Music.Song import Song
@@ -9,7 +9,7 @@ from Config.Exceptions import DownloadingError
 
 
 class Downloader:
-    config = Configs()
+    config = VConfigs()
     __YDL_OPTIONS = {'format': 'bestaudio/best',
                      'default_search': 'auto',
                      'playliststart': 0,
@@ -34,7 +34,7 @@ class Downloader:
     __BASE_URL = 'https://www.youtube.com/watch?v={}'
 
     def __init__(self) -> None:
-        self.__config = Configs()
+        self.__config = VConfigs()
         self.__music_keys_only = ['resolution', 'fps', 'quality']
         self.__not_extracted_keys_only = ['ie_key']
         self.__not_extracted_not_keys = ['entries']
