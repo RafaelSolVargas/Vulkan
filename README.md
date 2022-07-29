@@ -14,7 +14,7 @@ Vulkan uses multiprocessing and asynchronous Python modules to maximize Music Pl
 #  **Music 🎧**
 - Play musics from Youtube, Spotify and Deezer links (Albums, Artists, Playlists and Tracks).
 - Play musics in multiple discord server at the same time.
-- The player contain buttons to shortcut some commands. 
+- The player contains buttons to shortcut some commands. 
 - Manage the loop of one or all playing musics.
 - Manage the order and remove musics from the queue.
 - Shuffle the musics queue order.
@@ -80,8 +80,10 @@ To deploy and run your Bot in Heroku 24/7, you will need the Procfile located in
 The tests were written manually with no package due to problems with async function in other packages, to execute them type in root: <br>
 `python run_tests.py`<br>
 
+
 ## 📖 License
 - This program is free software: you can redistribute it and/or modify it under the terms of the [MIT License](https://github.com/RafaelSolVargas/Vulkan/blob/master/LICENSE).
+
 
 
 ## 🏗️ Contributing
