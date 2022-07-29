@@ -13,8 +13,13 @@ class PrevHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:
+        if not self.__user_connected():
+            error = ImpossibleMove()
+            embed = self.embeds.NO_CHANNEL()
+            return HandlerResponse(self.ctx, embed, error)
+
         processManager = self.config.getProcessManager()
-        processInfo = processManager.getPlayerInfo(self.guild, self.ctx)
+        processInfo = processManager.getOrCreatePlayerInfo(self.guild, self.ctx)
         if not processInfo:
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
@@ -24,11 +29,6 @@ class PrevHandler(AbstractHandler):
         if len(playlist.getHistory()) == 0:
             error = ImpossibleMove()
             embed = self.embeds.NOT_PREVIOUS_SONG()
-            return HandlerResponse(self.ctx, embed, error)
-
-        if not self.__user_connected():
-            error = ImpossibleMove()
-            embed = self.embeds.NO_CHANNEL()
             return HandlerResponse(self.ctx, embed, error)
 
         if playlist.isLoopingAll() or playlist.isLoopingOne():

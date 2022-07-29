@@ -1,6 +1,6 @@
 from discord.ext.commands import Context
 from Handlers.AbstractHandler import AbstractHandler
-from Config.Exceptions import BadCommandUsage
+from Config.Exceptions import BadCommandUsage, ImpossibleMove
 from Handlers.HandlerResponse import HandlerResponse
 from Music.VulkanBot import VulkanBot
 from Parallelism.Commands import VCommands, VCommandsType
@@ -13,6 +13,11 @@ class SkipHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:
+        if not self.__user_connected():
+            error = ImpossibleMove()
+            embed = self.embeds.NO_CHANNEL()
+            return HandlerResponse(self.ctx, embed, error)
+
         processManager = self.config.getProcessManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:  # Verify if there is a running process
@@ -31,3 +36,9 @@ class SkipHandler(AbstractHandler):
         else:
             embed = self.embeds.NOT_PLAYING()
             return HandlerResponse(self.ctx, embed)
+
+    def __user_connected(self) -> bool:
+        if self.author.voice:
+            return True
+        else:
+            return False

@@ -35,16 +35,9 @@ class ProcessManager(Singleton):
     def setPlayerInfo(self, guild: Guild, info: ProcessInfo):
         self.__playersProcess[guild.id] = info
 
-    def getPlayerInfo(self, guild: Guild, context: Union[Context, Interaction]) -> ProcessInfo:
-        """Return the process info for the guild, if not and context is a instance
-        of discord.Context then create one, else return None"""
+    def getOrCreatePlayerInfo(self, guild: Guild, context: Union[Context, Interaction]) -> ProcessInfo:
+        """Return the process info for the guild, the user in context must be connected to a voice_channel"""
         try:
-            if isinstance(context, Interaction):
-                if guild.id not in self.__playersProcess.keys():
-                    return None
-                else:
-                    return self.__playersProcess[guild.id]
-
             if guild.id not in self.__playersProcess.keys():
                 self.__playersProcess[guild.id] = self.__createProcessInfo(guild, context)
             else:
@@ -102,12 +95,16 @@ class ProcessManager(Singleton):
 
         return processInfo
 
-    def __recreateProcess(self, guild: Guild, context: Context) -> ProcessInfo:
+    def __recreateProcess(self, guild: Guild, context: Union[Context, Interaction]) -> ProcessInfo:
         """Create a new process info using previous playlist"""
         guildID: int = context.guild.id
         textID: int = context.channel.id
-        voiceID: int = context.author.voice.channel.id
-        authorID: int = context.author.id
+        if isinstance(context, Interaction):
+            authorID: int = context.user.id
+            voiceID: int = context.user.voice.channel.id
+        else:
+            authorID: int = context.author.id
+            voiceID: int = context.author.voice.channel.id
 
         playlist: Playlist = self.__playersProcess[guildID].getPlaylist()
         lock = Lock()

@@ -1,68 +1,48 @@
-# **Vulkan**
-
-A Music Discord bot, written in Python, that plays *Youtube*, *Spotify* and *Deezer* links. Vulkan was designed so that anyone can fork this project, follow the instructions and use it in their own way, Vulkan can also be configured in Heroku to work 24/7.
+<h1 align="center"> Vulkan</h1> 
 
 
-#  **Music**
-- Play musics from Youtube, Spotify and Deezer links (Albums, Artists, Playlists and Tracks)
-- Control loop of one or all musics
-- Allow moving and removing musics in the queue
-- Play musics in queue randomly
-- Store played songs and allow bidirectional flow
+A Music Discord Bot, that plays *Youtube*, *Spotify*, *Deezer* links or raw queries. Vulkan is open source, so everyone can fork this project, follow the instructions and use it in their own way, executing it in your own machine or hosting in others machines to work 24/7.
 
-### Commands
-```!play [title, spotify_url, youtube_url, deezer_url]``` - Start playing song
+Vulkan uses multiprocessing and asynchronous Python modules to maximize Music Player response time, so the player doesn't lag when many commands are being processed and it can play in multiples discord serves at the same time without affecting the Music Player response time.
 
-```!resume``` - Resume the song player
 
-```!pause``` - Pause the song player
+<p align="center">
+  <img src="./Assets/playermenu.jfif" />
+</p>
 
-```!skip``` - Skip the currently playing song
 
-```!prev``` - Return to play the previous song
-
-```!stop``` - Stop the playing of musics
-
-```!queue``` - Show the musics list in queue
-
-```!history``` - Show the played songs list
-
-```!loop [one, all, off]``` - Control the loop of songs 
-
-```!shuffle``` - Shuffle the songs in queue
-
-```!remove [x]``` - Remove the song in position x
-
-```!move [x, y]``` - Change the musics in position x and y in Queue
-
-```!np``` - Show information of the currently song 
-
-```!clear``` - Clear the songs in queue, doesn't stop the player 
-
-```!reset``` - Reset the player, recommended if any error happen 
-
-```!invite``` - Send the URL to invite Vulkan to your server
-
-```!help [command]``` - Show more info about the command selected
+#  **Music 🎧**
+- Play musics from Youtube, Spotify and Deezer links (Albums, Artists, Playlists and Tracks).
+- Play musics in multiple discord server at the same time.
+- The player contain buttons to shortcut some commands. 
+- Manage the loop of one or all playing musics.
+- Manage the order and remove musics from the queue.
+- Shuffle the musics queue order.
 
 
 
-# **Usage:** 
+<p align="center">
+  <img src="./Assets/vulkancommands.jfif" />
+</p>
 
-### **API Keys**
+
+
+# **How to use it** 
+
+
+### **Requirements**
+Installation of Python 3.8+ and the dependencies in the requirements.txt file, creation of your own Bot in Discord and Spotify Keys. 
+```
+pip install -r requirements.txt
+```
+### **🔑 API Keys**
+You have to create your own discord Bot and store your Bot Token 
  * Your Discord Application - [Discord](https://discord.com/developers)
  * You own Spotify Keys - [Spotify](https://developer.spotify.com/dashboard/applications)
 
     - This information must be stored in an .env file, explained further.
 
-### **Requirements**
-- Installation of Python 3.8+ and the dependencies in the requirements.txt file.
-```
-pip install -r requirements.txt
-```
-
-
--  **Installation of FFMPEG**<br>
+###  **Installation of FFMPEG**<br>
 FFMPEG is a module that will be used to play music, you must have this configured in your machine
 *FFMPEG must be configured in the PATH for Windows users. Check this [YoutubeVideo](https://www.youtube.com/watch?v=r1AtmY-RMyQ&t=114s&ab_channel=TroubleChute).* <br><br>
 You can download the executables in this link `https://www.ffmpeg.org/download.html` and then put the .exe files inside a ffmpeg\bin folder in your C:\ folder. Do not forget to add 'ffmpeg\bin' to your PATH.
@@ -78,8 +58,8 @@ BOT_PREFIX=Your_Wanted_Prefix_For_Vulkan
 
 ```
 
-### **Config File**
-The config file, located in ```./config``` folder doesn't require any change, but if you acquire the knowledged of how it works, you can change it to the way you want.
+### **⚙️ Configs**
+The config file is located at ```./config/Configs.py```, it doesn't require any change, but if you can change values to the way you want.
 
 
 ### **Initialization**
@@ -87,25 +67,22 @@ The config file, located in ```./config``` folder doesn't require any change, bu
 - Run ```python main.py``` in console to start
 
 
-## **Heroku**
-To run your Bot in Heroku 24/7, you will need the Procfile located in root, then follow the instructions in this [video](https://www.youtube.com/watch?v=BPvg9bndP1U&ab_channel=TechWithTim). In addition, also add these two buildpacks to your Heroku Application:
+## **🚀 Heroku**
+To deploy and run your Bot in Heroku 24/7, you will need the Procfile located in root, then follow the instructions in this [video](https://www.youtube.com/watch?v=BPvg9bndP1U&ab_channel=TechWithTim). In addition, also add these two buildpacks to your Heroku Application:
 
     - https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git
 
     - https://github.com/xrisk/heroku-opus.git
 
 
-## Testing
+
+## 🧪 Tests
 The tests were written manually with no package due to problems with async function in other packages, to execute them type in root: <br>
 `python run_tests.py`<br>
 
-## License
+## 📖 License
 - This program is free software: you can redistribute it and/or modify it under the terms of the [MIT License](https://github.com/RafaelSolVargas/Vulkan/blob/master/LICENSE).
 
 
-## Contributing
+## 🏗️ Contributing
  - If you are interested in upgrading this project i will be very happy to receive a PR or Issue from you. See TODO project to see if i'm working in some feature now.  
-
-
-## Acknowledgment
- - See the DingoLingo [project](https://github.com/Raptor123471/DingoLingo) from Raptor123471, it helped me a lot to build Vulkan.

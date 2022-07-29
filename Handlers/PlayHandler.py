@@ -38,7 +38,7 @@ class PlayHandler(AbstractHandler):
 
             # Get the process context for the current guild
             processManager = self.config.getProcessManager()
-            processInfo = processManager.getPlayerInfo(self.guild, self.ctx)
+            processInfo = processManager.getOrCreatePlayerInfo(self.guild, self.ctx)
             playlist = processInfo.getPlaylist()
             process = processInfo.getProcess()
             if not process.is_alive():  # If process has not yet started, start
@@ -119,7 +119,7 @@ class PlayHandler(AbstractHandler):
             await task
             song = songs[index]
             if not song.problematic:  # If downloaded add to the playlist and send play command
-                processInfo = processManager.getPlayerInfo(self.guild, self.ctx)
+                processInfo = processManager.getOrCreatePlayerInfo(self.guild, self.ctx)
                 processLock = processInfo.getLock()
                 acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
                 if acquired:

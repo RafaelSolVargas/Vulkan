@@ -32,9 +32,12 @@ class PlayerView(View):
 
     async def on_timeout(self) -> None:
         # Disable all itens and, if has the message, edit it
-        self.disable_all_items()
-        if self.__message is not None and isinstance(self.__message, Message):
-            await self.__message.edit(view=self)
+        try:
+            self.disable_all_items()
+            if self.__message is not None and isinstance(self.__message, Message):
+                await self.__message.edit(view=self)
+        except Exception as e:
+            print(f'[ERROR EDITING MESSAGE] -> {e}')
 
     def set_message(self, message: Message) -> None:
         self.__message = message

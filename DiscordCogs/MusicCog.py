@@ -17,7 +17,6 @@ from Handlers.QueueHandler import QueueHandler
 from Handlers.LoopHandler import LoopHandler
 from UI.Responses.EmoteCogResponse import EmoteCommandResponse
 from UI.Responses.EmbedCogResponse import EmbedCommandResponse
-from UI.Views.PlayerView import PlayerView
 from Music.VulkanBot import VulkanBot
 from Config.Configs import VConfigs
 from Parallelism.ProcessManager import ProcessManager
@@ -232,11 +231,6 @@ class MusicCog(Cog):
             await view2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
-
-    @command(name='rafael')
-    async def rafael(self, ctx: Context) -> None:
-        view = PlayerView(self.__bot)
-        await ctx.send(view=view)
 
 
 def setup(bot):
