@@ -2,6 +2,7 @@ from discord.ext.commands import Context
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Music.VulkanBot import VulkanBot
+from Parallelism.ProcessInfo import ProcessInfo, ProcessStatus
 from Parallelism.Commands import VCommands, VCommandsType
 from typing import Union
 from discord import Interaction
@@ -13,8 +14,12 @@ class StopHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         processManager = self.config.getProcessManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        processInfo: ProcessInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:
+            if processInfo.getStatus() == ProcessStatus.SLEEPING:
+                embed = self.embeds.NOT_PLAYING()
+                return HandlerResponse(self.ctx, embed)
+
             # Send command to player process stop
             command = VCommands(VCommandsType.STOP, None)
             queue = processInfo.getQueueToPlayer()

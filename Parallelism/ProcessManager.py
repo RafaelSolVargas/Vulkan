@@ -11,7 +11,7 @@ from Music.MessagesController import MessagesController
 from Music.Song import Song
 from Parallelism.PlayerProcess import PlayerProcess
 from Music.Playlist import Playlist
-from Parallelism.ProcessInfo import ProcessInfo
+from Parallelism.ProcessInfo import ProcessInfo, ProcessStatus
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
 
@@ -170,6 +170,8 @@ class ProcessManager(Singleton):
         queue1.join_thread()
         queue2.close()
         queue2.join_thread()
+        # Set the status of this process as sleeping, only the playlist object remains
+        self.__playersProcess[guildID].setStatus(ProcessStatus.SLEEPING)
 
     async def showNowPlaying(self, guildID: int, song: Song) -> None:
         messagesController = self.__playersMessages[guildID]

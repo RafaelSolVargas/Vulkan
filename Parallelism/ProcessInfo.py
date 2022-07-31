@@ -1,6 +1,12 @@
+from enum import Enum
 from multiprocessing import Process, Queue, Lock
 from discord import TextChannel
 from Music.Playlist import Playlist
+
+
+class ProcessStatus(Enum):
+    RUNNING = 'Running'
+    SLEEPING = 'Sleeping'
 
 
 class ProcessInfo:
@@ -15,9 +21,16 @@ class ProcessInfo:
         self.__playlist = playlist
         self.__lock = lock
         self.__textChannel = textChannel
+        self.__status = ProcessStatus.RUNNING
 
     def setProcess(self, newProcess: Process) -> None:
         self.__process = newProcess
+
+    def getStatus(self) -> ProcessStatus:
+        return self.__status
+
+    def setStatus(self, status: ProcessStatus) -> None:
+        self.__status = status
 
     def getProcess(self) -> Process:
         return self.__process

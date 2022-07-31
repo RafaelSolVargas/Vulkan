@@ -247,6 +247,7 @@ class PlayerProcess(Process):
             if self.__guild.voice_client.is_connected():
                 with self.__playlistLock:
                     self.__playlist.loop_off()
+                    self.__playlist.clear()
 
                 # Send a command to the main process put this to sleep
                 sleepCommand = VCommands(VCommandsType.SLEEPING)
