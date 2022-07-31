@@ -1,5 +1,7 @@
+import os
 from decouple import config
 from Config.Singleton import Singleton
+from Config.Folder import Folder
 
 
 class VConfigs(Singleton):
@@ -17,7 +19,8 @@ class VConfigs(Singleton):
 
             self.CLEANER_MESSAGES_QUANT = 5
             self.ACQUIRE_LOCK_TIMEOUT = 10
-            self.COMMANDS_PATH = 'DiscordCogs'
+            self.COMMANDS_FOLDER_NAME = 'DiscordCogs'
+            self.COMMANDS_PATH = f'{Folder().rootFolder}{self.COMMANDS_FOLDER_NAME}'
             self.VC_TIMEOUT = 300
 
             self.MAX_PLAYLIST_LENGTH = 50
