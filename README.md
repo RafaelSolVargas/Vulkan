@@ -1,4 +1,4 @@
-<h1 align="center"> Vulkan</h1> 
+<h1 align="center">Vulkan</h1> 
 
 
 A Music Discord Bot, that plays *Youtube*, *Spotify*, *Deezer* links or raw queries. Vulkan is open source, so everyone can fork this project, follow the instructions and use it in their own way, executing it in your own machine or hosting in others machines to work 24/7.
@@ -67,14 +67,12 @@ The config file is located at ```./config/Configs.py```, it doesn't require any 
 - Run ```python main.py``` in console to start
 
 
+<br>
+<hr>
+<br>
+
 ## **🚀 Heroku**
-To deploy and run your Bot in Heroku 24/7, you will need the Procfile located in root, then follow the instructions in this [video](https://www.youtube.com/watch?v=BPvg9bndP1U&ab_channel=TechWithTim). In addition, also add these two buildpacks to your Heroku Application:
-
-    - https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git
-
-    - https://github.com/xrisk/heroku-opus.git
-
-
+To deploy and run your Bot in Heroku 24/7, follow the instructions in the [Heroku Instructions](HEROKU.md) page.
 
 ## 🧪 Tests
 The tests were written manually with no package due to problems with async function in other packages, to execute them type in root: <br>
@@ -82,9 +80,9 @@ The tests were written manually with no package due to problems with async funct
 
 
 ## 📖 License
-- This program is free software: you can redistribute it and/or modify it under the terms of the [MIT License](https://github.com/RafaelSolVargas/Vulkan/blob/master/LICENSE).
+This program is free software: you can redistribute it and/or modify it under the terms of the [MIT License](https://github.com/RafaelSolVargas/Vulkan/blob/master/LICENSE).
 
 
 
 ## 🏗️ Contributing
- - If you are interested in upgrading this project i will be very happy to receive a PR or Issue from you. See TODO project to see if i'm working in some feature now.  
+  If you are interested in upgrading this project i will be very happy to receive a PR or Issue from you. See TODO project to see if i'm working in some feature now.  
