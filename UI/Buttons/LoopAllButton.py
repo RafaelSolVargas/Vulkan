@@ -16,5 +16,7 @@ class LoopAllButton(Button):
         handler = LoopHandler(interaction, self.__bot)
         response = await handler.run('all')
 
-        if response.embed:
+        if response and response.view is not None:
+            await interaction.followup.send(embed=response.embed, view=response.view)
+        elif response:
             await interaction.followup.send(embed=response.embed)

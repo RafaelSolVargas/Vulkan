@@ -8,4 +8,4 @@ class EmbedCommandResponse(AbstractCommandResponse):
 
     async def run(self) -> None:
         if self.response.embed:
-            await self.context.send(embed=self.response.embed)
+            await self.context.send(embed=self.response.embed, view=self.response.view)

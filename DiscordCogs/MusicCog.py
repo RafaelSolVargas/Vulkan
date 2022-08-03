@@ -1,6 +1,8 @@
 from discord.ext.commands import Context, command, Cog
+from Config.Exceptions import InvalidInput
 from Config.Helper import Helper
 from Handlers.ClearHandler import ClearHandler
+from Handlers.HandlerResponse import HandlerResponse
 from Handlers.MoveHandler import MoveHandler
 from Handlers.NowPlayingHandler import NowPlayingHandler
 from Handlers.PlayHandler import PlayHandler
@@ -19,6 +21,7 @@ from UI.Responses.EmoteCogResponse import EmoteCommandResponse
 from UI.Responses.EmbedCogResponse import EmbedCommandResponse
 from Music.VulkanBot import VulkanBot
 from Config.Configs import VConfigs
+from Config.Embeds import VEmbeds
 from Parallelism.ProcessManager import ProcessManager
 
 helper = Helper()
@@ -33,6 +36,7 @@ class MusicCog(Cog):
 
     def __init__(self, bot: VulkanBot) -> None:
         self.__bot: VulkanBot = bot
+        self.__embeds = VEmbeds()
         VConfigs().setProcessManager(ProcessManager(bot))
 
     @command(name="play", help=helper.HELP_PLAY, description=helper.HELP_PLAY_LONG, aliases=['p', 'tocar'])
@@ -50,13 +54,27 @@ class MusicCog(Cog):
             print(f'[ERROR IN COG] -> {e}')
 
     @command(name="queue", help=helper.HELP_QUEUE, description=helper.HELP_QUEUE_LONG, aliases=['q', 'fila', 'musicas'])
-    async def queue(self, ctx: Context) -> None:
+    async def queue(self, ctx: Context, *args) -> None:
         try:
-            controller = QueueHandler(ctx, self.__bot)
+            pageNumber = " ".join(args)
 
-            response = await controller.run()
-            view2 = EmbedCommandResponse(response)
-            await view2.run()
+            controller = QueueHandler(ctx, self.__bot,)
+
+            if pageNumber == "":
+                response = await controller.run()
+            else:
+                pageNumber = int(pageNumber)
+                pageNumber -= 1  # Change index 1 to 0
+                response = await controller.run(pageNumber)
+
+            view = EmbedCommandResponse(response)
+            await view.run()
+        except ValueError as e:
+            error = InvalidInput()
+            embed = self.__embeds.INVALID_ARGUMENTS()
+            response = HandlerResponse(ctx, embed, error)
+            view = EmbedCommandResponse(response)
+            await view.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 

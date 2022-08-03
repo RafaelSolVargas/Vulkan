@@ -16,5 +16,7 @@ class SongsButton(Button):
         handler = QueueHandler(interaction, self.__bot)
         response = await handler.run()
 
-        if response.embed:
+        if response and response.view is not None:
+            await interaction.followup.send(embed=response.embed, view=response.view)
+        elif response:
             await interaction.followup.send(embed=response.embed)

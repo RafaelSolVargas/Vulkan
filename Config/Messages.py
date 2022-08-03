@@ -64,6 +64,8 @@ class Messages(Singleton):
             self.NO_CHANNEL = 'To play some music, connect to any voice channel first.'
             self.NO_GUILD = f'This server does not has a Player, try {configs.BOT_PREFIX}reset'
             self.INVALID_INPUT = f'This URL was too strange, try something better or type {configs.BOT_PREFIX}help play'
+            self.INVALID_INDEX = f'Invalid index passed as argument.'
+            self.INVALID_ARGUMENTS = f'Invalid arguments passed to command.'
             self.DOWNLOADING_ERROR = f"{self.__emojis.ERROR} It's impossible to download and play this video"
             self.EXTRACTING_ERROR = f'{self.__emojis.ERROR} An error ocurred while searching for the songs'
 

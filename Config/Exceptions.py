@@ -79,6 +79,11 @@ class ErrorRemoving(VulkanError):
         super().__init__(message, title, *args)
 
 
+class InvalidIndex(VulkanError):
+    def __init__(self, message='', title='', *args: object) -> None:
+        super().__init__(message, title, *args)
+
+
 class NumberRequired(VulkanError):
     def __init__(self, message='', title='', *args: object) -> None:
         super().__init__(message, title, *args)

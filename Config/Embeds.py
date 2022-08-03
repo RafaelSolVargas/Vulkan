@@ -34,6 +34,14 @@ class VEmbeds:
         )
         return embed
 
+    def INVALID_INDEX(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.BAD_COMMAND_TITLE,
+            description=self.__messages.INVALID_INDEX,
+            colour=self.__colors.BLACK
+        )
+        return embed
+
     def SONG_ADDED_TWO(self, info: dict, pos: int) -> Embed:
         embed = self.SONG_INFO(info, self.__messages.SONG_ADDED_TWO, pos)
         return embed
@@ -158,6 +166,14 @@ class VEmbeds:
         embed = Embed(
             title=self.__messages.ERROR_TITLE,
             description=self.__messages.ERROR_MISSING_ARGUMENTS,
+            colour=self.__colors.BLACK
+        )
+        return embed
+
+    def INVALID_ARGUMENTS(self):
+        embed = Embed(
+            title=self.__messages.BAD_COMMAND_TITLE,
+            description=self.__messages.INVALID_ARGUMENTS,
             colour=self.__colors.BLACK
         )
         return embed
