@@ -277,6 +277,41 @@ class VEmbeds:
         )
         return embed
 
+    def PLAYER_RESUMED(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.SONG_RESUMED,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def SKIPPING_SONG(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.SONG_SKIPPED,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def STOPPING_PLAYER(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.STOPPING,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def RETURNING_SONG(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.RETURNING_SONG,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def PLAYER_PAUSED(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.SONG_PAUSED,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
     def NOT_PREVIOUS_SONG(self) -> Embed:
         embed = Embed(
             title=self.__messages.SONG_PLAYER,

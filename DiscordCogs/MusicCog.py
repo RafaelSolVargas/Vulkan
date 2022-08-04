@@ -17,8 +17,9 @@ from Handlers.ResumeHandler import ResumeHandler
 from Handlers.HistoryHandler import HistoryHandler
 from Handlers.QueueHandler import QueueHandler
 from Handlers.LoopHandler import LoopHandler
-from UI.Responses.EmoteCogResponse import EmoteCommandResponse
-from UI.Responses.EmbedCogResponse import EmbedCommandResponse
+from Messages.MessagesCategory import MessagesCategory
+from Messages.Responses.EmoteCogResponse import EmoteCommandResponse
+from Messages.Responses.EmbedCogResponse import EmbedCommandResponse
 from Music.VulkanBot import VulkanBot
 from Config.Configs import VConfigs
 from Config.Embeds import VEmbeds
@@ -46,10 +47,10 @@ class MusicCog(Cog):
 
             response = await controller.run(args)
             if response is not None:
-                view1 = EmbedCommandResponse(response)
-                view2 = EmoteCommandResponse(response)
-                await view1.run()
-                await view2.run()
+                cogResponser1 = EmbedCommandResponse(response, MessagesCategory.PLAYER)
+                cogResponser2 = EmoteCommandResponse(response, MessagesCategory.PLAYER)
+                await cogResponser1.run()
+                await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -58,7 +59,7 @@ class MusicCog(Cog):
         try:
             pageNumber = " ".join(args)
 
-            controller = QueueHandler(ctx, self.__bot,)
+            controller = QueueHandler(ctx, self.__bot)
 
             if pageNumber == "":
                 response = await controller.run()
@@ -67,14 +68,16 @@ class MusicCog(Cog):
                 pageNumber -= 1  # Change index 1 to 0
                 response = await controller.run(pageNumber)
 
-            view = EmbedCommandResponse(response)
-            await view.run()
+            cogResponser = EmbedCommandResponse(response, MessagesCategory.QUEUE)
+            await cogResponser.run()
         except ValueError as e:
+            # Draft a Handler Response to pass to cogResponser
             error = InvalidInput()
             embed = self.__embeds.INVALID_ARGUMENTS()
             response = HandlerResponse(ctx, embed, error)
-            view = EmbedCommandResponse(response)
-            await view.run()
+
+            cogResponser = EmbedCommandResponse(response, MessagesCategory.QUEUE)
+            await cogResponser.run(deleteLast=False)
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -84,12 +87,10 @@ class MusicCog(Cog):
             controller = SkipHandler(ctx, self.__bot)
 
             response = await controller.run()
-            if response.success:
-                view = EmoteCommandResponse(response)
-            else:
-                view = EmbedCommandResponse(response)
-
-            await view.run()
+            cogResponser1 = EmbedCommandResponse(response, MessagesCategory.PLAYER)
+            cogResponser2 = EmoteCommandResponse(response, MessagesCategory.PLAYER)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -99,12 +100,10 @@ class MusicCog(Cog):
             controller = StopHandler(ctx, self.__bot)
 
             response = await controller.run()
-            if response.success:
-                view = EmoteCommandResponse(response)
-            else:
-                view = EmbedCommandResponse(response)
-
-            await view.run()
+            cogResponser1 = EmbedCommandResponse(response, MessagesCategory.PLAYER)
+            cogResponser2 = EmoteCommandResponse(response, MessagesCategory.PLAYER)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -114,10 +113,10 @@ class MusicCog(Cog):
             controller = PauseHandler(ctx, self.__bot)
 
             response = await controller.run()
-            view1 = EmoteCommandResponse(response)
-            view2 = EmbedCommandResponse(response)
-            await view1.run()
-            await view2.run()
+            cogResponser1 = EmoteCommandResponse(response, MessagesCategory.PLAYER)
+            cogResponser2 = EmbedCommandResponse(response, MessagesCategory.PLAYER)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -127,10 +126,10 @@ class MusicCog(Cog):
             controller = ResumeHandler(ctx, self.__bot)
 
             response = await controller.run()
-            view1 = EmoteCommandResponse(response)
-            view2 = EmbedCommandResponse(response)
-            await view1.run()
-            await view2.run()
+            cogResponser1 = EmoteCommandResponse(response, MessagesCategory.PLAYER)
+            cogResponser2 = EmbedCommandResponse(response, MessagesCategory.PLAYER)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -141,10 +140,10 @@ class MusicCog(Cog):
 
             response = await controller.run()
             if response is not None:
-                view1 = EmbedCommandResponse(response)
-                view2 = EmoteCommandResponse(response)
-                await view1.run()
-                await view2.run()
+                cogResponser1 = EmbedCommandResponse(response, MessagesCategory.PLAYER)
+                cogResponser2 = EmoteCommandResponse(response, MessagesCategory.PLAYER)
+                await cogResponser1.run()
+                await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -154,10 +153,10 @@ class MusicCog(Cog):
             controller = HistoryHandler(ctx, self.__bot)
 
             response = await controller.run()
-            view1 = EmbedCommandResponse(response)
-            view2 = EmoteCommandResponse(response)
-            await view1.run()
-            await view2.run()
+            cogResponser1 = EmbedCommandResponse(response, MessagesCategory.HISTORY)
+            cogResponser2 = EmoteCommandResponse(response, MessagesCategory.HISTORY)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -167,10 +166,10 @@ class MusicCog(Cog):
             controller = LoopHandler(ctx, self.__bot)
 
             response = await controller.run(args)
-            view1 = EmoteCommandResponse(response)
-            view2 = EmbedCommandResponse(response)
-            await view1.run()
-            await view2.run()
+            cogResponser1 = EmoteCommandResponse(response, MessagesCategory.LOOP)
+            cogResponser2 = EmbedCommandResponse(response, MessagesCategory.LOOP)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -180,8 +179,10 @@ class MusicCog(Cog):
             controller = ClearHandler(ctx, self.__bot)
 
             response = await controller.run()
-            view = EmoteCommandResponse(response)
-            await view.run()
+            cogResponser1 = EmbedCommandResponse(response, MessagesCategory.PLAYER)
+            cogResponser2 = EmoteCommandResponse(response, MessagesCategory.PLAYER)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -191,10 +192,10 @@ class MusicCog(Cog):
             controller = NowPlayingHandler(ctx, self.__bot)
 
             response = await controller.run()
-            view1 = EmbedCommandResponse(response)
-            view2 = EmoteCommandResponse(response)
-            await view1.run()
-            await view2.run()
+            cogResponser1 = EmbedCommandResponse(response, MessagesCategory.NOW_PLAYING)
+            cogResponser2 = EmoteCommandResponse(response, MessagesCategory.NOW_PLAYING)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -204,10 +205,10 @@ class MusicCog(Cog):
             controller = ShuffleHandler(ctx, self.__bot)
 
             response = await controller.run()
-            view1 = EmbedCommandResponse(response)
-            view2 = EmoteCommandResponse(response)
-            await view1.run()
-            await view2.run()
+            cogResponser1 = EmbedCommandResponse(response, MessagesCategory.PLAYER)
+            cogResponser2 = EmoteCommandResponse(response, MessagesCategory.PLAYER)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -217,10 +218,10 @@ class MusicCog(Cog):
             controller = MoveHandler(ctx, self.__bot)
 
             response = await controller.run(pos1, pos2)
-            view1 = EmbedCommandResponse(response)
-            view2 = EmoteCommandResponse(response)
-            await view1.run()
-            await view2.run()
+            cogResponser1 = EmbedCommandResponse(response, MessagesCategory.MANAGING_QUEUE)
+            cogResponser2 = EmoteCommandResponse(response, MessagesCategory.MANAGING_QUEUE)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -230,10 +231,10 @@ class MusicCog(Cog):
             controller = RemoveHandler(ctx, self.__bot)
 
             response = await controller.run(position)
-            view1 = EmbedCommandResponse(response)
-            view2 = EmoteCommandResponse(response)
-            await view1.run()
-            await view2.run()
+            cogResponser1 = EmbedCommandResponse(response, MessagesCategory.MANAGING_QUEUE)
+            cogResponser2 = EmoteCommandResponse(response, MessagesCategory.MANAGING_QUEUE)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 
@@ -243,10 +244,10 @@ class MusicCog(Cog):
             controller = ResetHandler(ctx, self.__bot)
 
             response = await controller.run()
-            view1 = EmbedCommandResponse(response)
-            view2 = EmoteCommandResponse(response)
-            await view1.run()
-            await view2.run()
+            cogResponser1 = EmbedCommandResponse(response, MessagesCategory.PLAYER)
+            cogResponser2 = EmoteCommandResponse(response, MessagesCategory.PLAYER)
+            await cogResponser1.run()
+            await cogResponser2.run()
         except Exception as e:
             print(f'[ERROR IN COG] -> {e}')
 

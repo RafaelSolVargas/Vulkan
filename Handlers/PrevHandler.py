@@ -45,7 +45,9 @@ class PrevHandler(AbstractHandler):
         prevCommand = VCommands(VCommandsType.PREV, self.author.voice.channel.id)
         queue = processInfo.getQueueToPlayer()
         queue.put(prevCommand)
-        return HandlerResponse(self.ctx)
+
+        embed = self.embeds.RETURNING_SONG()
+        return HandlerResponse(self.ctx, embed)
 
     def __user_connected(self) -> bool:
         if self.author.voice:

@@ -26,6 +26,9 @@ class Messages(Singleton):
             self.ALL_SONGS_LOOPING = f'{self.__emojis.MUSIC} Looping All Songs'
             self.SONG_PAUSED = f'{self.__emojis.PAUSE} Song paused'
             self.SONG_RESUMED = f'{self.__emojis.PLAY} Song playing'
+            self.SONG_SKIPPED = f'{self.__emojis.SKIP} Song skipped'
+            self.RETURNING_SONG = f'{self.__emojis.BACK} Playing previous song'
+            self.STOPPING = f'{self.__emojis.STOP} Player Stopped'
             self.EMPTY_QUEUE = f'{self.__emojis.QUEUE} Song queue is empty, use {configs.BOT_PREFIX}play to add new songs'
             self.SONG_DOWNLOADING = f'{self.__emojis.DOWNLOADING} Downloading...'
 

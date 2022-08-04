@@ -7,7 +7,9 @@ from Music.VulkanBot import VulkanBot
 emojis = VEmojis()
 
 
-class EmptyView(View):
+class BasicView(View):
+    """View that receives buttons to hold, in timeout disable buttons"""
+
     def __init__(self, bot: VulkanBot, buttons: List[Button], timeout: float = 6000):
         super().__init__(timeout=timeout)
         self.__bot = bot

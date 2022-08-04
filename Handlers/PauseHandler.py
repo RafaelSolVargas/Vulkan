@@ -25,7 +25,8 @@ class PauseHandler(AbstractHandler):
             queue = processInfo.getQueueToPlayer()
             queue.put(command)
 
-            return HandlerResponse(self.ctx)
+            embed = self.embeds.PLAYER_PAUSED()
+            return HandlerResponse(self.ctx, embed)
         else:
             embed = self.embeds.NOT_PLAYING()
             return HandlerResponse(self.ctx, embed)

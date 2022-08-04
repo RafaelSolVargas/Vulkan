@@ -2,14 +2,15 @@ from discord.ext.commands import Context
 from Config.Exceptions import InvalidIndex
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
-from UI.Views.EmptyView import EmptyView
+from Messages.MessagesCategory import MessagesCategory
+from UI.Views.BasicView import BasicView
 from Utils.Utils import Utils
 from Music.VulkanBot import VulkanBot
 from Music.Song import Song
 from Music.Playlist import Playlist
 from typing import List, Union
 from discord import Button, Interaction
-from UI.Buttons.EmptyButton import EmptyButton
+from UI.Buttons.EmptyButton import CallbackButton
 from Config.Emojis import VEmojis
 
 
@@ -54,7 +55,7 @@ class QueueHandler(AbstractHandler):
             songs = songsPages[pageNumber]
             # Create view for this embed
             buttons = self.__createViewButtons(songsPages, pageNumber)
-            queueView = EmptyView(self.bot, buttons, self.config.QUEUE_VIEW_TIMEOUT)
+            queueView = BasicView(self.bot, buttons, self.config.QUEUE_VIEW_TIMEOUT)
 
             if playlist.isLoopingAll():
                 title = self.messages.ALL_SONGS_LOOPING
@@ -86,12 +87,12 @@ class QueueHandler(AbstractHandler):
         buttons = []
         if pageNumber > 0:
             prevPageNumber = pageNumber - 1
-            buttons.append(EmptyButton(self.bot, self.run, VEmojis().BACK,
-                           "Prev Page", pageNumber=prevPageNumber))
+            buttons.append(CallbackButton(self.bot, self.run, VEmojis().BACK, self.ctx.channel,
+                                          self.guild.id, MessagesCategory.QUEUE, "Prev Page", pageNumber=prevPageNumber))
 
         if pageNumber < len(songsPages) - 1:
             nextPageNumber = pageNumber + 1
-            buttons.append(EmptyButton(self.bot, self.run, VEmojis().SKIP,
-                           "Next Page", pageNumber=nextPageNumber))
+            buttons.append(CallbackButton(self.bot, self.run, VEmojis().SKIP, self.ctx.channel,
+                                          self.guild.id, MessagesCategory.QUEUE, "Next Page", pageNumber=nextPageNumber))
 
         return buttons
