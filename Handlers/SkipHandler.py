@@ -26,12 +26,6 @@ class SkipHandler(AbstractHandler):
                 embed = self.embeds.NOT_PLAYING()
                 return HandlerResponse(self.ctx, embed)
 
-            playlist = processInfo.getPlaylist()
-            if playlist.isLoopingOne():
-                embed = self.embeds.ERROR_DUE_LOOP_ONE_ON()
-                error = BadCommandUsage()
-                return HandlerResponse(self.ctx, embed, error)
-
             # Send a command to the player process to skip the music
             command = VCommands(VCommandsType.SKIP, None)
             queue = processInfo.getQueueToPlayer()

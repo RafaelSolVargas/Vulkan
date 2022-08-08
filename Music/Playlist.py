@@ -88,7 +88,7 @@ class Playlist:
             self.__current = None
             return None
 
-        self.__current = self.__queue.popleft()
+        self.__current: Song = self.__queue.popleft()
         return self.__current
 
     def prev_song(self) -> Song:

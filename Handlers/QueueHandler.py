@@ -2,6 +2,7 @@ from discord.ext.commands import Context
 from Config.Exceptions import InvalidIndex
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
+from Handlers.JumpMusicHandler import JumpMusicHandler
 from Messages.MessagesCategory import MessagesCategory
 from UI.Views.BasicView import BasicView
 from Utils.Utils import Utils
@@ -11,6 +12,7 @@ from Music.Playlist import Playlist
 from typing import List, Union
 from discord import Button, Interaction
 from UI.Buttons.EmptyButton import CallbackButton
+from UI.Buttons.PlaylistDropdown import PlaylistDropdown
 from Config.Emojis import VEmojis
 
 
@@ -38,6 +40,12 @@ class QueueHandler(AbstractHandler):
                 processLock.release()  # Release the Lock
                 return HandlerResponse(self.ctx, embed)
 
+            allSongs = playlist.getSongs()
+            if len(allSongs) == 0:
+                embed = self.embeds.EMPTY_QUEUE()
+                processLock.release()  # Release the Lock
+                return HandlerResponse(self.ctx, embed)
+
             songsPages = playlist.getSongsPages()
             if pageNumber < 0 or pageNumber >= len(songsPages):
                 embed = self.embeds.INVALID_INDEX()
@@ -45,16 +53,11 @@ class QueueHandler(AbstractHandler):
                 processLock.release()  # Release the Lock
                 return HandlerResponse(self.ctx, embed, error)
 
-            allSongs = playlist.getSongs()
-            if len(allSongs) == 0:
-                embed = self.embeds.EMPTY_QUEUE()
-                processLock.release()  # Release the Lock
-                return HandlerResponse(self.ctx, embed)
-
             # Select the page in queue to be printed
             songs = songsPages[pageNumber]
             # Create view for this embed
             buttons = self.__createViewButtons(songsPages, pageNumber)
+            buttons.extend(self.__createViewJumpButtons(playlist))
             queueView = BasicView(self.bot, buttons, self.config.QUEUE_VIEW_TIMEOUT)
 
             if playlist.isLoopingAll():
@@ -96,3 +99,6 @@ class QueueHandler(AbstractHandler):
                                           self.guild.id, MessagesCategory.QUEUE, "Next Page", pageNumber=nextPageNumber))
 
         return buttons
+
+    def __createViewJumpButtons(self, playlist: Playlist) -> List[Button]:
+        return [PlaylistDropdown(self.bot, JumpMusicHandler, playlist, self.ctx.channel, self.guild.id, MessagesCategory.PLAYER)]

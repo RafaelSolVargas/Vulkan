@@ -2,7 +2,7 @@ from typing import Union
 from discord.ext.commands import Context
 from Config.Exceptions import VulkanError
 from discord import Embed, Interaction
-from discord.ui import View
+from UI.Views.AbstractView import AbstractView
 
 
 class HandlerResponse:
@@ -22,7 +22,7 @@ class HandlerResponse:
         return self.__embed
 
     @property
-    def view(self) -> View:
+    def view(self) -> AbstractView:
         return self.__view
 
     def error(self) -> Union[VulkanError, None]:

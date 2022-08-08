@@ -1,7 +1,7 @@
 from typing import Awaitable
 from Config.Emojis import VEmojis
 from discord import ButtonStyle, Interaction, Message, TextChannel
-from discord.ui import Button
+from discord.ui import Button, View
 from Handlers.HandlerResponse import HandlerResponse
 from Messages.MessagesCategory import MessagesCategory
 from Messages.MessagesManager import MessagesManager
@@ -21,6 +21,7 @@ class CallbackButton(Button):
         self.__args = args
         self.__kwargs = kwargs
         self.__callback = cb
+        self.__view: View = None
 
     async def callback(self, interaction: Interaction) -> None:
         """Callback to when Button is clicked"""
@@ -29,10 +30,19 @@ class CallbackButton(Button):
 
         response: HandlerResponse = await self.__callback(*self.__args, **self.__kwargs)
 
+        message = None
         if response and response.view is not None:
             message: Message = await self.__channel.send(embed=response.embed, view=response.view)
-        else:
+            response.view.set_message(message)
+        elif response.embed:
             message: Message = await self.__channel.send(embed=response.embed)
 
         # Clear the last sended message in this category and add the new one
-        await self.__messagesManager.addMessageAndClearPrevious(self.__guildID, self.__category, message)
+        if message:
+            await self.__messagesManager.addMessageAndClearPrevious(self.__guildID, self.__category, message)
+
+    def set_view(self, view: View):
+        self.__view = view
+
+    def get_view(self) -> View:
+        return self.__view

@@ -1,6 +1,6 @@
 from Config.Emojis import VEmojis
 from discord import ButtonStyle, Interaction, Message, TextChannel
-from discord.ui import Button
+from discord.ui import Button, View
 from Handlers.HandlerResponse import HandlerResponse
 from Messages.MessagesCategory import MessagesCategory
 from Music.VulkanBot import VulkanBot
@@ -21,6 +21,7 @@ class HandlerButton(Button):
         self.__args = args
         self.__kwargs = kwargs
         self.__handlerClass = handler
+        self.__view: View = None
 
     async def callback(self, interaction: Interaction) -> None:
         """Callback to when Button is clicked"""
@@ -31,10 +32,19 @@ class HandlerButton(Button):
         handler = self.__handlerClass(interaction, self.__bot)
         response: HandlerResponse = await handler.run(*self.__args, **self.__kwargs)
 
+        message = None
         if response and response.view is not None:
             message: Message = await self.__channel.send(embed=response.embed, view=response.view)
-        else:
+            response.view.set_message(message)
+        elif response.embed:
             message: Message = await self.__channel.send(embed=response.embed)
 
         # Clear the last category sended message and add the new one
-        await self.__messagesManager.addMessageAndClearPrevious(self.__guildID, self.__category, message)
+        if message:
+            await self.__messagesManager.addMessageAndClearPrevious(self.__guildID, self.__category, message)
+
+    def set_view(self, view: View):
+        self.__view = view
+
+    def get_view(self) -> View:
+        return self.__view
