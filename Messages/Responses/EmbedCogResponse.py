@@ -19,6 +19,6 @@ class EmbedCommandResponse(AbstractCommandResponse):
         if message:
             # Only delete the previous message if this is not error and not forbidden by method caller
             if deleteLast and self.response.success:
-                await self.manager.addMessageAndClearPrevious(self.context.guild.id, self.category, message)
+                await self.manager.addMessageAndClearPrevious(self.context.guild.id, self.category, message, self.response.view)
             else:
                 self.manager.addMessage(self.context.guild.id, self.category, message)

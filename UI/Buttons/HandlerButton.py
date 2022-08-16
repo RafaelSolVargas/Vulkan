@@ -41,7 +41,7 @@ class HandlerButton(Button):
 
         # Clear the last category sended message and add the new one
         if message:
-            await self.__messagesManager.addMessageAndClearPrevious(self.__guildID, self.__category, message)
+            await self.__messagesManager.addMessageAndClearPrevious(self.__guildID, self.__category, message, response.view)
 
     def set_view(self, view: View):
         self.__view = view

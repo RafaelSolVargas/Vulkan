@@ -43,7 +43,7 @@ class ProcessCommandsExecutor:
         view = self.__getPlayerView(channel)
         # Send Message and add to the MessagesManager
         message = await channel.send(embed=embed, view=view)
-        await self.__messagesManager.addMessageAndClearPrevious(self.__guildID, MessagesCategory.NOW_PLAYING, message)
+        await self.__messagesManager.addMessageAndClearPrevious(self.__guildID, MessagesCategory.NOW_PLAYING, message, view)
 
         # Set in the view the message witch contains the view
         view.set_message(message=message)

@@ -19,15 +19,17 @@ class PlaylistDropdown(Select, AbstractItem):
         songs = list(playlist.getSongs())
 
         values = [str(x) for x in range(1, len(songs) + 1)]
-        # Get the title of each of the 20 first songs, library doesn't accept more
-        songsNames = [song.title[:80] for song in songs[:20]]
+        # Get the title of each of the 20 first songs, the pycord library doesn't accept more
+        songsNames: List[str] = []
+        for x in range(20):
+            songsNames.append(f'{x + 1} - {songs[x].title[:80]}')
 
         selectOptions: List[SelectOption] = []
 
         for x in range(len(songsNames)):
             selectOptions.append(SelectOption(label=songsNames[x], value=values[x]))
 
-        super().__init__(placeholder="Select one music to play now, may be overdue",
+        super().__init__(placeholder="Select one music to play now, may be outdated",
                          min_values=1, max_values=1, options=selectOptions)
 
         self.__playlist = playlist
@@ -55,7 +57,7 @@ class PlaylistDropdown(Select, AbstractItem):
 
         # Clear the last sended message in this category and add the new one
         if message:
-            await self.__messagesManager.addMessageAndClearPrevious(self.__guildID, self.__category, message)
+            await self.__messagesManager.addMessageAndClearPrevious(self.__guildID, self.__category, message, response.view)
 
         # Extreme ugly way to wait for the player process to actually retrieve the next song
         await asyncio.sleep(2)

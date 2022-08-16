@@ -11,7 +11,7 @@ from Music.Song import Song
 from Music.Playlist import Playlist
 from typing import List, Union
 from discord import Button, Interaction
-from UI.Buttons.EmptyButton import CallbackButton
+from UI.Buttons.CallbackButton import CallbackButton
 from UI.Buttons.PlaylistDropdown import PlaylistDropdown
 from Config.Emojis import VEmojis
 

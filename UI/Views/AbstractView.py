@@ -8,3 +8,7 @@ class AbstractView(ABC):
 
     def set_message(self, message) -> None:
         pass
+
+    @abstractmethod
+    def stopView(self) -> None:
+        pass
