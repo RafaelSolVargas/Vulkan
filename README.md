@@ -7,7 +7,7 @@ Vulkan uses multiprocessing and asynchronous Python modules to maximize Music Pl
 
 
 <p align="center">
-  <img src="./Assets/playermenu.jfif" />
+  <img src="./Assets/playermenu.jpg" />
 </p>
 
 
@@ -15,14 +15,20 @@ Vulkan uses multiprocessing and asynchronous Python modules to maximize Music Pl
 - Play musics from Youtube, Spotify and Deezer links (Albums, Artists, Playlists and Tracks).
 - Play musics in multiple discord server at the same time.
 - The player contains buttons to shortcut some commands. 
+- Search for all musics in Queue using buttons
+- Shortcut the playing of one song using dropdown menu.
 - Manage the loop of one or all playing musics.
 - Manage the order and remove musics from the queue.
 - Shuffle the musics queue order.
 
 
+<p align="center">
+  <img src="./Assets/vulkancommands.jpg" />
+</p>
+
 
 <p align="center">
-  <img src="./Assets/vulkancommands.jfif" />
+  <img src="./Assets/queuemessage.jpg" />
 </p>
 
 
