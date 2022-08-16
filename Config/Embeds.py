@@ -34,6 +34,14 @@ class VEmbeds:
         )
         return embed
 
+    def INVALID_INDEX(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.BAD_COMMAND_TITLE,
+            description=self.__messages.INVALID_INDEX,
+            colour=self.__colors.BLACK
+        )
+        return embed
+
     def SONG_ADDED_TWO(self, info: dict, pos: int) -> Embed:
         embed = self.SONG_INFO(info, self.__messages.SONG_ADDED_TWO, pos)
         return embed
@@ -162,6 +170,14 @@ class VEmbeds:
         )
         return embed
 
+    def INVALID_ARGUMENTS(self):
+        embed = Embed(
+            title=self.__messages.BAD_COMMAND_TITLE,
+            description=self.__messages.INVALID_ARGUMENTS,
+            colour=self.__colors.BLACK
+        )
+        return embed
+
     def COMMAND_NOT_FOUND(self) -> Embed:
         embed = Embed(
             title=self.__messages.COMMAND_NOT_FOUND_TITLE,
@@ -257,6 +273,41 @@ class VEmbeds:
     def LOOP_DISABLE(self) -> Embed:
         embed = Embed(
             title=self.__messages.LOOP_DISABLE,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def PLAYER_RESUMED(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.SONG_RESUMED,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def SKIPPING_SONG(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.SONG_SKIPPED,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def STOPPING_PLAYER(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.STOPPING,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def RETURNING_SONG(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.RETURNING_SONG,
+            colour=self.__colors.BLUE
+        )
+        return embed
+
+    def PLAYER_PAUSED(self) -> Embed:
+        embed = Embed(
+            title=self.__messages.SONG_PAUSED,
             colour=self.__colors.BLUE
         )
         return embed

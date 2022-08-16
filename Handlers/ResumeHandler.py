@@ -25,7 +25,8 @@ class ResumeHandler(AbstractHandler):
             queue = processInfo.getQueueToPlayer()
             queue.put(command)
 
-            return HandlerResponse(self.ctx)
+            embed = self.embeds.PLAYER_RESUMED()
+            return HandlerResponse(self.ctx, embed)
         else:
             embed = self.embeds.NOT_PLAYING()
             return HandlerResponse(self.ctx, embed)

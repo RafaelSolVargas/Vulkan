@@ -50,6 +50,15 @@ class Playlist:
     def getSongsToPreload(self) -> List[Song]:
         return list(self.__queue)[:self.__configs.MAX_PRELOAD_SONGS]
 
+    def getSongsPages(self) -> List[List[Song]]:
+        songsPages = []
+        for x in range(0, len(self.__queue), self.__configs.MAX_SONGS_IN_PAGE):
+            endIndex = x + self.__configs.MAX_SONGS_IN_PAGE
+            startIndex = x
+            songsPages.append(list(self.__queue)[startIndex:endIndex])
+
+        return songsPages
+
     def __len__(self) -> int:
         return len(self.__queue)
 
@@ -79,7 +88,7 @@ class Playlist:
             self.__current = None
             return None
 
-        self.__current = self.__queue.popleft()
+        self.__current: Song = self.__queue.popleft()
         return self.__current
 
     def prev_song(self) -> Song:

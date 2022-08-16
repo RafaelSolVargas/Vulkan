@@ -7,7 +7,7 @@ from typing import Dict, Tuple, Union
 from Config.Singleton import Singleton
 from discord import Guild, Interaction
 from discord.ext.commands import Context
-from Music.MessagesController import MessagesController
+from Parallelism.ProcessExecutor import ProcessCommandsExecutor
 from Music.Song import Song
 from Parallelism.PlayerProcess import PlayerProcess
 from Music.Playlist import Playlist
@@ -30,7 +30,7 @@ class ProcessManager(Singleton):
             self.__manager.start()
             self.__playersProcess: Dict[Guild, ProcessInfo] = {}
             self.__playersListeners: Dict[Guild, Tuple[Thread, bool]] = {}
-            self.__playersMessages: Dict[Guild, MessagesController] = {}
+            self.__playersCommandsExecutor: Dict[Guild, ProcessCommandsExecutor] = {}
 
     def setPlayerInfo(self, guild: Guild, info: ProcessInfo):
         self.__playersProcess[guild.id] = info
@@ -91,7 +91,7 @@ class ProcessManager(Singleton):
         thread.start()
 
         # Create a Message Controller for this player
-        self.__playersMessages[guildID] = MessagesController(self.__bot)
+        self.__playersCommandsExecutor[guildID] = ProcessCommandsExecutor(self.__bot, guildID)
 
         return processInfo
 
@@ -157,7 +157,7 @@ class ProcessManager(Singleton):
     def __terminateProcess(self, guildID: int) -> None:
         # Delete all structures associated with the Player
         del self.__playersProcess[guildID]
-        del self.__playersMessages[guildID]
+        del self.__playersCommandsExecutor[guildID]
         threadListening = self.__playersListeners[guildID]
         threadListening._stop()
         del self.__playersListeners[guildID]
@@ -174,9 +174,9 @@ class ProcessManager(Singleton):
         self.__playersProcess[guildID].setStatus(ProcessStatus.SLEEPING)
 
     async def showNowPlaying(self, guildID: int, song: Song) -> None:
-        messagesController = self.__playersMessages[guildID]
+        commandExecutor = self.__playersCommandsExecutor[guildID]
         processInfo = self.__playersProcess[guildID]
-        await messagesController.sendNowPlaying(processInfo, song)
+        await commandExecutor.sendNowPlaying(processInfo, song)
 
 
 class VManager(BaseManager):

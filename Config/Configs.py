@@ -19,12 +19,14 @@ class VConfigs(Singleton):
 
             self.CLEANER_MESSAGES_QUANT = 5
             self.ACQUIRE_LOCK_TIMEOUT = 10
+            self.QUEUE_VIEW_TIMEOUT = 120
             self.COMMANDS_FOLDER_NAME = 'DiscordCogs'
             self.COMMANDS_PATH = f'{Folder().rootFolder}{self.COMMANDS_FOLDER_NAME}'
             self.VC_TIMEOUT = 300
 
             self.MAX_PLAYLIST_LENGTH = 50
             self.MAX_PLAYLIST_FORCED_LENGTH = 5
+            self.MAX_SONGS_IN_PAGE = 10
             self.MAX_PRELOAD_SONGS = 15
             self.MAX_SONGS_HISTORY = 15
 

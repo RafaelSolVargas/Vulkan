@@ -42,6 +42,7 @@ class VulkanInitializer:
                     cogsStatus.append(bot.load_extension(cogPath, store=True))
 
             if len(bot.cogs.keys()) != self.__getTotalCogs():
+                print(cogsStatus)
                 raise VulkanError(message='Failed to load some Cog')
 
         except VulkanError as e:
