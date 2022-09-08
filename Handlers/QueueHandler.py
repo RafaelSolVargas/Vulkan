@@ -74,8 +74,8 @@ class QueueHandler(AbstractHandler):
             # To work get the correct index of all songs
             startIndex = (pageNumber * self.config.MAX_SONGS_IN_PAGE) + 1
             for pos, song in enumerate(songs, start=startIndex):
-                song_name = song.title if song.title else self.messages.SONG_DOWNLOADING
-                text += f"**`{pos}` - ** {song_name} - `{Utils.format_time(song.duration)}`\n"
+                song_name = song.title[:50] if song.title else self.messages.SONG_DOWNLOADING
+                text += f"**`{pos}` - ** [{song_name}]({song.identifier}) - `{Utils.format_time(song.duration)}`\n"
 
             embed = self.embeds.QUEUE(title, text)
             # Release the acquired Lock

@@ -1,3 +1,4 @@
+from random import random
 from Config.Messages import Messages
 from Config.Exceptions import VulkanError
 from discord import Embed
@@ -11,6 +12,13 @@ class VEmbeds:
         self.__config = VConfigs()
         self.__messages = Messages()
         self.__colors = VColors()
+
+    def __willShowProject(self) -> bool:
+        return (random() * 100 < self.__config.CHANCE_SHOW_PROJECT)
+
+    def __addFooterContent(self, embed: Embed) -> Embed:
+        footerText = f'\u200b Please support this project by leaving a star: {self.__config.PROJECT_URL}'
+        return embed.set_footer(text=footerText, icon_url=self.__config.SUPPORTING_ICON)
 
     def ONE_SONG_LOOPING(self, info: dict) -> Embed:
         title = self.__messages.ONE_SONG_LOOPING
@@ -113,6 +121,8 @@ class VEmbeds:
                           value=position,
                           inline=True)
 
+        if self.__willShowProject():
+            embedvc = self.__addFooterContent(embedvc)
         return embedvc
 
     def SONG_MOVED(self, song_name: str, pos1: int, pos2: int) -> Embed:
@@ -340,6 +350,9 @@ class VEmbeds:
             description=description,
             colour=self.__colors.BLUE
         )
+
+        if self.__willShowProject():
+            embed = self.__addFooterContent(embed)
         return embed
 
     def INVITE(self, bot_id: str) -> Embed:

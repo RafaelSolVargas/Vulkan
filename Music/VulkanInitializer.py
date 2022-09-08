@@ -1,4 +1,3 @@
-import os
 from random import choices
 import string
 from discord.bot import Bot

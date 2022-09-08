@@ -24,6 +24,10 @@ class VConfigs(Singleton):
             self.COMMANDS_PATH = f'{Folder().rootFolder}{self.COMMANDS_FOLDER_NAME}'
             self.VC_TIMEOUT = 300
 
+            self.CHANCE_SHOW_PROJECT = 15
+            self.PROJECT_URL = 'https://github.com/RafaelSolVargas/Vulkan'
+            self.SUPPORTING_ICON = 'https://i.pinimg.com/originals/d6/05/b4/d605b4f8c5d1c6ae20dc353ef9f091bd.png'
+
             self.MAX_PLAYLIST_LENGTH = 50
             self.MAX_PLAYLIST_FORCED_LENGTH = 5
             self.MAX_SONGS_IN_PAGE = 10

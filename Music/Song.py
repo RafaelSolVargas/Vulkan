@@ -1,5 +1,4 @@
 class Song:
-
     def __init__(self, identifier: str, playlist, requester: str) -> None:
         self.__identifier = identifier
         self.__info = {'requester': requester}
