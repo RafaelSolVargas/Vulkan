@@ -75,7 +75,20 @@ class QueueHandler(AbstractHandler):
             startIndex = (pageNumber * self.config.MAX_SONGS_IN_PAGE) + 1
             for pos, song in enumerate(songs, start=startIndex):
                 song_name = song.title[:50] if song.title else self.messages.SONG_DOWNLOADING
-                text += f"**`{pos}` - ** [{song_name}]({song.identifier}) - `{Utils.format_time(song.duration)}`\n"
+
+                songURL = ''
+                hasURL = False
+                if 'original_url' in song.info.keys():
+                    hasURL = True
+                    songURL = song.info['original_url']
+                elif 'webpage_url' in song.info.keys():
+                    hasURL = True
+                    songURL = song.info['webpage_url']
+
+                if hasURL:
+                    text += f"**`{pos}` - ** [{song_name}]({songURL}) - `{Utils.format_time(song.duration)}`\n"
+                else:
+                    text += f"**`{pos}` - ** {song_name} - `{Utils.format_time(song.duration)}`\n"
 
             embed = self.embeds.QUEUE(title, text)
             # Release the acquired Lock
