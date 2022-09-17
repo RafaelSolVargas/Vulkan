@@ -20,6 +20,7 @@ Vulkan uses multiprocessing and asynchronous Python modules to maximize Music Pl
 - Manage the loop of one or all playing musics.
 - Manage the order and remove musics from the queue.
 - Shuffle the musics queue order.
+- Automatically clean the sended messages so it doesn't fill up your server.
 
 
 <p align="center">
@@ -37,7 +38,9 @@ Vulkan uses multiprocessing and asynchronous Python modules to maximize Music Pl
 
 
 ### **Requirements**
-Installation of Python 3.8+ and the dependencies in the requirements.txt file, creation of your own Bot in Discord and Spotify Keys. 
+Installation of ``Python 3.10+`` and the dependencies in the requirements.txt file, creation of your own Bot in Discord and Spotify Keys. <br>
+To install the dependencies type this command in the terminal, in the project root folder.
+ 
 ```
 pip install -r requirements.txt
 ```

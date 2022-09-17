@@ -21,7 +21,8 @@ class PlaylistDropdown(Select, AbstractItem):
         values = [str(x) for x in range(1, len(songs) + 1)]
         # Get the title of each of the 20 first songs, the pycord library doesn't accept more
         songsNames: List[str] = []
-        for x in range(20):
+        songsLength = min(20, len(songs))
+        for x in range(songsLength):
             songsNames.append(f'{x + 1} - {songs[x].title[:80]}')
 
         selectOptions: List[SelectOption] = []

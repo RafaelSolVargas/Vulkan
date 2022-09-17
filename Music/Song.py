@@ -28,6 +28,12 @@ class Song:
             if key in info.keys():
                 self.__info[key] = info[key]
 
+        self.__cleanTitle()
+
+    def __cleanTitle(self) -> None:
+        self.__info['title'] = ''.join(char if char.isalnum() or char ==
+                                       ' ' else ' ' for char in self.__info['title'])
+
     @property
     def source(self) -> str:
         if 'url' in self.__info.keys():

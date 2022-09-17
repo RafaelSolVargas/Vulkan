@@ -15,21 +15,24 @@ class Downloader:
                      'playliststart': 0,
                      'extract_flat': False,
                      'playlistend': config.MAX_PLAYLIST_LENGTH,
-                     'quiet': True
+                     'quiet': True,
+                     'ignore_no_formats_error': True
                      }
     __YDL_OPTIONS_EXTRACT = {'format': 'bestaudio/best',
                              'default_search': 'auto',
                              'playliststart': 0,
                              'extract_flat': True,
                              'playlistend': config.MAX_PLAYLIST_LENGTH,
-                             'quiet': True
+                             'quiet': True,
+                             'ignore_no_formats_error': True
                              }
     __YDL_OPTIONS_FORCE_EXTRACT = {'format': 'bestaudio/best',
                                    'default_search': 'auto',
                                    'playliststart': 0,
                                    'extract_flat': False,
                                    'playlistend': config.MAX_PLAYLIST_LENGTH,
-                                   'quiet': True
+                                   'quiet': True,
+                                   'ignore_no_formats_error': True
                                    }
     __BASE_URL = 'https://www.youtube.com/watch?v={}'
 
@@ -110,7 +113,7 @@ class Downloader:
 
                 return result
             except Exception as e:  # Any type of error in download
-                print(f'DEVELOPER NOTE -> Error Downloading URL {e}')
+                print(f'DEVELOPER NOTE -> Error Downloading {url} -> {e}')
                 return None
 
     async def download_song(self, song: Song) -> None:
@@ -118,12 +121,15 @@ class Downloader:
             return None
 
         def __download_func(song: Song) -> None:
-            if Utils.is_url(song.identifier):
-                song_info = self.__download_url(song.identifier)
-            else:
-                song_info = self.__download_title(song.identifier)
+            try:
+                if Utils.is_url(song.identifier):
+                    song_info = self.__download_url(song.identifier)
+                else:
+                    song_info = self.__download_title(song.identifier)
 
-            song.finish_down(song_info)
+                song.finish_down(song_info)
+            except Exception as e:
+                print(f'DEVELOPER NOTE -> Error Downloading {song.identifier} -> {e}')
 
         # Creating a loop task to download each song
         loop = asyncio.get_event_loop()
