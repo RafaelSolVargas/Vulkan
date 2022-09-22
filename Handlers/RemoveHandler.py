@@ -1,10 +1,10 @@
-from typing import Union
 from discord.ext.commands import Context
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Config.Exceptions import BadCommandUsage, VulkanError, ErrorRemoving, InvalidInput, NumberRequired
 from Music.Playlist import Playlist
 from Music.VulkanBot import VulkanBot
+from Parallelism.ProcessInfo import ProcessInfo
 from typing import Union
 from discord import Interaction
 
@@ -16,15 +16,14 @@ class RemoveHandler(AbstractHandler):
     async def run(self, position: str) -> HandlerResponse:
         # Get the current process of the guild
         processManager = self.config.getProcessManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
+        processInfo: ProcessInfo = processManager.getRunningPlayerInfo(self.guild)
         if not processInfo:
-            # Clear the playlist
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)
 
         playlist = processInfo.getPlaylist()
-        if playlist.getCurrentSong() is None:
+        if playlist is None:
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)

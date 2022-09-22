@@ -45,7 +45,12 @@ class MusicCog(Cog):
         try:
             controller = PlayHandler(ctx, self.__bot)
 
-            response = await controller.run(args)
+            if len(args) > 1:
+                track = " ".join(args)
+            else:
+                track = args
+
+            response = await controller.run(track)
             if response is not None:
                 cogResponser1 = EmbedCommandResponse(response, MessagesCategory.PLAYER)
                 cogResponser2 = EmoteCommandResponse(response, MessagesCategory.PLAYER)

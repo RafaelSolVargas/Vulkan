@@ -31,6 +31,7 @@ class Messages(Singleton):
             self.STOPPING = f'{self.__emojis.STOP} Player Stopped'
             self.EMPTY_QUEUE = f'{self.__emojis.QUEUE} Song queue is empty, use {configs.BOT_PREFIX}play to add new songs'
             self.SONG_DOWNLOADING = f'{self.__emojis.DOWNLOADING} Downloading...'
+            self.PLAYLIST_CLEAR = f'{self.__emojis.MUSIC} Playlist is now empty'
 
             self.HISTORY_TITLE = f'{self.__emojis.MUSIC} Played Songs'
             self.HISTORY_EMPTY = f'{self.__emojis.QUEUE} There is no musics in history'

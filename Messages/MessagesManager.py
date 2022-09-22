@@ -1,19 +1,20 @@
 from typing import Dict, List
-from discord import Message
 from Config.Singleton import Singleton
 from UI.Views.AbstractView import AbstractView
 from Messages.MessagesCategory import MessagesCategory
+from Messages.DiscordMessages import VAbstractMessage
+import traceback
 
 
 class MessagesManager(Singleton):
     def __init__(self) -> None:
         if not super().created:
             # For each guild, and for each category, there will be a list of messages
-            self.__guildsMessages: Dict[int, Dict[MessagesCategory, List[Message]]] = {}
+            self.__guildsMessages: Dict[int, Dict[MessagesCategory, List[VAbstractMessage]]] = {}
             # Will, for each message, store the AbstractView that controls it
-            self.__messagesViews: Dict[Message, AbstractView] = {}
+            self.__messagesViews: Dict[VAbstractMessage, AbstractView] = {}
 
-    def addMessage(self, guildID: int, category: MessagesCategory, message: Message, view: AbstractView = None) -> None:
+    def addMessage(self, guildID: int, category: MessagesCategory, message: VAbstractMessage, view: AbstractView = None) -> None:
         if message is None:
             return
 
@@ -29,7 +30,7 @@ class MessagesManager(Singleton):
             self.__messagesViews[message] = view
         sendedMessages.append(message)
 
-    async def addMessageAndClearPrevious(self, guildID: int, category: MessagesCategory, message: Message, view: AbstractView = None) -> None:
+    async def addMessageAndClearPrevious(self, guildID: int, category: MessagesCategory, message: VAbstractMessage, view: AbstractView = None) -> None:
         if message is None:
             return
 
@@ -66,7 +67,7 @@ class MessagesManager(Singleton):
             for message in categoriesMessages[category]:
                 self.__deleteMessage(message)
 
-    async def __deleteMessage(self, message: Message) -> None:
+    async def __deleteMessage(self, message: VAbstractMessage) -> None:
         try:
             # If there is a view for this message delete the key
             if message in self.__messagesViews.keys():
@@ -75,6 +76,5 @@ class MessagesManager(Singleton):
                 del messageView
 
             await message.delete()
-        except Exception as e:
-            print(f'[ERROR DELETING MESSAGE] -> {e}')
-            pass
+        except Exception:
+            print(f'[ERROR DELETING MESSAGE] -> {traceback.format_exc()}')

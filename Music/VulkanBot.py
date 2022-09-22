@@ -8,12 +8,17 @@ from Config.Embeds import VEmbeds
 
 
 class VulkanBot(Bot):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, listingSlash: bool = False, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.__listingSlash = listingSlash
         self.__configs = VConfigs()
         self.__messages = Messages()
         self.__embeds = VEmbeds()
         self.remove_command("help")
+
+    @property
+    def listingSlash(self) -> bool:
+        return self.__listingSlash
 
     def startBot(self) -> None:
         """Blocking function that will start the bot"""

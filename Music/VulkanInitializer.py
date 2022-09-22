@@ -23,13 +23,18 @@ class VulkanInitializer:
     def __create_bot(self, willListen: bool) -> VulkanBot:
         if willListen:
             prefix = self.__config.BOT_PREFIX
+            bot = VulkanBot(listingSlash=True,
+                            command_prefix=prefix,
+                            pm_help=True,
+                            case_insensitive=True,
+                            intents=self.__intents)
         else:
             prefix = ''.join(choices(string.ascii_uppercase + string.digits, k=4))
-
-        bot = VulkanBot(command_prefix=prefix,
-                        pm_help=True,
-                        case_insensitive=True,
-                        intents=self.__intents)
+            bot = VulkanBot(listingSlash=False,
+                            command_prefix=prefix,
+                            pm_help=True,
+                            case_insensitive=True,
+                            intents=self.__intents)
         return bot
 
     def __add_cogs(self, bot: Bot) -> None:

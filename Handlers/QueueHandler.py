@@ -47,11 +47,11 @@ class QueueHandler(AbstractHandler):
                 return HandlerResponse(self.ctx, embed)
 
             songsPages = playlist.getSongsPages()
-            if pageNumber < 0 or pageNumber >= len(songsPages):
-                embed = self.embeds.INVALID_INDEX()
-                error = InvalidIndex()
-                processLock.release()  # Release the Lock
-                return HandlerResponse(self.ctx, embed, error)
+            # Truncate the pageNumber to the closest value
+            if pageNumber < 0:
+                pageNumber = 0
+            elif pageNumber >= len(songsPages):
+                pageNumber = len(songsPages) - 1
 
             # Select the page in queue to be printed
             songs = songsPages[pageNumber]

@@ -21,8 +21,7 @@ class PlayHandler(AbstractHandler):
         self.__searcher = Searcher()
         self.__down = Downloader()
 
-    async def run(self, args: str) -> HandlerResponse:
-        track = " ".join(args)
+    async def run(self, track: str) -> HandlerResponse:
         requester = self.ctx.author.name
 
         if not self.__isUserConnected():

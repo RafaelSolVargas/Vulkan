@@ -396,6 +396,11 @@ class VEmbeds:
         )
         return embed
 
+    def PLAYLIST_CLEAR(self) -> Embed:
+        return Embed(
+            description=self.__messages.PLAYLIST_CLEAR
+        )
+
     def CARA_COROA(self, result: str) -> Embed:
         embed = Embed(
             title='Cara Coroa',

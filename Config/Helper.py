@@ -21,8 +21,8 @@ class Helper(Singleton):
                 Off - Disable loop."""
             self.HELP_NP = 'Show the info of the current song.'
             self.HELP_NP_LONG = 'Show the information of the song being played.\n\nRequire: A song being played.\nArguments: None.'
-            self.HELP_QUEUE = f'Show the first {config.MAX_PRELOAD_SONGS} songs in queue.'
-            self.HELP_QUEUE_LONG = f'Show the first {config.MAX_PRELOAD_SONGS} song in the queue.\n\nArguments: None.'
+            self.HELP_QUEUE = f'Show the first {config.MAX_SONGS_IN_PAGE} songs in queue.'
+            self.HELP_QUEUE_LONG = f'Show the first {config.MAX_SONGS_IN_PAGE} song in the queue.\n\nArguments: None.'
             self.HELP_PAUSE = 'Pauses the song player.'
             self.HELP_PAUSE_LONG = 'If playing, pauses the song player.\n\nArguments: None'
             self.HELP_PREV = 'Play the previous song.'
@@ -33,7 +33,7 @@ class Helper(Singleton):
             self.HELP_PLAY_LONG = 'Play a song in discord. \n\nRequire: You to be connected to a voice channel.\nArguments: Youtube, Spotify or Deezer song/playlist link or the title of the song to be searched in Youtube.'
             self.HELP_HISTORY = f'Show the history of played songs.'
             self.HELP_HISTORY_LONG = f'Show the last {config.MAX_SONGS_HISTORY} played songs'
-            self.HELP_MOVE = 'Moves a song from position x to y in queue.'
+            self.HELP_MOVE = 'Moves a song from position pos1 to pos2 in queue.'
             self.HELP_MOVE_LONG = 'Moves a song from position x to position y in queue.\n\nRequire: Positions to be both valid numbers.\nArguments: 1º Number => Initial position, 2º Number => Destination position. Both numbers could be -1 to refer to the last song in queue.\nDefault: By default, if the second number is not passed, it will be 1, moving the selected song to 1º position.'
             self.HELP_REMOVE = 'Remove a song in position x.'
             self.HELP_REMOVE_LONG = 'Remove a song from queue in the position passed.\n\nRequire: Position to be a valid number.\nArguments: 1º          self.Number => Position in queue of the song.'
@@ -49,3 +49,6 @@ class Helper(Singleton):
             self.HELP_CHOOSE_LONG = 'Choose randomly one item passed in this command.\n\nRequire: Itens to be separated by comma.\nArguments: As much as you want.'
             self.HELP_CARA = 'Return cara or coroa.'
             self.HELP_CARA_LONG = 'Return cara or coroa.'
+
+            self.SLASH_QUEUE_DESCRIPTION = f'Number of queue page, there is only {config.MAX_SONGS_IN_PAGE} musics by page'
+            self.SLASH_MOVE_HELP = 'Moves a song from position pos1 to pos2 in queue.'

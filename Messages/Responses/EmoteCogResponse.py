@@ -11,6 +11,10 @@ class EmoteCommandResponse(AbstractCommandResponse):
         self.__emojis = VEmojis()
 
     async def run(self, deleteLast: bool = True) -> None:
+        # Now with Discord Interactions some commands are triggered without message
+        if (self.message is None):
+            return None
+
         if self.response.success:
             await self.message.add_reaction(self.__emojis.SUCCESS)
         else:

@@ -1,16 +1,19 @@
-from typing import List
-from discord import Message
-from discord.ui import View
-from Config.Emojis import VEmojis
-from Music.VulkanBot import VulkanBot
 from UI.Views.AbstractView import AbstractView
 from UI.Buttons.AbstractItem import AbstractItem
+from Music.VulkanBot import VulkanBot
+from Config.Emojis import VEmojis
+from discord import Message
+from discord.ui import View
+from typing import List
 
 emojis = VEmojis()
 
 
 class BasicView(View, AbstractView):
-    """View that receives buttons to hold, in timeout disable buttons"""
+    """
+    View class that inherits from the Discord View Class, managing a list of Buttons
+    and the message that holds this View.
+    """
 
     def __init__(self, bot: VulkanBot, buttons: List[AbstractItem], timeout: float = 6000):
         super().__init__(timeout=timeout)
@@ -42,6 +45,7 @@ class BasicView(View, AbstractView):
         self.__message = message
 
     async def update(self):
+        """Edit the message sending the view again"""
         try:
             if not self.__working:
                 return

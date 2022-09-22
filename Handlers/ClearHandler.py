@@ -23,7 +23,8 @@ class ClearHandler(AbstractHandler):
             if acquired:
                 playlist.clear()
                 processLock.release()
-                return HandlerResponse(self.ctx)
+                embed = self.embeds.PLAYLIST_CLEAR()
+                return HandlerResponse(self.ctx, embed)
             else:
                 processManager.resetProcess(self.guild, self.ctx)
                 embed = self.embeds.PLAYER_RESTARTED()
