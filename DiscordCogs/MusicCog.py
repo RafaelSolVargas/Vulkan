@@ -48,7 +48,7 @@ class MusicCog(Cog):
             if len(args) > 1:
                 track = " ".join(args)
             else:
-                track = args
+                track = args[0]
 
             response = await controller.run(track)
             if response is not None:

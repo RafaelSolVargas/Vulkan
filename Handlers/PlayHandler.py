@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from typing import List
 from Config.Exceptions import DownloadingError, InvalidInput, VulkanError
 from discord.ext.commands import Context
@@ -28,7 +29,6 @@ class PlayHandler(AbstractHandler):
             error = ImpossibleMove()
             embed = self.embeds.NO_CHANNEL()
             return HandlerResponse(self.ctx, embed, error)
-
         try:
             # Search for musics and get the name of each song
             musicsInfo = await self.__searcher.search(track)
@@ -93,10 +93,12 @@ class PlayHandler(AbstractHandler):
             return HandlerResponse(self.ctx, embed, error)
         except Exception as error:
             if isinstance(error, VulkanError):  # If error was already processed
-                print(f'DEVELOPER NOTE -s> PlayController Error: {error.message}', {type(error)})
+                print(
+                    f'DEVELOPER NOTE -s> PlayController Error: {traceback.format_exc()}', {type(error)})
                 embed = self.embeds.CUSTOM_ERROR(error)
             else:
-                print(f'DEVELOPER NOTE -> PlayController Error: {error}, {type(error)}')
+                print(
+                    f'DEVELOPER NOTE -> PlayController Error: {traceback.format_exc()}, {type(error)}')
                 error = UnknownError()
                 embed = self.embeds.UNKNOWN_ERROR()
 
