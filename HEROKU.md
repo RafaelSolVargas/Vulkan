@@ -1,6 +1,8 @@
 <h1 align="center">Configuring Heroku</h1> 
 
-Nobody wants to run the Vulkan process on their machine, so we host the process on Heroku, a cloud platform that contains free accounts.<br>
+> Heroku doesn't offer free services anymore 
+
+Nobody wants to run the Vulkan process on their machine, so we host the process on Heroku, <s>a cloud platform that contains free</s>.<br>
 To configure the Vulkan to run in your Heroku account you will need to:
 
 - Create an application project in Heroku.

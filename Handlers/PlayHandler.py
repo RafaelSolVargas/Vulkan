@@ -82,6 +82,12 @@ class PlayHandler(AbstractHandler):
 
                 return response
             else:  # If multiple songs added
+                # If more than 10 songs, download and load the first 5 to start the play right away
+                if len(songs) > 10:
+                    fiveFirstSongs = songs[0:5]
+                    songs = songs[5:]
+                    await self.__downloadSongsAndStore(fiveFirstSongs, processInfo)
+
                 # Trigger a task to download all songs and then store them in the process playlist
                 asyncio.create_task(self.__downloadSongsAndStore(songs, processInfo))
 
@@ -92,13 +98,10 @@ class PlayHandler(AbstractHandler):
             embed = self.embeds.DOWNLOADING_ERROR()
             return HandlerResponse(self.ctx, embed, error)
         except Exception as error:
+            print(f'ERROR IN PLAYHANDLER -> {traceback.format_exc()}', {type(error)})
             if isinstance(error, VulkanError):  # If error was already processed
-                print(
-                    f'DEVELOPER NOTE -s> PlayController Error: {traceback.format_exc()}', {type(error)})
                 embed = self.embeds.CUSTOM_ERROR(error)
             else:
-                print(
-                    f'DEVELOPER NOTE -> PlayController Error: {traceback.format_exc()}, {type(error)}')
                 error = UnknownError()
                 embed = self.embeds.UNKNOWN_ERROR()
 
@@ -108,13 +111,19 @@ class PlayHandler(AbstractHandler):
         playlist = processInfo.getPlaylist()
         queue = processInfo.getQueueToPlayer()
         playCommand = VCommands(VCommandsType.PLAY, None)
+        tooManySongs = len(songs) > 100
+
         # Trigger a task for each song to be downloaded
         tasks: List[asyncio.Task] = []
-        for song in songs:
+        for index, song in enumerate(songs):
+            # If there is a lot of songs being downloaded, force a sleep to try resolve the Http Error 429 "To Many Requests"
+            # Trying to fix the issue https://github.com/RafaelSolVargas/Vulkan/issues/32
+            if tooManySongs and index % 3 == 0:
+                await asyncio.sleep(0.5)
             task = asyncio.create_task(self.__down.download_song(song))
             tasks.append(task)
 
-        # In the original order, await for the task and then if successfully downloaded add in the playlist
+        # In the original order, await for the task and then, if successfully downloaded, add to the playlist
         processManager = self.config.getProcessManager()
         for index, task in enumerate(tasks):
             await task

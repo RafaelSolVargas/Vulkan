@@ -81,7 +81,9 @@ The config file is located at ```./config/Configs.py```, it doesn't require any 
 <hr>
 <br>
 
-## **🚀 Heroku**
+## **🚀 Heroku (Not free anymore)**
+> *Heroku doesn't offer free host services anymore.* <br>
+
 To deploy and run your Bot in Heroku 24/7, follow the instructions in the [Heroku Instructions](HEROKU.md) page.
 
 ## 🧪 Tests

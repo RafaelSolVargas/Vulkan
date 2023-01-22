@@ -6,7 +6,7 @@ class Song:
         self.__playlist = playlist
 
     def finish_down(self, info: dict) -> None:
-        if info is None:
+        if info is None or info == {}:
             self.destroy()
             return None
 
@@ -20,7 +20,8 @@ class Song:
             if key in info.keys():
                 self.__info[key] = info[key]
             else:
-                print(f'DEVELOPER NOTE -> {key} not found in info of music: {self.identifier}')
+                print(
+                    f'DEVELOPER NOTE -> Required information [{key}] was not found in the music: {self.identifier}')
                 self.destroy()
                 return
 
@@ -64,7 +65,7 @@ class Song:
         return self.__problematic
 
     def destroy(self) -> None:
-        print(f'DEVELOPER NOTE -> Music self destroying {self.__identifier}')
+        print(f'MUSIC ERROR -> Music self destroying {self.__identifier}')
         self.__problematic = True
         self.__playlist.destroy_song(self)
 

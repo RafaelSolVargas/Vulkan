@@ -151,6 +151,8 @@ class Downloader:
                     return {}
 
                 if self.__is_multiple_musics(extracted_info):
+                    if len(extracted_info['entries']) == 0:
+                        return {}
                     return extracted_info['entries'][0]
                 else:
                     print(f'DEVELOPER NOTE -> Failed to extract title {title}')
