@@ -7,6 +7,10 @@ from Config.Folder import Folder
 class VConfigs(Singleton):
     def __init__(self) -> None:
         if not super().created:
+            # You can change this boolean to False if you want to prevent the Bot from auto disconnecting
+            # Resolution for the issue: https://github.com/RafaelSolVargas/Vulkan/issues/33
+            self.SHOULD_AUTO_DISCONNECT_WHEN_ALONE = True
+
             self.BOT_PREFIX = '!'
             try:
                 self.BOT_TOKEN = config('BOT_TOKEN')

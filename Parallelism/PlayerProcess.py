@@ -297,6 +297,9 @@ class PlayerProcess(Process):
             if self.__guild.voice_client is None:
                 return
 
+            if not VConfigs().SHOULD_AUTO_DISCONNECT_WHEN_ALONE:
+                return
+
             if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
                 if not self.__isBotAloneInChannel():  # If bot is not alone continue to play
                     self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)

@@ -69,12 +69,19 @@ BOT_PREFIX=Your_Wanted_Prefix_For_Vulkan
 ```
 
 ### **⚙️ Configs**
-The config file is located at ```./config/Configs.py```, it doesn't require any change, but if you can change values to the way you want.
+The config file is located at ```./config/Configs.py```, it doesn't require any change, but if you can change values to the way you want. <br>
 
 
 ### **Initialization**
 - Go to [Discord](https://discord.com/developers) and invite your Bot to your own server
 - Run ```python main.py``` in console to start
+
+
+### **Configuring Auto Disconnect**
+As a result of the [Issue 33](https://github.com/RafaelSolVargas/Vulkan/issues/33) now you can configure if the Bot will auto disconnect when being alone in the voice channel, the default configuration is to disconnect within 300 seconds if it finds out no one is currently listing to it.
+To change that you must: <br> 
+- Change the property SHOULD_AUTO_DISCONNECT_WHEN_ALONE of the VConfigs class to False 
+> The path to the file is ./Config/Configs.py
 
 
 <br>
