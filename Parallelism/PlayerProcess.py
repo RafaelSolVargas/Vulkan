@@ -119,6 +119,7 @@ class PlayerProcess(Process):
 
             if song is not None:
                 self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
+                self.__playing = True
 
     async def __playSong(self, song: Song) -> None:
         """Function that will trigger the player to play the song"""
@@ -139,7 +140,7 @@ class PlayerProcess(Process):
                 return
 
             self.__playing = True
-            self.__playingSong = song
+            self.__songPlaying = song
 
             player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
             self.__guild.voice_client.play(player, after=lambda e: self.__playNext(e))
@@ -168,7 +169,7 @@ class PlayerProcess(Process):
                     self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
                 else:
                     self.__playlist.loop_off()
-                    self.__playingSong = None
+                    self.__songPlaying = None
                     self.__playing = False
                     # Send a command to the main process put this one to sleep
                     sleepCommand = VCommands(VCommandsType.SLEEPING)
@@ -253,7 +254,7 @@ class PlayerProcess(Process):
                 sleepCommand = VCommands(VCommandsType.SLEEPING)
                 self.__queueSend.put(sleepCommand)
                 self.__guild.voice_client.stop()
-                self.__playingSong = None
+                self.__songPlaying = None
                 await self.__guild.voice_client.disconnect()
                 self.__semStopPlaying.release()
 

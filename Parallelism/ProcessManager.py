@@ -65,6 +65,7 @@ class ProcessManager(Singleton):
     def getRunningPlayerInfo(self, guild: Guild) -> ProcessInfo:
         """Return the process info for the guild, if not, return None"""
         if guild.id not in self.__playersProcess.keys():
+            print('Process Info not found')
             return None
 
         return self.__playersProcess[guild.id]

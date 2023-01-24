@@ -14,6 +14,7 @@ from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
 from typing import Union
 from discord import Interaction
+from Music.Playlist import Playlist
 
 
 class PlayHandler(AbstractHandler):
@@ -38,7 +39,7 @@ class PlayHandler(AbstractHandler):
             # Get the process context for the current guild
             processManager = self.config.getProcessManager()
             processInfo = processManager.getOrCreatePlayerInfo(self.guild, self.ctx)
-            playlist = processInfo.getPlaylist()
+            playlist: Playlist = processInfo.getPlaylist()
             process = processInfo.getProcess()
             if not process.is_alive():  # If process has not yet started, start
                 process.start()
