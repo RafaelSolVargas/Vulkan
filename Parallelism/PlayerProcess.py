@@ -157,6 +157,8 @@ class PlayerProcess(Process):
             self.__playerLock.release()
 
     def __playNext(self, error) -> None:
+        if error is not None:
+            print(f'[ERROR PLAYING SONG] -> {error}')
         with self.__playlistLock:
             with self.__playerLock:
                 if self.__forceStop:  # If it's forced to stop player
