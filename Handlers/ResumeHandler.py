@@ -23,7 +23,7 @@ class ResumeHandler(AbstractHandler):
             # Send Resume command to be execute by player process
             command = VCommands(VCommandsType.RESUME, None)
             queue = processInfo.getQueueToPlayer()
-            queue.put(command)
+            self.putCommandInQueue(queue, command)
 
             embed = self.embeds.PLAYER_RESUMED()
             return HandlerResponse(self.ctx, embed)

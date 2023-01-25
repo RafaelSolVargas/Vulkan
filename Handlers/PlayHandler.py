@@ -75,7 +75,8 @@ class PlayHandler(AbstractHandler):
                     processLock.release()
                     queue = processInfo.getQueueToPlayer()
                     playCommand = VCommands(VCommandsType.PLAY, None)
-                    queue.put(playCommand)
+                    self.putCommandInQueue(queue, playCommand)
+
                 else:
                     processManager.resetProcess(self.guild, self.ctx)
                     embed = self.embeds.PLAYER_RESTARTED()
@@ -135,7 +136,7 @@ class PlayHandler(AbstractHandler):
                 acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
                 if acquired:
                     playlist.add_song(song)
-                    queue.put(playCommand)
+                    self.putCommandInQueue(queue, playCommand)
                     processLock.release()
                 else:
                     processManager.resetProcess(self.guild, self.ctx)

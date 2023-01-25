@@ -23,7 +23,7 @@ class StopHandler(AbstractHandler):
             # Send command to player process stop
             command = VCommands(VCommandsType.STOP, None)
             queue = processInfo.getQueueToPlayer()
-            queue.put(command)
+            self.putCommandInQueue(queue, command)
 
             embed = self.embeds.STOPPING_PLAYER()
             return HandlerResponse(self.ctx, embed)

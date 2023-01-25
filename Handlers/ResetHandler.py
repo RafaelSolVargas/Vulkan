@@ -23,7 +23,7 @@ class ResetHandler(AbstractHandler):
 
             command = VCommands(VCommandsType.RESET, None)
             queue = processInfo.getQueueToPlayer()
-            queue.put(command)
+            self.putCommandInQueue(queue, command)
 
             return HandlerResponse(self.ctx)
         else:

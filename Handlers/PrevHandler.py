@@ -44,7 +44,7 @@ class PrevHandler(AbstractHandler):
         # Send a prev command, together with the user voice channel
         prevCommand = VCommands(VCommandsType.PREV, self.author.voice.channel.id)
         queue = processInfo.getQueueToPlayer()
-        queue.put(prevCommand)
+        self.putCommandInQueue(queue, prevCommand)
 
         embed = self.embeds.RETURNING_SONG()
         return HandlerResponse(self.ctx, embed)

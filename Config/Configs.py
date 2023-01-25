@@ -9,7 +9,7 @@ class VConfigs(Singleton):
         if not super().created:
             # You can change this boolean to False if you want to prevent the Bot from auto disconnecting
             # Resolution for the issue: https://github.com/RafaelSolVargas/Vulkan/issues/33
-            self.SHOULD_AUTO_DISCONNECT_WHEN_ALONE = True
+            self.SHOULD_AUTO_DISCONNECT_WHEN_ALONE = False
 
             self.BOT_PREFIX = '!'
             try:

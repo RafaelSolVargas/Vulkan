@@ -23,7 +23,7 @@ class PauseHandler(AbstractHandler):
             # Send Pause command to be execute by player process
             command = VCommands(VCommandsType.PAUSE, None)
             queue = processInfo.getQueueToPlayer()
-            queue.put(command)
+            self.putCommandInQueue(queue, command)
 
             embed = self.embeds.PLAYER_PAUSED()
             return HandlerResponse(self.ctx, embed)

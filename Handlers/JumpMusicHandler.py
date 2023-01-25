@@ -50,7 +50,7 @@ class JumpMusicHandler(AbstractHandler):
                 # Send a command to the player to skip the music
                 command = VCommands(VCommandsType.SKIP, None)
                 queue = processInfo.getQueueToPlayer()
-                queue.put(command)
+                self.putCommandInQueue(queue, command)
 
                 processLock.release()
                 return HandlerResponse(self.ctx)

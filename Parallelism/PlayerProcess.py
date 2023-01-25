@@ -197,6 +197,15 @@ class PlayerProcess(Process):
 
                     self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
 
+    async def __restartCurrentSong(self) -> None:
+        song = self.__playlist.getCurrentSong()
+        if song is None:
+            song = self.__playlist.next_song()
+        if song is None:
+            return
+
+        self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
+
     def __commandsReceiver(self) -> None:
         while True:
             command: VCommands = self.__queueReceive.get()
@@ -210,7 +219,7 @@ class PlayerProcess(Process):
                 elif type == VCommandsType.RESUME:
                     self.__resume()
                 elif type == VCommandsType.SKIP:
-                    self.__skip()
+                    asyncio.run_coroutine_threadsafe(self.__skip(), self.__loop)
                 elif type == VCommandsType.PLAY:
                     asyncio.run_coroutine_threadsafe(self.__playPlaylistSongs(), self.__loop)
                 elif type == VCommandsType.PREV:
@@ -265,12 +274,14 @@ class PlayerProcess(Process):
                 if self.__guild.voice_client.is_paused():
                     self.__guild.voice_client.resume()
 
-    def __skip(self) -> None:
+    async def __skip(self) -> None:
         # Lock to work with Player
         with self.__playerLock:
             if self.__guild.voice_client is not None and self.__playing:
                 self.__playing = False
                 self.__guild.voice_client.stop()
+            elif len(self.__playlist) > 0:  # If for some reason the Bot has disconnect but there is still songs to play
+                await self.__restartCurrentSong()
 
     async def __forceStop(self) -> None:
         # Lock to work with Player

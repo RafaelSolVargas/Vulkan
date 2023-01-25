@@ -28,9 +28,9 @@ class ProcessManager(Singleton):
             VManager.register('Playlist', Playlist)
             self.__manager = VManager()
             self.__manager.start()
-            self.__playersProcess: Dict[Guild, ProcessInfo] = {}
-            self.__playersListeners: Dict[Guild, Tuple[Thread, bool]] = {}
-            self.__playersCommandsExecutor: Dict[Guild, ProcessCommandsExecutor] = {}
+            self.__playersProcess: Dict[int, ProcessInfo] = {}
+            self.__playersListeners: Dict[int, Tuple[Thread, bool]] = {}
+            self.__playersCommandsExecutor: Dict[int, ProcessCommandsExecutor] = {}
 
     def setPlayerInfo(self, guild: Guild, info: ProcessInfo):
         self.__playersProcess[guild.id] = info
@@ -96,8 +96,24 @@ class ProcessManager(Singleton):
 
         return processInfo
 
+    def __stopPossiblyRunningProcess(self, guild: Guild):
+        try:
+            if guild.id in self.__playersProcess.keys():
+                playerProcess = self.__playersProcess.popitem(guild.id)
+                process = playerProcess.getProcess()
+                process.close()
+                process.kill()
+                playerProcess.getQueueToMain().close()
+                playerProcess.getQueueToMain().join_thread()
+                playerProcess.getQueueToPlayer().close()
+                playerProcess.getQueueToPlayer().join_thread()
+        except Exception as e:
+            print(f'[ERROR STOPPING PROCESS] -> {e}')
+
     def __recreateProcess(self, guild: Guild, context: Union[Context, Interaction]) -> ProcessInfo:
         """Create a new process info using previous playlist"""
+        self.__stopPossiblyRunningProcess(guild)
+
         guildID: int = context.guild.id
         textID: int = context.channel.id
         if isinstance(context, Interaction):

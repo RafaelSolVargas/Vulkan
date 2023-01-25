@@ -29,7 +29,7 @@ class SkipHandler(AbstractHandler):
             # Send a command to the player process to skip the music
             command = VCommands(VCommandsType.SKIP, None)
             queue = processInfo.getQueueToPlayer()
-            queue.put(command)
+            self.putCommandInQueue(queue, command)
 
             embed = self.embeds.SKIPPING_SONG()
             return HandlerResponse(self.ctx, embed)
