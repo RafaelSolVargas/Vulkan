@@ -1,6 +1,6 @@
 import asyncio
 from Music.VulkanInitializer import VulkanInitializer
-from discord import User, Member, Message
+from discord import User, Member, Message, VoiceClient
 from asyncio import AbstractEventLoop, Semaphore, Queue
 from multiprocessing import Process, RLock, Lock, Queue
 from threading import Thread
@@ -53,6 +53,7 @@ class PlayerProcess(Process):
         self.__guild: Guild = None
         self.__bot: VulkanBot = None
         self.__voiceChannel: VoiceChannel = None
+        self.__voiceClient: VoiceClient = None
         self.__textChannel: TextChannel = None
         self.__author: User = None
         self.__botMember: Member = None
@@ -69,7 +70,7 @@ class PlayerProcess(Process):
     def run(self) -> None:
         """Method called by process.start(), this will exec the actually _run method in a event loop"""
         try:
-            print(f'Starting Process {self.name}')
+            print(f'Starting Player Process for Guild {self.name}')
             self.__playerLock = RLock()
             self.__loop = asyncio.get_event_loop_policy().new_event_loop()
             asyncio.set_event_loop(self.__loop)
@@ -108,14 +109,21 @@ class PlayerProcess(Process):
         # In this point the process should finalize
         self.__timer.cancel()
 
+    def __verifyIfIsPlaying(self) -> bool:
+        if self.__voiceClient is None:
+            return False
+        if not self.__voiceClient.is_connected():
+            return False
+        return self.__voiceClient.is_playing() or self.__voiceClient.is_paused()
+
     async def __playPlaylistSongs(self) -> None:
         """If the player is not running trigger to play a new song"""
+        self.__playing = self.__verifyIfIsPlaying()
         if not self.__playing:
             song = None
             with self.__playlistLock:
                 with self.__playerLock:
-                    if not (self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused()):
-                        song = self.__playlist.next_song()
+                    song = self.__playlist.next_song()
 
             if song is not None:
                 self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
@@ -132,18 +140,23 @@ class PlayerProcess(Process):
                 return self.__playNext(None)
 
             # If not connected, connect to bind channel
-            if self.__guild.voice_client is None:
+            if self.__voiceClient is None:
                 await self.__connectToVoiceChannel()
 
-            # If the player is already playing return
-            if self.__guild.voice_client.is_playing():
+            # If the voice channel disconnect for some reason
+            if not self.__voiceClient.is_connected():
+                print('[VOICE CHANNEL NOT NULL BUT DISCONNECTED, CONNECTING AGAIN]')
+                await self.__connectToVoiceChannel()
+            # If the player is connected and playing
+            elif self.__voiceClient.is_playing():
+                print('[SONG ALREADY PLAYING, RETURNING]')
                 return
 
             self.__playing = True
             self.__songPlaying = song
 
             player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
-            self.__guild.voice_client.play(player, after=lambda e: self.__playNext(e))
+            self.__voiceClient.play(player, after=lambda e: self.__playNext(e))
 
             self.__timer.cancel()
             self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
@@ -151,7 +164,7 @@ class PlayerProcess(Process):
             nowPlayingCommand = VCommands(VCommandsType.NOW_PLAYING, song)
             self.__queueSend.put(nowPlayingCommand)
         except Exception as e:
-            print(f'[ERROR IN PLAY SONG] -> {e}, {type(e)}')
+            print(f'[ERROR IN PLAY SONG FUNCTION] -> {e}, {type(e)}')
             self.__playNext(None)
         finally:
             self.__playerLock.release()
@@ -185,16 +198,17 @@ class PlayerProcess(Process):
 
             with self.__playerLock:
                 if song is not None:
-                    if self.__guild.voice_client is None:  # If not connect, connect to the user voice channel
+                    # If not connect, connect to the user voice channel, may change the channel
+                    if self.__voiceClient is None or not self.__voiceClient.is_connected():
                         self.__voiceChannelID = voiceChannelID
                         self.__voiceChannel = self.__guild.get_channel(self.__voiceChannelID)
                         await self.__connectToVoiceChannel()
 
                     # If already playing, stop the current play
-                    if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
+                    if self.__verifyIfIsPlaying():
                         # Will forbidden next_song to execute after stopping current player
                         self.__forceStop = True
-                        self.__guild.voice_client.stop()
+                        self.__voiceClient.stop()
                         self.__playing = False
 
                     self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
@@ -213,13 +227,14 @@ class PlayerProcess(Process):
             command: VCommands = self.__queueReceive.get()
             type = command.getType()
             args = command.getArgs()
+            print(f'Player Process {self.__guild.name} received command {type}')
 
             try:
                 self.__playerLock.acquire()
                 if type == VCommandsType.PAUSE:
                     self.__pause()
                 elif type == VCommandsType.RESUME:
-                    self.__resume()
+                    asyncio.run_coroutine_threadsafe(self.__resume(), self.__loop)
                 elif type == VCommandsType.SKIP:
                     asyncio.run_coroutine_threadsafe(self.__skip(), self.__loop)
                 elif type == VCommandsType.PLAY:
@@ -238,25 +253,23 @@ class PlayerProcess(Process):
                 self.__playerLock.release()
 
     def __pause(self) -> None:
-        if self.__guild.voice_client is not None:
-            if self.__guild.voice_client.is_playing():
-                self.__guild.voice_client.pause()
+        if self.__voiceClient is not None:
+            if self.__voiceClient.is_connected():
+                if self.__voiceClient.is_playing():
+                    self.__voiceClient.pause()
 
     async def __reset(self) -> None:
-        if self.__guild.voice_client is None:
+        if self.__voiceClient is None:
             return
-        # Reset the bot
-        self.__guild.voice_client.stop()
-        await self.__guild.voice_client.disconnect()
-        self.__playlist.clear()
-        self.__playlist.loop_off()
-        await self.__botMember.move_to(None)
-        # Release semaphore to finish the current player process
-        self.__semStopPlaying.release()
+
+        if not self.__voiceClient.is_connected():
+            await self.__connectToVoiceChannel()
+        if self.__songPlaying is not None:
+            await self.__restartCurrentSong()
 
     async def __stop(self) -> None:
-        if self.__guild.voice_client is not None:
-            if self.__guild.voice_client.is_connected():
+        if self.__voiceClient is not None:
+            if self.__voiceClient.is_connected():
                 with self.__playlistLock:
                     self.__playlist.loop_off()
                     self.__playlist.clear()
@@ -264,35 +277,54 @@ class PlayerProcess(Process):
                 # Send a command to the main process put this to sleep
                 sleepCommand = VCommands(VCommandsType.SLEEPING)
                 self.__queueSend.put(sleepCommand)
-                self.__guild.voice_client.stop()
-                self.__songPlaying = None
-                await self.__guild.voice_client.disconnect()
-                self.__semStopPlaying.release()
+                self.__voiceClient.stop()
+                await self.__voiceClient.disconnect()
 
-    def __resume(self) -> None:
+                self.__songPlaying = None
+                self.__playing = False
+                self.__voiceClient = None
+                self.__semStopPlaying.release()
+            # If the voiceClient is not None we finish things
+            else:
+                await self.__forceBotDisconnectAndStop()
+
+    async def __resume(self) -> None:
         # Lock to work with Player
         with self.__playerLock:
-            if self.__guild.voice_client is not None:
-                if self.__guild.voice_client.is_paused():
-                    self.__guild.voice_client.resume()
+            if self.__voiceClient is not None:
+                # If the player is paused then return to play
+                if self.__voiceClient.is_paused():
+                    return self.__voiceClient.resume()
+                # If there is a current song but the voice client is not playing
+                elif self.__songPlaying is not None and not self.__voiceClient.is_playing():
+                    await self.__playSong(self.__songPlaying)
 
     async def __skip(self) -> None:
+        self.__playing = self.__verifyIfIsPlaying()
         # Lock to work with Player
         with self.__playerLock:
-            if self.__guild.voice_client is not None and self.__playing:
+            if self.__playing:
                 self.__playing = False
-                self.__guild.voice_client.stop()
-            elif len(self.__playlist) > 0:  # If for some reason the Bot has disconnect but there is still songs to play
+                self.__voiceClient.stop()
+            # If for some reason the Bot has disconnect but there is still songs to play
+            elif len(self.__playlist.getSongs()) > 0:
+                print('[RESTARTING CURRENT SONG]')
                 await self.__restartCurrentSong()
 
-    async def __forceStop(self) -> None:
+    async def __forceBotDisconnectAndStop(self) -> None:
         # Lock to work with Player
         with self.__playerLock:
-            if self.__guild.voice_client is None:
+            if self.__voiceClient is None:
                 return
-
-            self.__guild.voice_client.stop()
-            await self.__guild.voice_client.disconnect()
+            self.__playing = False
+            self.__songPlaying = None
+            try:
+                self.__voiceClient.stop()
+                await self.__voiceClient.disconnect(force=True)
+            except Exception as e:
+                print(f'[ERROR FORCING BOT TO STOP] -> {e}')
+            finally:
+                self.__voiceClient = None
             with self.__playlistLock:
                 self.__playlist.clear()
                 self.__playlist.loop_off()
@@ -308,35 +340,36 @@ class PlayerProcess(Process):
 
     async def __timeoutHandler(self) -> None:
         try:
-            if self.__guild.voice_client is None:
+            # If there is not voiceClient return
+            if self.__voiceClient is None:
                 return
 
+            # If the bot should not disconnect when alone
             if not VConfigs().SHOULD_AUTO_DISCONNECT_WHEN_ALONE:
                 return
 
-            if self.__guild.voice_client.is_playing() or self.__guild.voice_client.is_paused():
-                if not self.__isBotAloneInChannel():  # If bot is not alone continue to play
-                    self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
-                    return
+            if self.__voiceClient.is_connected():
+                if self.__voiceClient.is_playing() or self.__voiceClient.is_paused():
+                    if not self.__isBotAloneInChannel():  # If bot is not alone continue to play
+                        self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
+                        return
 
             # Finish the process
-            if self.__guild.voice_client.is_connected():
-                with self.__playerLock:
-                    with self.__playlistLock:
-                        self.__playlist.loop_off()
-                    self.__playing = False
-                    await self.__guild.voice_client.disconnect()
-                    # Send command to main process to finish this one
-                    sleepCommand = VCommands(VCommandsType.SLEEPING)
-                    self.__queueSend.put(sleepCommand)
-                    # Release semaphore to finish process
-                    self.__semStopPlaying.release()
+            with self.__playerLock:
+                with self.__playlistLock:
+                    self.__playlist.loop_off()
+                await self.__forceBotDisconnectAndStop()
+                # Send command to main process to finish this one
+                sleepCommand = VCommands(VCommandsType.SLEEPING)
+                self.__queueSend.put(sleepCommand)
+                # Release semaphore to finish process
+                self.__semStopPlaying.release()
         except Exception as e:
-            print(f'[Error in Timeout] -> {e}')
+            print(f'[ERROR IN TIMEOUT] -> {e}')
 
     def __isBotAloneInChannel(self) -> bool:
         try:
-            if len(self.__guild.voice_client.channel.members) <= 1:
+            if len(self.__voiceClient.channel.members) <= 1:
                 return True
             else:
                 return False
@@ -353,7 +386,13 @@ class PlayerProcess(Process):
 
     async def __connectToVoiceChannel(self) -> bool:
         try:
-            await self.__voiceChannel.connect(reconnect=True, timeout=None)
+            print('[CONNECTING TO VOICE CHANNEL]')
+            if self.__voiceClient is not None:
+                try:
+                    await self.__voiceClient.disconnect(force=True)
+                except Exception as e:
+                    print(f'[ERROR FORCING DISCONNECT] -> {e}')
+            self.__voiceClient = await self.__voiceChannel.connect(reconnect=True, timeout=None)
             return True
         except Exception as e:
             print(f'[ERROR CONNECTING TO VC] -> {e}')

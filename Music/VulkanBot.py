@@ -9,6 +9,7 @@ from Config.Embeds import VEmbeds
 
 class VulkanBot(Bot):
     def __init__(self, listingSlash: bool = False, *args, **kwargs):
+        """If listing Slash is False then the process is just a Player Process, should not interact with discord commands"""
         super().__init__(*args, **kwargs)
         self.__listingSlash = listingSlash
         self.__configs = VConfigs()
@@ -43,9 +44,11 @@ class VulkanBot(Bot):
         await self.connect(reconnect=True)
 
     async def on_ready(self):
-        print(self.__messages.STARTUP_MESSAGE)
+        if self.__listingSlash:
+            print(self.__messages.STARTUP_MESSAGE)
         await self.change_presence(status=Status.online, activity=Game(name=f"Vulkan | {self.__configs.BOT_PREFIX}help"))
-        print(self.__messages.STARTUP_COMPLETE_MESSAGE)
+        if self.__listingSlash:
+            print(self.__messages.STARTUP_COMPLETE_MESSAGE)
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, MissingRequiredArgument):

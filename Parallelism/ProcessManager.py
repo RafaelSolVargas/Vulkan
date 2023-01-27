@@ -99,7 +99,7 @@ class ProcessManager(Singleton):
     def __stopPossiblyRunningProcess(self, guild: Guild):
         try:
             if guild.id in self.__playersProcess.keys():
-                playerProcess = self.__playersProcess.popitem(guild.id)
+                playerProcess = self.__playersProcess[guild.id]
                 process = playerProcess.getProcess()
                 process.close()
                 process.kill()
