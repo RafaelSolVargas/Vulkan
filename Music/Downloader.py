@@ -56,8 +56,8 @@ class Downloader:
             song.finish_down(song_info)
             return song
         # Convert yt_dlp error to my own error
-        except DownloadError:
-            raise DownloadingError()
+        except DownloadError as e:
+            raise DownloadingError(e.msg)
 
     @run_async
     def extract_info(self, url: str) -> List[dict]:

@@ -1,4 +1,6 @@
 import asyncio
+from time import time
+from urllib.parse import parse_qs, urlparse
 from Music.VulkanInitializer import VulkanInitializer
 from discord import User, Member, Message, VoiceClient
 from asyncio import AbstractEventLoop, Semaphore, Queue
@@ -11,6 +13,7 @@ from Music.Song import Song
 from Config.Configs import VConfigs
 from Config.Messages import Messages
 from Music.VulkanBot import VulkanBot
+from Music.Downloader import Downloader
 from Config.Embeds import VEmbeds
 from Parallelism.Commands import VCommands, VCommandsType
 
@@ -78,6 +81,7 @@ class PlayerProcess(Process):
             self.__configs = VConfigs()
             self.__messages = Messages()
             self.__embeds = VEmbeds()
+            self.__downloader = Downloader()
 
             self.__semStopPlaying = Semaphore(0)
             self.__loop.run_until_complete(self._run())
@@ -147,10 +151,16 @@ class PlayerProcess(Process):
             if not self.__voiceClient.is_connected():
                 print('[VOICE CHANNEL NOT NULL BUT DISCONNECTED, CONNECTING AGAIN]')
                 await self.__connectToVoiceChannel()
-            # If the player is connected and playing
+            # If the player is connected and playing return the song to the playlist
             elif self.__voiceClient.is_playing():
                 print('[SONG ALREADY PLAYING, RETURNING]')
+                self.__playlist.add_song_start(song)
                 return
+
+            songStillAvailable = self.__verifyIfSongAvailable(song)
+            if not songStillAvailable:
+                print('[SONG NOT AVAILABLE ANYMORE, DOWNLOADING AGAIN]')
+                song = self.__downloadSongAgain(song)
 
             self.__playing = True
             self.__songPlaying = song
@@ -191,6 +201,30 @@ class PlayerProcess(Process):
                     self.__queueSend.put(sleepCommand)
                     # Release the semaphore to finish the process
                     self.__semStopPlaying.release()
+
+    def __verifyIfSongAvailable(self, song: Song) -> bool:
+        """Verify the song source to see if it's already expired"""
+        try:
+            parsedUrl = urlparse(song.source)
+
+            if 'expire' not in parsedUrl.query:
+                # If already passed 5 hours since the download
+                if song.downloadTime + 18000 < int(time()):
+                    return False
+                return True
+
+            # If the current time plus the song duration plus 10min exceeds the expirationValue
+            expireValue = parse_qs(parsedUrl.query)['expire'][0]
+            if int(time()) + song.duration + 600 > int(str(expireValue)):
+                return False
+            return True
+        except Exception as e:
+            print(f'[ERROR VERIFYING SONG AVAILABILITY] -> {e}')
+            return False
+
+    def __downloadSongAgain(self, song: Song) -> Song:
+        """Force a download to be executed again, one use case is when the song.source expired and needs to refresh"""
+        return self.__downloader.finish_one_song(song)
 
     async def __playPrev(self, voiceChannelID: int) -> None:
         with self.__playlistLock:

@@ -1,15 +1,20 @@
+from time import time
+
+
 class Song:
     def __init__(self, identifier: str, playlist, requester: str) -> None:
         self.__identifier = identifier
         self.__info = {'requester': requester}
         self.__problematic = False
         self.__playlist = playlist
+        self.__downloadTime: int = time()
 
     def finish_down(self, info: dict) -> None:
         if info is None or info == {}:
             self.destroy()
             return None
 
+        self.__downloadTime = time()
         self.__useful_keys = ['duration',
                               'title', 'webpage_url',
                               'channel', 'id', 'uploader',
@@ -36,11 +41,19 @@ class Song:
                                        ' ' else ' ' for char in self.__info['title'])
 
     @property
+    def downloadTime(self) -> int:
+        return self.__downloadTime
+
+    @property
     def source(self) -> str:
         if 'url' in self.__info.keys():
             return self.__info['url']
         else:
             return None
+
+    @source.setter
+    def source(self, value) -> None:
+        self.__info['url'] = value
 
     @property
     def title(self) -> str:
@@ -53,12 +66,16 @@ class Song:
     def duration(self) -> str:
         if 'duration' in self.__info.keys():
             return self.__info['duration']
-        else:
-            return 0.0
+        else:  # Default minimum duration
+            return 5.0
 
     @property
     def identifier(self) -> str:
         return self.__identifier
+
+    @identifier.setter
+    def identifier(self, value) -> None:
+        self.__identifier = value
 
     @property
     def problematic(self) -> bool:

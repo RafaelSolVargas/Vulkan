@@ -106,6 +106,10 @@ class Playlist:
         self.__queue.append(song)
         return song
 
+    def add_song_start(self, song: Song) -> Song:
+        self.__queue.insert(0, song)
+        return song
+
     def shuffle(self) -> None:
         random.shuffle(self.__queue)
 
