@@ -1,5 +1,5 @@
 import asyncio
-from time import time
+from time import sleep, time
 from urllib.parse import parse_qs, urlparse
 from Music.VulkanInitializer import VulkanInitializer
 from discord import User, Member, Message, VoiceClient
@@ -257,6 +257,13 @@ class PlayerProcess(Process):
         self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
 
     def __commandsReceiver(self) -> None:
+        # Forces the Thread that listen to the commands to await this bot instance
+        # to stablish the connection with discord, may delay when running bots in several servers
+        while True:
+            if self.__guildID is not None:
+                break
+            sleep(0.1)
+
         while True:
             command: VCommands = self.__queueReceive.get()
             type = command.getType()
