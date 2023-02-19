@@ -1,12 +1,11 @@
 import asyncio
-from time import sleep, time
+from time import time
 from urllib.parse import parse_qs, urlparse
-from Music.VulkanInitializer import VulkanInitializer
-from discord import Member, VoiceClient
-from asyncio import AbstractEventLoop, Semaphore
+from discord import VoiceClient
+from asyncio import AbstractEventLoop
 from threading import RLock, Thread
 from multiprocessing import Lock
-from typing import Callable, List
+from typing import Callable
 from discord import Guild, FFmpegPCMAudio, VoiceChannel
 from Music.Playlist import Playlist
 from Music.Song import Song
@@ -32,7 +31,7 @@ class TimeoutClock:
 class PlayerThread(Thread):
     """Player Thread to control the song playback in the same Process of the Main Process"""
 
-    def __init__(self, bot: VulkanBot, guild: Guild, name: str, voiceChannel: VoiceChannel, playlist: Playlist, lock: Lock, guildID: int, textID: int, voiceID: int, authorID: int) -> None:
+    def __init__(self, bot: VulkanBot, guild: Guild, name: str, voiceChannel: VoiceChannel, playlist: Playlist, lock: Lock, guildID: int, voiceID: int) -> None:
         Thread.__init__(self, name=name, group=None, target=None, args=(), kwargs={})
         # Synchronization objects
         self.__playlist: Playlist = playlist

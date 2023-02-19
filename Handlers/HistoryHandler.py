@@ -14,18 +14,16 @@ class HistoryHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         # Get the current process of the guild
-        processManager: AbstractPlayersManager = self.config.getPlayersManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
-        if processInfo:
-            processLock = processInfo.getLock()
-            acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+        playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+        if playersManager.verifyIfPlayerExists(self.guild):
+            playerLock = playersManager.getPlayerLock(self.guild)
+            acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
             if acquired:
-                playlist = processInfo.getPlaylist()
-                history = playlist.getSongsHistory()
-                processLock.release()
+                history = playersManager.getPlayerPlaylist(self.guild).getSongsHistory()
+                playerLock.release()
             else:
                 # If the player doesn't respond in time we restart it
-                processManager.resetProcess(self.guild, self.ctx)
+                playersManager.resetPlayer(self.guild, self.ctx)
                 embed = self.embeds.PLAYER_RESTARTED()
                 return HandlerResponse(self.ctx, embed)
         else:

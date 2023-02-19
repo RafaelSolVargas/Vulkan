@@ -14,14 +14,12 @@ class NowPlayingHandler(AbstractHandler):
         self.__cleaner = Cleaner()
 
     async def run(self) -> HandlerResponse:
-        # Get the current process of the guild
-        processManager: AbstractPlayersManager = self.config.getPlayersManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
-        if not processInfo:
+        playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+        if not playersManager.verifyIfPlayerExists(self.guild):
             embed = self.embeds.NOT_PLAYING()
             return HandlerResponse(self.ctx, embed)
 
-        playlist = processInfo.getPlaylist()
+        playlist = playersManager.getPlayerPlaylist(self.guild)
         if playlist.getCurrentSong() is None:
             embed = self.embeds.NOT_PLAYING()
             return HandlerResponse(self.ctx, embed)

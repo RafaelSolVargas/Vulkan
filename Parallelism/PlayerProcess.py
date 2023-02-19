@@ -32,7 +32,7 @@ class TimeoutClock:
 class PlayerProcess(Process):
     """Process that will play songs, receive commands from the main process by a Queue"""
 
-    def __init__(self, name: str, playlist: Playlist, lock: Lock, queueToReceive: Queue,  queueToSend: Queue, guildID: int, textID: int, voiceID: int, authorID: int) -> None:
+    def __init__(self, name: str, playlist: Playlist, lock: Lock, queueToReceive: Queue,  queueToSend: Queue, guildID: int, voiceID: int) -> None:
         """
         Start a new process that will have his own bot instance 
         Due to pickle serialization, no objects are stored, the values initialization are being made in the run method
@@ -46,10 +46,8 @@ class PlayerProcess(Process):
         self.__semStopPlaying: Semaphore = None
         self.__loop: AbstractEventLoop = None
         # Discord context ID
-        self.__textChannelID = textID
         self.__guildID = guildID
         self.__voiceChannelID = voiceID
-        self.__authorID = authorID
         # All information of discord context will be retrieved directly with discord API
         self.__guild: Guild = None
         self.__bot: VulkanBot = None
@@ -81,9 +79,6 @@ class PlayerProcess(Process):
         self.__bot = await self.__createBotInstance()
         self.__guild = self.__bot.get_guild(self.__guildID)
         self.__voiceChannel = self.__bot.get_channel(self.__voiceChannelID)
-        self.__textChannel = self.__bot.get_channel(self.__textChannelID)
-        self.__author = self.__bot.get_channel(self.__authorID)
-        self.__botMember = self.__getBotMember()
         # Connect to voice Channel
         await self.__connectToVoiceChannel()
 

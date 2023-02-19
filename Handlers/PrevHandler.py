@@ -19,14 +19,13 @@ class PrevHandler(AbstractHandler):
             embed = self.embeds.NO_CHANNEL()
             return HandlerResponse(self.ctx, embed, error)
 
-        processManager: AbstractPlayersManager = self.config.getPlayersManager()
-        processInfo = processManager.getOrCreatePlayerInfo(self.guild, self.ctx)
-        if not processInfo:
+        playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+        if not playersManager.verifyIfPlayerExists(self.guild):
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)
 
-        playlist = processInfo.getPlaylist()
+        playlist = playersManager.getPlayerPlaylist(self.guild)
         if len(playlist.getHistory()) == 0:
             error = ImpossibleMove()
             embed = self.embeds.NOT_PREVIOUS_SONG()
@@ -37,15 +36,9 @@ class PrevHandler(AbstractHandler):
             embed = self.embeds.FAIL_DUE_TO_LOOP_ON()
             return HandlerResponse(self.ctx, embed, error)
 
-        # If not started, start the player process
-        process = processInfo.getProcess()
-        if not process.is_alive():
-            process.start()
-
         # Send a prev command, together with the user voice channel
         prevCommand = VCommands(VCommandsType.PREV, self.author.voice.channel.id)
-        queue = processInfo.getQueueToPlayer()
-        self.putCommandInQueue(queue, prevCommand)
+        playersManager.sendCommandToPlayer(prevCommand, self.guild)
 
         embed = self.embeds.RETURNING_SONG()
         return HandlerResponse(self.ctx, embed)

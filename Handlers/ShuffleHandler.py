@@ -14,19 +14,18 @@ class ShuffleHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:
-        processManager: AbstractPlayersManager = self.config.getPlayersManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
-        if processInfo:
+        playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+        if playersManager.verifyIfPlayerExists(self.guild):
             try:
-                processLock = processInfo.getLock()
-                acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+                playerLock = playersManager.getPlayerLock(self.guild)
+                acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
                 if acquired:
-                    playlist = processInfo.getPlaylist()
+                    playlist = playersManager.getPlayerPlaylist(self.guild)
                     playlist.shuffle()
                     # Release the acquired Lock
-                    processLock.release()
+                    playerLock.release()
                 else:
-                    processManager.resetProcess(self.guild, self.ctx)
+                    playersManager.resetPlayer(self.guild, self.ctx)
                     embed = self.embeds.PLAYER_RESTARTED()
                     return HandlerResponse(self.ctx, embed)
 

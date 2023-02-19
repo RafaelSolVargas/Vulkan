@@ -3,8 +3,8 @@ from discord import Button, TextChannel
 from discord.ui import View
 from Config.Emojis import VEmojis
 from Messages.MessagesCategory import MessagesCategory
+from Music.Playlist import Playlist
 from Music.VulkanBot import VulkanBot
-from Parallelism.ProcessInfo import PlayerInfo
 from Config.Messages import Messages
 from Music.Song import Song
 from Config.Embeds import VEmbeds
@@ -29,9 +29,9 @@ class ProcessCommandsExecutor:
         self.__embeds = VEmbeds()
         self.__emojis = VEmojis()
 
-    async def sendNowPlaying(self, processInfo: PlayerInfo, song: Song) -> None:
+    async def sendNowPlaying(self, playlist: Playlist, channel: TextChannel, song: Song) -> None:
+        print('B')
         # Get the lock of the playlist
-        playlist = processInfo.getPlaylist()
         if playlist.isLoopingOne():
             title = self.__messages.ONE_SONG_LOOPING
         else:
@@ -39,7 +39,6 @@ class ProcessCommandsExecutor:
 
         # Create View and Embed
         embed = self.__embeds.SONG_INFO(song.info, title)
-        channel = processInfo.getTextChannel()
         view = self.__getPlayerView(channel)
         # Send Message and add to the MessagesManager
         message = await channel.send(embed=embed, view=view)

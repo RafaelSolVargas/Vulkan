@@ -5,7 +5,6 @@ from Config.Exceptions import BadCommandUsage, VulkanError, ErrorRemoving, Inval
 from Music.Playlist import Playlist
 from Music.VulkanBot import VulkanBot
 from Parallelism.AbstractProcessManager import AbstractPlayersManager
-from Parallelism.ProcessInfo import PlayerInfo
 from typing import Union
 from discord import Interaction
 
@@ -15,15 +14,13 @@ class RemoveHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self, position: str) -> HandlerResponse:
-        # Get the current process of the guild
-        processManager: AbstractPlayersManager = self.config.getPlayersManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
-        if not processInfo:
+        playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+        if not playersManager.verifyIfPlayerExists(self.guild):
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)
 
-        playlist = processInfo.getPlaylist()
+        playlist = playersManager.getPlayerPlaylist(self.guild)
         if playlist is None:
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
