@@ -6,6 +6,7 @@ from discord import Interaction
 from Handlers.HandlerResponse import HandlerResponse
 from Music.Playlist import Playlist
 from Music.VulkanBot import VulkanBot
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
 from Parallelism.Commands import VCommands, VCommandsType
 
 
@@ -16,7 +17,7 @@ class JumpMusicHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self, musicPos: str) -> HandlerResponse:
-        processManager = self.config.getProcessManager()
+        processManager: AbstractPlayersManager = self.config.getPlayersManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if not processInfo:
             embed = self.embeds.NOT_PLAYING()

@@ -7,6 +7,7 @@ from Config.Exceptions import BadCommandUsage, VulkanError, InvalidInput, Number
 from Music.Playlist import Playlist
 from typing import Union
 from discord import Interaction
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
 
 
 class MoveHandler(AbstractHandler):
@@ -14,7 +15,7 @@ class MoveHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self, pos1: str, pos2: str) -> HandlerResponse:
-        processManager = self.config.getProcessManager()
+        processManager: AbstractPlayersManager = self.config.getPlayersManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if not processInfo:
             embed = self.embeds.NOT_PLAYING()

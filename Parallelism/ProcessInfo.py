@@ -9,9 +9,9 @@ class ProcessStatus(Enum):
     SLEEPING = 'Sleeping'
 
 
-class ProcessInfo:
+class PlayerInfo:
     """
-    Class to store the reference to all structures to maintain a player process
+    Class to store the reference to all structures to maintain a song player
     """
 
     def __init__(self, process: Process, queueToPlayer: Queue, queueToMain: Queue, playlist: Playlist, lock: Lock, textChannel: TextChannel) -> None:

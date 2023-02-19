@@ -1,7 +1,8 @@
 from discord.ext.commands import Context
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
-from Parallelism.ProcessInfo import ProcessInfo, ProcessStatus
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
+from Parallelism.ProcessInfo import PlayerInfo, ProcessStatus
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
 from typing import Union
@@ -14,8 +15,8 @@ class ResetHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         # Get the current process of the guild
-        processManager = self.config.getProcessManager()
-        processInfo: ProcessInfo = processManager.getRunningPlayerInfo(self.guild)
+        processManager: AbstractPlayersManager = self.config.getPlayersManager()
+        processInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:
             if processInfo.getStatus() == ProcessStatus.SLEEPING:
                 embed = self.embeds.NOT_PLAYING()

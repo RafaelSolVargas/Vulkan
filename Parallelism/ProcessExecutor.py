@@ -4,7 +4,7 @@ from discord.ui import View
 from Config.Emojis import VEmojis
 from Messages.MessagesCategory import MessagesCategory
 from Music.VulkanBot import VulkanBot
-from Parallelism.ProcessInfo import ProcessInfo
+from Parallelism.ProcessInfo import PlayerInfo
 from Config.Messages import Messages
 from Music.Song import Song
 from Config.Embeds import VEmbeds
@@ -29,7 +29,7 @@ class ProcessCommandsExecutor:
         self.__embeds = VEmbeds()
         self.__emojis = VEmojis()
 
-    async def sendNowPlaying(self, processInfo: ProcessInfo, song: Song) -> None:
+    async def sendNowPlaying(self, processInfo: PlayerInfo, song: Song) -> None:
         # Get the lock of the playlist
         playlist = processInfo.getPlaylist()
         if playlist.isLoopingOne():

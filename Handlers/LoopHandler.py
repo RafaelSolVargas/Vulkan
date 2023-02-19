@@ -6,6 +6,8 @@ from Config.Exceptions import BadCommandUsage
 from typing import Union
 from discord import Interaction
 
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
+
 
 class LoopHandler(AbstractHandler):
     def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
@@ -13,7 +15,7 @@ class LoopHandler(AbstractHandler):
 
     async def run(self, args: str) -> HandlerResponse:
         # Get the current process of the guild
-        processManager = self.config.getProcessManager()
+        processManager: AbstractPlayersManager = self.config.getPlayersManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if not processInfo:
             embed = self.embeds.NOT_PLAYING()

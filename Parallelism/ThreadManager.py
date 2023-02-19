@@ -17,21 +17,15 @@ from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
 
 
-class ProcessManager(Singleton, AbstractPlayersManager):
+class ThreadManager(Singleton, AbstractPlayersManager):
     """
-    Manage all running player process, creating and storing them for future calls
-    Deals with the creation of shared memory
+    Manage all running player threads, creating and storing them for future calls
     """
 
     def __init__(self, bot: VulkanBot = None) -> None:
         if not super().created:
             self.__bot = bot
-            VManager.register('Playlist', Playlist)
-            self.__manager = VManager()
-            self.__manager.start()
-            self.__playersProcess: Dict[int, PlayerInfo] = {}
-            self.__playersListeners: Dict[int, Tuple[Thread, bool]] = {}
-            self.__playersCommandsExecutor: Dict[int, ProcessCommandsExecutor] = {}
+            self.__playersProcess: Dict[int, Thread] = {}
 
     def setPlayerInfo(self, guild: Guild, info: PlayerInfo):
         self.__playersProcess[guild.id] = info

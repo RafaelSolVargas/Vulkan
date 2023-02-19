@@ -2,6 +2,7 @@ from discord.ext.commands import Context
 from Handlers.AbstractHandler import AbstractHandler
 from Config.Exceptions import BadCommandUsage, ImpossibleMove
 from Handlers.HandlerResponse import HandlerResponse
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
 from typing import Union
@@ -18,7 +19,7 @@ class PrevHandler(AbstractHandler):
             embed = self.embeds.NO_CHANNEL()
             return HandlerResponse(self.ctx, embed, error)
 
-        processManager = self.config.getProcessManager()
+        processManager: AbstractPlayersManager = self.config.getPlayersManager()
         processInfo = processManager.getOrCreatePlayerInfo(self.guild, self.ctx)
         if not processInfo:
             embed = self.embeds.NOT_PLAYING()

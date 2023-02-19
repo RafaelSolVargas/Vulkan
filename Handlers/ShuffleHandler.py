@@ -6,13 +6,15 @@ from Music.VulkanBot import VulkanBot
 from typing import Union
 from discord import Interaction
 
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
+
 
 class ShuffleHandler(AbstractHandler):
     def __init__(self, ctx: Union[Context, Interaction], bot: VulkanBot) -> None:
         super().__init__(ctx, bot)
 
     async def run(self) -> HandlerResponse:
-        processManager = self.config.getProcessManager()
+        processManager: AbstractPlayersManager = self.config.getPlayersManager()
         processInfo = processManager.getRunningPlayerInfo(self.guild)
         if processInfo:
             try:

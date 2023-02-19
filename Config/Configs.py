@@ -1,4 +1,3 @@
-import os
 from decouple import config
 from Config.Singleton import Singleton
 from Config.Folder import Folder
@@ -10,6 +9,9 @@ class VConfigs(Singleton):
             # You can change this boolean to False if you want to prevent the Bot from auto disconnecting
             # Resolution for the issue: https://github.com/RafaelSolVargas/Vulkan/issues/33
             self.SHOULD_AUTO_DISCONNECT_WHEN_ALONE = False
+            # Recommended to be True, except in cases when your Bot is present in thousands servers, in that case
+            # the delay to start a new Python process for the playback is too much, and to avoid that you set as False
+            self.SONG_PLAYBACK_IN_SEPARATE_PROCESS = False
 
             self.BOT_PREFIX = '!'
             try:
@@ -44,8 +46,8 @@ class VConfigs(Singleton):
             self.MY_ERROR_BAD_COMMAND = 'This string serves to verify if some error was raised by myself on purpose'
             self.INVITE_URL = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot'
 
-    def getProcessManager(self):
+    def getPlayersManager(self):
         return self.__manager
 
-    def setProcessManager(self, newManager):
+    def setPlayersManager(self, newManager):
         self.__manager = newManager

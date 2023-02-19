@@ -9,7 +9,8 @@ from Handlers.HandlerResponse import HandlerResponse
 from Music.Downloader import Downloader
 from Music.Searcher import Searcher
 from Music.Song import Song
-from Parallelism.ProcessInfo import ProcessInfo
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
+from Parallelism.ProcessInfo import PlayerInfo
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
 from typing import Union
@@ -37,7 +38,7 @@ class PlayHandler(AbstractHandler):
                 raise InvalidInput(self.messages.INVALID_INPUT, self.messages.ERROR_TITLE)
 
             # Get the process context for the current guild
-            processManager = self.config.getProcessManager()
+            processManager: AbstractPlayersManager = self.config.getPlayersManager()
             processInfo = processManager.getOrCreatePlayerInfo(self.guild, self.ctx)
             playlist: Playlist = processInfo.getPlaylist()
             process = processInfo.getProcess()
@@ -109,7 +110,7 @@ class PlayHandler(AbstractHandler):
 
             return HandlerResponse(self.ctx, embed, error)
 
-    async def __downloadSongsAndStore(self, songs: List[Song], processInfo: ProcessInfo) -> None:
+    async def __downloadSongsAndStore(self, songs: List[Song], processInfo: PlayerInfo) -> None:
         playlist = processInfo.getPlaylist()
         queue = processInfo.getQueueToPlayer()
         playCommand = VCommands(VCommandsType.PLAY, None)
@@ -126,7 +127,7 @@ class PlayHandler(AbstractHandler):
             tasks.append(task)
 
         # In the original order, await for the task and then, if successfully downloaded, add to the playlist
-        processManager = self.config.getProcessManager()
+        processManager: AbstractPlayersManager = self.config.getPlayersManager()
         for index, task in enumerate(tasks):
             await task
             song = songs[index]
