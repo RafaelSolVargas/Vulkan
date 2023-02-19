@@ -23,7 +23,8 @@ from Messages.Responses.EmbedCogResponse import EmbedCommandResponse
 from Music.VulkanBot import VulkanBot
 from Config.Configs import VConfigs
 from Config.Embeds import VEmbeds
-from Parallelism.ProcessManager import ProcessPlayerManager
+from Parallelism.ProcessPlayerManager import ProcessPlayerManager
+from Parallelism.ThreadPlayerManager import ThreadPlayerManager
 
 helper = Helper()
 
@@ -38,7 +39,11 @@ class MusicCog(Cog):
     def __init__(self, bot: VulkanBot) -> None:
         self.__bot: VulkanBot = bot
         self.__embeds = VEmbeds()
-        VConfigs().setPlayersManager(ProcessPlayerManager(bot))
+        configs = VConfigs()
+        if configs.SHOULD_AUTO_DISCONNECT_WHEN_ALONE:
+            configs.setPlayersManager(ProcessPlayerManager(bot))
+        else:
+            configs.setPlayersManager(ThreadPlayerManager(bot))
 
     @command(name="play", help=helper.HELP_PLAY, description=helper.HELP_PLAY_LONG, aliases=['p', 'tocar'])
     async def play(self, ctx: Context, *args) -> None:

@@ -11,7 +11,7 @@ from Music.VulkanBot import VulkanBot
 from Parallelism.PlayerThread import PlayerThread
 
 
-class PlayerThreadInfo:
+class ThreadPlayerInfo:
     """
     Class to store the reference to all structures to maintain a player thread
     """
@@ -43,7 +43,7 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
     def __init__(self, bot: VulkanBot = None) -> None:
         if not super().created:
             self.__bot = bot
-            self.__playersThreads: Dict[int, PlayerThreadInfo] = {}
+            self.__playersThreads: Dict[int, ThreadPlayerInfo] = {}
 
     def sendCommandToPlayer(self, command: VCommands, guild: Guild, forceCreation: bool = False, context: Union[Context, Interaction] = None):
         return super().sendCommandToPlayer(command, guild, forceCreation, context)
@@ -86,14 +86,14 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
         newPlayerInfo.getQueueToPlayer().put(playCommand)
         self.__playersThreads[guild.id] = newPlayerInfo
 
-    def __getRunningPlayerInfo(self, guild: Guild) -> PlayerThreadInfo:
+    def __getRunningPlayerInfo(self, guild: Guild) -> ThreadPlayerInfo:
         if guild.id not in self.__playersThreads.keys():
             print('Process Info not found')
             return None
 
         return self.__playersThreads[guild.id]
 
-    def __createPlayerThreadInfo(self, context: Union[Context, Interaction]) -> PlayerThreadInfo:
+    def __createPlayerThreadInfo(self, context: Union[Context, Interaction]) -> ThreadPlayerInfo:
         guildID: int = context.guild.id
         if isinstance(context, Interaction):
             voiceID: int = context.user.voice.channel.id
@@ -103,12 +103,12 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
         playlist = Playlist()
         lock = Lock()
         player = PlayerThread(context.guild.name, playlist, lock, guildID, voiceID)
-        playerInfo = PlayerThreadInfo(player, playlist, lock, context.channel)
+        playerInfo = ThreadPlayerInfo(player, playlist, lock, context.channel)
         player.start()
 
         return playerInfo
 
-    def __recreateThread(self, guild: Guild, context: Union[Context, Interaction]) -> PlayerThreadInfo:
+    def __recreateThread(self, guild: Guild, context: Union[Context, Interaction]) -> ThreadPlayerInfo:
         self.__stopPossiblyRunningProcess(guild)
 
         guildID: int = context.guild.id
@@ -120,7 +120,7 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
         playlist = self.__playersThreads[guildID].getPlaylist()
         lock = Lock()
         player = PlayerThread(context.guild.name, playlist, lock, guildID, voiceID)
-        playerInfo = PlayerThreadInfo(player, playlist, lock, context.channel)
+        playerInfo = ThreadPlayerInfo(player, playlist, lock, context.channel)
         player.start()
 
         return playerInfo

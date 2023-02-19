@@ -143,9 +143,7 @@ class ProcessPlayerManager(Singleton, AbstractPlayersManager):
 
     def __createProcessPlayerInfo(self, guild: Guild, context: Context) -> PlayerProcessInfo:
         guildID: int = context.guild.id
-        textID: int = context.channel.id
         voiceID: int = context.author.voice.channel.id
-        authorID: int = context.author.id
 
         playlist: Playlist = self.__manager.Playlist()
         lock = Lock()
@@ -270,9 +268,9 @@ class ProcessPlayerManager(Singleton, AbstractPlayersManager):
     async def showNowPlaying(self, guildID: int, song: Song) -> None:
         commandExecutor = self.__playersCommandsExecutor[guildID]
         processInfo = self.__playersProcess[guildID]
-        print('A')
-        await commandExecutor.sendNowPlaying(processInfo, song)
-        print('C')
+        playlist = processInfo.getPlaylist()
+        channel = processInfo.getTextChannel()
+        await commandExecutor.sendNowPlaying(playlist, channel, song)
 
 
 class VManager(BaseManager):

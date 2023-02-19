@@ -30,7 +30,6 @@ class ProcessCommandsExecutor:
         self.__emojis = VEmojis()
 
     async def sendNowPlaying(self, playlist: Playlist, channel: TextChannel, song: Song) -> None:
-        print('B')
         # Get the lock of the playlist
         if playlist.isLoopingOne():
             title = self.__messages.ONE_SONG_LOOPING
