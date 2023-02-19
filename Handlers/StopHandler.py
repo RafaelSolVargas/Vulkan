@@ -16,7 +16,7 @@ class StopHandler(AbstractHandler):
         playersManager: AbstractPlayersManager = self.config.getPlayersManager()
         if playersManager.verifyIfPlayerExists(self.guild):
             command = VCommands(VCommandsType.STOP, None)
-            playersManager.sendCommandToPlayer(command, self.guild)
+            await playersManager.sendCommandToPlayer(command, self.guild)
             embed = self.embeds.STOPPING_PLAYER()
             return HandlerResponse(self.ctx, embed)
         else:

@@ -38,7 +38,7 @@ class PrevHandler(AbstractHandler):
 
         # Send a prev command, together with the user voice channel
         prevCommand = VCommands(VCommandsType.PREV, self.author.voice.channel.id)
-        playersManager.sendCommandToPlayer(prevCommand, self.guild)
+        await playersManager.sendCommandToPlayer(prevCommand, self.guild)
 
         embed = self.embeds.RETURNING_SONG()
         return HandlerResponse(self.ctx, embed)

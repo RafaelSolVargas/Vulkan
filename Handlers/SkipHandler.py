@@ -16,7 +16,7 @@ class SkipHandler(AbstractHandler):
         playersManager: AbstractPlayersManager = self.config.getPlayersManager()
         if playersManager.verifyIfPlayerExists(self.guild):
             command = VCommands(VCommandsType.SKIP, None)
-            playersManager.sendCommandToPlayer(command, self.guild)
+            await playersManager.sendCommandToPlayer(command, self.guild)
             embed = self.embeds.SKIPPING_SONG()
             return HandlerResponse(self.ctx, embed)
         else:

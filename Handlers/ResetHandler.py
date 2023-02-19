@@ -16,7 +16,7 @@ class ResetHandler(AbstractHandler):
         playersManager: AbstractPlayersManager = self.config.getPlayersManager()
         if playersManager.verifyIfPlayerExists(self.guild):
             command = VCommands(VCommandsType.RESET, None)
-            playersManager.sendCommandToPlayer(command, self.guild)
+            await playersManager.sendCommandToPlayer(command, self.guild)
             return HandlerResponse(self.ctx)
         else:
             embed = self.embeds.NOT_PLAYING()

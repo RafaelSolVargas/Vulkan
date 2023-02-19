@@ -40,7 +40,7 @@ class MusicCog(Cog):
         self.__bot: VulkanBot = bot
         self.__embeds = VEmbeds()
         configs = VConfigs()
-        if configs.SHOULD_AUTO_DISCONNECT_WHEN_ALONE:
+        if configs.SONG_PLAYBACK_IN_SEPARATE_PROCESS:
             configs.setPlayersManager(ProcessPlayerManager(bot))
         else:
             configs.setPlayersManager(ThreadPlayerManager(bot))

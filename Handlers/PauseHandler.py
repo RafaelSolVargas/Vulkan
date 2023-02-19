@@ -16,7 +16,7 @@ class PauseHandler(AbstractHandler):
         playersManager: AbstractPlayersManager = self.config.getPlayersManager()
         if playersManager.verifyIfPlayerExists(self.guild):
             command = VCommands(VCommandsType.PAUSE, None)
-            playersManager.sendCommandToPlayer(command, self.guild)
+            await playersManager.sendCommandToPlayer(command, self.guild)
 
             embed = self.embeds.PLAYER_PAUSED()
             return HandlerResponse(self.ctx, embed)

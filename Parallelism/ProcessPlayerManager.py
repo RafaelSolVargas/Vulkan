@@ -6,12 +6,12 @@ from queue import Empty
 from threading import Thread
 from typing import Dict, Tuple, Union
 from Config.Singleton import Singleton
-from discord import Guild, Interaction, TextChannel
+from discord import Guild, Interaction, TextChannel, VoiceChannel
 from discord.ext.commands import Context
 from Parallelism.AbstractProcessManager import AbstractPlayersManager
 from Parallelism.ProcessExecutor import ProcessCommandsExecutor
 from Music.Song import Song
-from Parallelism.PlayerProcess import PlayerProcess
+from Parallelism.ProcessPlayer import ProcessPlayer
 from Music.Playlist import Playlist
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
@@ -74,18 +74,18 @@ class ProcessPlayerManager(Singleton, AbstractPlayersManager):
         if not super().created:
             self.__bot = bot
             VManager.register('Playlist', Playlist)
+            VManager.register('VoiceChannel', VoiceChannel)
             self.__manager = VManager()
             self.__manager.start()
             self.__playersProcess: Dict[int, PlayerProcessInfo] = {}
             self.__playersListeners: Dict[int, Tuple[Thread, bool]] = {}
             self.__playersCommandsExecutor: Dict[int, ProcessCommandsExecutor] = {}
 
-    def sendCommandToPlayer(self, command: VCommands, guild: Guild, forceCreation: bool = False, context: Union[Context, Interaction] = None):
+    async def sendCommandToPlayer(self, command: VCommands, guild: Guild, forceCreation: bool = False, context: Union[Context, Interaction] = None):
         if forceCreation:
             processInfo = self.createPlayerForGuild(guild, context)
         else:
             processInfo = self.__getRunningPlayerInfo(guild)
-
         if processInfo == None:
             return
 
@@ -149,7 +149,7 @@ class ProcessPlayerManager(Singleton, AbstractPlayersManager):
         lock = Lock()
         queueToListen = Queue()
         queueToSend = Queue()
-        process = PlayerProcess(context.guild.name, playlist, lock, queueToSend,
+        process = ProcessPlayer(context.guild.name, playlist, lock, queueToSend,
                                 queueToListen, guildID, voiceID)
         processInfo = PlayerProcessInfo(process, queueToSend, queueToListen,
                                         playlist, lock, context.channel)
@@ -196,7 +196,7 @@ class ProcessPlayerManager(Singleton, AbstractPlayersManager):
         lock = Lock()
         queueToListen = Queue()
         queueToSend = Queue()
-        process = PlayerProcess(context.guild.name, playlist, lock, queueToSend,
+        process = ProcessPlayer(context.guild.name, playlist, lock, queueToSend,
                                 queueToListen, guildID, textID, voiceID, authorID)
         processInfo = PlayerProcessInfo(process, queueToSend, queueToListen,
                                         playlist, lock, context.channel)

@@ -71,7 +71,7 @@ class PlayHandler(AbstractHandler):
                     # Release the acquired Lock
                     playerLock.release()
                     playCommand = VCommands(VCommandsType.PLAY, None)
-                    playersManager.sendCommandToPlayer(playCommand, self.guild)
+                    await playersManager.sendCommandToPlayer(playCommand, self.guild)
                 else:
                     playersManager.resetPlayer(self.guild, self.ctx)
                     embed = self.embeds.PLAYER_RESTARTED()
@@ -127,7 +127,7 @@ class PlayHandler(AbstractHandler):
                 acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
                 if acquired:
                     playlist.add_song(song)
-                    playersManager.sendCommandToPlayer(playCommand, self.guild)
+                    await playersManager.sendCommandToPlayer(playCommand, self.guild)
                     playerLock.release()
                 else:
                     playersManager.resetPlayer(self.guild, self.ctx)

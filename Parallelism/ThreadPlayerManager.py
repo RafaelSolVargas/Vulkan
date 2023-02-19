@@ -1,5 +1,5 @@
 from multiprocessing import Lock
-from typing import Dict, Union
+from typing import Any, Dict, Union
 from Config.Singleton import Singleton
 from discord import Guild, Interaction, TextChannel
 from discord.ext.commands import Context
@@ -8,7 +8,7 @@ from Music.Song import Song
 from Music.Playlist import Playlist
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
-from Parallelism.PlayerThread import PlayerThread
+from Parallelism.ThreadPlayer import ThreadPlayer
 
 
 class ThreadPlayerInfo:
@@ -16,13 +16,13 @@ class ThreadPlayerInfo:
     Class to store the reference to all structures to maintain a player thread
     """
 
-    def __init__(self, thread: PlayerThread, playlist: Playlist, lock: Lock, textChannel: TextChannel) -> None:
+    def __init__(self, thread: ThreadPlayer, playlist: Playlist, lock: Lock, textChannel: TextChannel) -> None:
         self.__thread = thread
         self.__playlist = playlist
         self.__lock = lock
         self.__textChannel = textChannel
 
-    def getThread(self) -> PlayerThread:
+    def getPlayer(self) -> ThreadPlayer:
         return self.__thread
 
     def getPlaylist(self) -> Playlist:
@@ -45,8 +45,23 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
             self.__bot = bot
             self.__playersThreads: Dict[int, ThreadPlayerInfo] = {}
 
-    def sendCommandToPlayer(self, command: VCommands, guild: Guild, forceCreation: bool = False, context: Union[Context, Interaction] = None):
-        return super().sendCommandToPlayer(command, guild, forceCreation, context)
+    async def sendCommandToPlayer(self, command: VCommands, guild: Guild, forceCreation: bool = False, context: Union[Context, Interaction] = None):
+        playerInfo = self.__playersThreads[guild.id]
+        player = playerInfo.getPlayer()
+        if player is None and forceCreation:
+            self.__createPlayerThreadInfo(context)
+        if player is None:
+            return
+
+        await player.receiveCommand(command)
+
+    async def __receiveCommand(self, command: VCommands, guildID: int, args: Any) -> None:
+        commandType = command.getType()
+        if commandType == VCommandsType.NOW_PLAYING:
+            await self.showNowPlaying(guildID, args)
+        else:
+            print(
+                f'[ERROR] -> Command not processable received from Thread {guildID}: {commandType}')
 
     def getPlayerPlaylist(self, guild: Guild) -> Playlist:
         playerInfo = self.__getRunningPlayerInfo(guild)
@@ -67,7 +82,7 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
                 self.__playersThreads[guild.id] = self.__createPlayerThreadInfo(context)
             else:
                 # If the thread has ended create a new one
-                if not self.__playersThreads[guild.id].getThread().is_alive():
+                if not self.__playersThreads[guild.id].getPlayer().is_alive():
                     self.__playersThreads[guild.id] = self.__recreateThread(guild, context)
 
             return self.__playersThreads[guild.id]
@@ -80,7 +95,7 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
 
         # Recreate the thread keeping the playlist
         newPlayerInfo = self.__recreateThread(guild, context)
-        newPlayerInfo.getThread().start()
+        newPlayerInfo.getPlayer().start()
         # Send a command to start the play again
         playCommand = VCommands(VCommandsType.PLAY)
         newPlayerInfo.getQueueToPlayer().put(playCommand)
@@ -100,13 +115,24 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
         else:
             voiceID: int = context.author.voice.channel.id
 
+        voiceChannel = self.__bot.get_channel(voiceID)
+
         playlist = Playlist()
         lock = Lock()
-        player = PlayerThread(context.guild.name, playlist, lock, guildID, voiceID)
+        player = ThreadPlayer(self.__bot, context.guild, context.guild.name,
+                              voiceChannel, playlist, lock, guildID, voiceID, self.__receiveCommand, self.__deleteThread)
         playerInfo = ThreadPlayerInfo(player, playlist, lock, context.channel)
         player.start()
 
         return playerInfo
+
+    def __deleteThread(self, guildID: int) -> None:
+        """Tries to delete the thread and removes all the references to it"""
+        playerInfo = self.__playersThreads[guildID]
+        if playerInfo:
+            thread = playerInfo.getPlayer()
+            del thread
+            self.__playersThreads.popitem(thread)
 
     def __recreateThread(self, guild: Guild, context: Union[Context, Interaction]) -> ThreadPlayerInfo:
         self.__stopPossiblyRunningProcess(guild)
@@ -116,10 +142,12 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
             voiceID: int = context.user.voice.channel.id
         else:
             voiceID: int = context.author.voice.channel.id
+        voiceChannel = self.__bot.get_channel(voiceID)
 
         playlist = self.__playersThreads[guildID].getPlaylist()
         lock = Lock()
-        player = PlayerThread(context.guild.name, playlist, lock, guildID, voiceID)
+        player = ThreadPlayer(self.__bot, context.guild, context.guild.name,
+                              voiceChannel, playlist, lock, guildID, voiceID, self.__receiveCommand, self.__deleteThread)
         playerInfo = ThreadPlayerInfo(player, playlist, lock, context.channel)
         player.start()
 
