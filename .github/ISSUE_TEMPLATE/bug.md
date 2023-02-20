@@ -1,7 +1,7 @@
 ---
-name: Bug
+name: Report Any Issues
 about: Create a report to help us improve
-title: Issue in Vulkan
+title: Bug
 labels: bug
 assignees: RafaelSolVargas
 
