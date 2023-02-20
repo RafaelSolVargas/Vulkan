@@ -1,4 +1,4 @@
-from multiprocessing import Lock
+from threading import RLock
 from typing import Any, Dict, Union
 from Config.Singleton import Singleton
 from discord import Guild, Interaction, TextChannel
@@ -8,6 +8,7 @@ from Music.Song import Song
 from Music.Playlist import Playlist
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
+from Parallelism.ProcessExecutor import ProcessCommandsExecutor
 from Parallelism.ThreadPlayer import ThreadPlayer
 
 
@@ -16,7 +17,7 @@ class ThreadPlayerInfo:
     Class to store the reference to all structures to maintain a player thread
     """
 
-    def __init__(self, thread: ThreadPlayer, playlist: Playlist, lock: Lock, textChannel: TextChannel) -> None:
+    def __init__(self, thread: ThreadPlayer, playlist: Playlist, lock: RLock, textChannel: TextChannel) -> None:
         self.__thread = thread
         self.__playlist = playlist
         self.__lock = lock
@@ -28,7 +29,7 @@ class ThreadPlayerInfo:
     def getPlaylist(self) -> Playlist:
         return self.__playlist
 
-    def getLock(self) -> Lock:
+    def getLock(self) -> RLock:
         return self.__lock
 
     def getTextChannel(self) -> TextChannel:
@@ -55,20 +56,20 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
 
         await player.receiveCommand(command)
 
-    async def __receiveCommand(self, command: VCommands, guildID: int, args: Any) -> None:
+    async def __receiveCommand(self, command: VCommands, guild: Guild, args: Any) -> None:
         commandType = command.getType()
         if commandType == VCommandsType.NOW_PLAYING:
-            await self.showNowPlaying(guildID, args)
+            await self.showNowPlaying(guild, args)
         else:
             print(
-                f'[ERROR] -> Command not processable received from Thread {guildID}: {commandType}')
+                f'[ERROR] -> Command not processable received from Thread {guild.name}: {commandType}')
 
     def getPlayerPlaylist(self, guild: Guild) -> Playlist:
         playerInfo = self.__getRunningPlayerInfo(guild)
         if playerInfo:
             return playerInfo.getPlaylist()
 
-    def getPlayerLock(self, guild: Guild) -> Lock:
+    def getPlayerLock(self, guild: Guild) -> RLock:
         playerInfo = self.__getRunningPlayerInfo(guild)
         if playerInfo:
             return playerInfo.getLock()
@@ -118,7 +119,7 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
         voiceChannel = self.__bot.get_channel(voiceID)
 
         playlist = Playlist()
-        lock = Lock()
+        lock = RLock()
         player = ThreadPlayer(self.__bot, context.guild, context.guild.name,
                               voiceChannel, playlist, lock, guildID, voiceID, self.__receiveCommand, self.__deleteThread)
         playerInfo = ThreadPlayerInfo(player, playlist, lock, context.channel)
@@ -126,13 +127,14 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
 
         return playerInfo
 
-    def __deleteThread(self, guildID: int) -> None:
+    def __deleteThread(self, guild: Guild) -> None:
         """Tries to delete the thread and removes all the references to it"""
-        playerInfo = self.__playersThreads[guildID]
+        print(f'[THREAD MANAGER] -> Deleting Thread for guild {guild.name}')
+        playerInfo = self.__playersThreads[guild.id]
         if playerInfo:
             thread = playerInfo.getPlayer()
+            self.__playersThreads.pop(guild.id)
             del thread
-            self.__playersThreads.popitem(thread)
 
     def __recreateThread(self, guild: Guild, context: Union[Context, Interaction]) -> ThreadPlayerInfo:
         self.__stopPossiblyRunningProcess(guild)
@@ -145,7 +147,7 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
         voiceChannel = self.__bot.get_channel(voiceID)
 
         playlist = self.__playersThreads[guildID].getPlaylist()
-        lock = Lock()
+        lock = RLock()
         player = ThreadPlayer(self.__bot, context.guild, context.guild.name,
                               voiceChannel, playlist, lock, guildID, voiceID, self.__receiveCommand, self.__deleteThread)
         playerInfo = ThreadPlayerInfo(player, playlist, lock, context.channel)
@@ -153,7 +155,9 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
 
         return playerInfo
 
-    async def showNowPlaying(self, guildID: int, song: Song) -> None:
-        commandExecutor = self.__playersCommandsExecutor[guildID]
-        processInfo = self.__playersThreads[guildID]
-        await commandExecutor.sendNowPlaying(processInfo, song)
+    async def showNowPlaying(self, guild: Guild, song: Song) -> None:
+        processInfo = self.__playersThreads[guild.id]
+        playlist = processInfo.getPlaylist()
+        txtChannel = processInfo.getTextChannel()
+
+        await ProcessCommandsExecutor.sendNowPlayingToGuild(self.__bot, playlist, txtChannel, song, guild)

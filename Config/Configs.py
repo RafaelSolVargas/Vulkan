@@ -11,7 +11,11 @@ class VConfigs(Singleton):
             self.SHOULD_AUTO_DISCONNECT_WHEN_ALONE = False
             # Recommended to be True, except in cases when your Bot is present in thousands servers, in that case
             # the delay to start a new Python process for the playback is too much, and to avoid that you set as False
-            self.SONG_PLAYBACK_IN_SEPARATE_PROCESS = False
+            # This feature is for now in testing period, for a more stable version, keep this boolean = True
+            self.SONG_PLAYBACK_IN_SEPARATE_PROCESS = True
+            # Maximum of songs that will be downloaded at once, the higher this number is, the faster the songs will be all available
+            # but the slower will be the others commands of the Bot during the downloading time, for example, the playback quality
+            self.MAX_DOWNLOAD_SONGS_AT_A_TIME = 5
 
             self.BOT_PREFIX = '!'
             try:

@@ -1,5 +1,5 @@
 from typing import List
-from discord import Button, TextChannel
+from discord import Button, Guild, TextChannel
 from discord.ui import View
 from Config.Emojis import VEmojis
 from Messages.MessagesCategory import MessagesCategory
@@ -21,6 +21,11 @@ from Handlers.QueueHandler import QueueHandler
 
 
 class ProcessCommandsExecutor:
+    MESSAGES = Messages()
+    EMBEDS = VEmbeds()
+    EMOJIS = VEmojis()
+    MSG_MANAGER = MessagesManager()
+
     def __init__(self, bot: VulkanBot, guildID: int) -> None:
         self.__bot = bot
         self.__guildID = guildID
@@ -28,6 +33,56 @@ class ProcessCommandsExecutor:
         self.__messages = Messages()
         self.__embeds = VEmbeds()
         self.__emojis = VEmojis()
+
+    @classmethod
+    async def sendNowPlayingToGuild(cls, bot: VulkanBot, playlist: Playlist, channel: TextChannel, song: Song, guild: Guild) -> None:
+        # Get the lock of the playlist
+        if playlist.isLoopingOne():
+            title = cls.MESSAGES.ONE_SONG_LOOPING
+        else:
+            title = cls.MESSAGES.SONG_PLAYING
+
+        # Create View and Embed
+        embed = cls.EMBEDS.SONG_INFO(song.info, title)
+        view = cls.__getPlayerViewForGuild(channel, guild.id, bot)
+        # Send Message and add to the MessagesManager
+        message = await channel.send(embed=embed, view=view)
+        await cls.MSG_MANAGER.addMessageAndClearPrevious(guild.id, MessagesCategory.NOW_PLAYING, message, view)
+
+        # Set in the view the message witch contains the view
+        view.set_message(message=message)
+
+    @classmethod
+    def __getPlayerViewForGuild(cls, channel: TextChannel, guildID: int, bot: VulkanBot) -> View:
+        buttons = cls.__getPlayerButtonsForGuild(channel, guildID, bot)
+        view = BasicView(bot, buttons)
+        return view
+
+    @classmethod
+    def __getPlayerButtonsForGuild(cls, textChannel: TextChannel, guildID: int, bot: VulkanBot) -> List[Button]:
+        """Create the Buttons to be inserted in the Player View"""
+        buttons: List[Button] = []
+
+        buttons.append(HandlerButton(bot, PrevHandler, cls.EMOJIS.BACK,
+                       textChannel, guildID, MessagesCategory.PLAYER, "Back"))
+        buttons.append(HandlerButton(bot, PauseHandler, cls.EMOJIS.PAUSE,
+                       textChannel, guildID, MessagesCategory.PLAYER, "Pause"))
+        buttons.append(HandlerButton(bot, ResumeHandler, cls.EMOJIS.PLAY,
+                       textChannel, guildID, MessagesCategory.PLAYER, "Play"))
+        buttons.append(HandlerButton(bot, StopHandler, cls.EMOJIS.STOP,
+                       textChannel, guildID, MessagesCategory.PLAYER, "Stop"))
+        buttons.append(HandlerButton(bot, SkipHandler, cls.EMOJIS.SKIP,
+                       textChannel, guildID, MessagesCategory.PLAYER, "Skip"))
+        buttons.append(HandlerButton(bot, QueueHandler, cls.EMOJIS.QUEUE,
+                       textChannel, guildID, MessagesCategory.QUEUE, "Songs"))
+        buttons.append(HandlerButton(bot, LoopHandler, cls.EMOJIS.LOOP_ONE,
+                       textChannel, guildID, MessagesCategory.LOOP, "Loop One", 'One'))
+        buttons.append(HandlerButton(bot, LoopHandler, cls.EMOJIS.LOOP_OFF,
+                       textChannel, guildID, MessagesCategory.LOOP, "Loop Off", 'Off'))
+        buttons.append(HandlerButton(bot, LoopHandler, cls.EMOJIS.LOOP_ALL,
+                       textChannel, guildID, MessagesCategory.LOOP, "Loop All", 'All'))
+
+        return buttons
 
     async def sendNowPlaying(self, playlist: Playlist, channel: TextChannel, song: Song) -> None:
         # Get the lock of the playlist

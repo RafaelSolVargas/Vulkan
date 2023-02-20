@@ -79,14 +79,8 @@ class PlayHandler(AbstractHandler):
 
                 return response
             else:  # If multiple songs added
-                # If more than 10 songs, download and load the first 5 to start the play right away
-                if len(songs) > 10:
-                    fiveFirstSongs = songs[0:5]
-                    songs = songs[5:]
-                    await self.__downloadSongsAndStore(fiveFirstSongs, playersManager)
-
                 # Trigger a task to download all songs and then store them in the playlist
-                asyncio.create_task(self.__downloadSongsAndStore(songs, playersManager))
+                asyncio.create_task(self.__downloadSongsInLots(songs, playersManager))
 
                 embed = self.embeds.SONGS_ADDED(len(songs))
                 return HandlerResponse(self.ctx, embed)
@@ -95,7 +89,7 @@ class PlayHandler(AbstractHandler):
             embed = self.embeds.DOWNLOADING_ERROR()
             return HandlerResponse(self.ctx, embed, error)
         except Exception as error:
-            print(f'ERROR IN PLAYHANDLER -> {traceback.format_exc()}', {type(error)})
+            print(f'[ERROR IN PLAYHANDLER] -> {traceback.format_exc()}', {type(error)})
             if isinstance(error, VulkanError):
                 embed = self.embeds.CUSTOM_ERROR(error)
             else:
@@ -104,33 +98,40 @@ class PlayHandler(AbstractHandler):
 
             return HandlerResponse(self.ctx, embed, error)
 
-    async def __downloadSongsAndStore(self, songs: List[Song], playersManager: AbstractPlayersManager) -> None:
+    async def __downloadSongsInLots(self, songs: List[Song], playersManager: AbstractPlayersManager) -> None:
+        """
+        To avoid having a lot of tasks delaying the song playback we will lock the maximum songs downloading at a time
+        """
         playlist = playersManager.getPlayerPlaylist(self.guild)
         playCommand = VCommands(VCommandsType.PLAY, None)
-        tooManySongs = len(songs) > 100
+        maxDownloads = self.config.MAX_DOWNLOAD_SONGS_AT_A_TIME
 
-        # Trigger a task for each song to be downloaded
-        tasks: List[asyncio.Task] = []
-        for index, song in enumerate(songs):
-            # If there is a lot of songs being downloaded, force a sleep to try resolve the Http Error 429 "To Many Requests"
-            # Trying to fix the issue https://github.com/RafaelSolVargas/Vulkan/issues/32
-            if tooManySongs and index % 3 == 0:
-                await asyncio.sleep(0.5)
-            task = asyncio.create_task(self.__down.download_song(song))
-            tasks.append(task)
+        while len(songs) > 0:
+            # Verify how many songs will be downloaded in this lot and extract from the songs list
+            songsQuant = min(maxDownloads, len(songs))
+            # Get the first quantInLot songs
+            songsInLot = songs[:songsQuant]
+            # Remove the first quantInLot songs from the songs
+            songs = songs[songsQuant:]
 
-        for index, task in enumerate(tasks):
-            await task
-            song = songs[index]
-            if not song.problematic:  # If downloaded add to the playlist and send play command
-                playerLock = playersManager.getPlayerLock(self.guild)
-                acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
-                if acquired:
-                    playlist.add_song(song)
-                    await playersManager.sendCommandToPlayer(playCommand, self.guild)
-                    playerLock.release()
-                else:
-                    playersManager.resetPlayer(self.guild, self.ctx)
+            # Create task to download the songs in the lot
+            tasks: List[asyncio.Task] = []
+            for index, song in enumerate(songsInLot):
+                task = asyncio.create_task(self.__down.download_song(song))
+                tasks.append(task)
+
+            for index, task, in enumerate(tasks):
+                await task
+                song = songsInLot[index]
+                if not song.problematic:  # If downloaded add to the playlist and send play command
+                    playerLock = playersManager.getPlayerLock(self.guild)
+                    acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+                    if acquired:
+                        playlist.add_song(song)
+                        await playersManager.sendCommandToPlayer(playCommand, self.guild)
+                        playerLock.release()
+                    else:
+                        playersManager.resetPlayer(self.guild, self.ctx)
 
     def __isUserConnected(self) -> bool:
         if self.ctx.author.voice:

@@ -5,7 +5,7 @@ from discord import VoiceClient
 from asyncio import AbstractEventLoop
 from threading import RLock, Thread
 from multiprocessing import Lock
-from typing import Callable, Coroutine
+from typing import Callable
 from discord import Guild, FFmpegPCMAudio, VoiceChannel
 from Music.Playlist import Playlist
 from Music.Song import Song
@@ -33,10 +33,11 @@ class ThreadPlayer(Thread):
 
     def __init__(self, bot: VulkanBot, guild: Guild, name: str, voiceChannel: VoiceChannel, playlist: Playlist, lock: Lock, guildID: int, voiceID: int, callbackToSendCommand: Callable, exitCB: Callable) -> None:
         Thread.__init__(self, name=name, group=None, target=None, args=(), kwargs={})
+        print(f'Starting Player Thread for Guild {self.name}')
         # Synchronization objects
         self.__playlist: Playlist = playlist
         self.__playlistLock: Lock = lock
-        self.__loop: AbstractEventLoop = None
+        self.__loop: AbstractEventLoop = bot.loop
         self.__playerLock: RLock = RLock()
         # Discord context ID
         self.__voiceChannelID = voiceID
@@ -48,29 +49,12 @@ class ThreadPlayer(Thread):
         self.__callback = callbackToSendCommand
         self.__exitCB = exitCB
         self.__bot = bot
+        self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
 
         self.__playing = False
         self.__forceStop = False
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
-
-    def run(self) -> None:
-        """This method is called automatically when the Thread starts"""
-        try:
-            print(f'Starting Player Thread for Guild {self.name}')
-            self.__loop = self.__bot.loop
-            self.__loop.run_until_complete(self._run())
-
-        except Exception as e:
-            print(f'[Error in Process {self.name}] -> {e}')
-
-    async def _run(self) -> None:
-        # Connect to voice Channel
-        await self.__connectToVoiceChannel()
-        # Start the timeout function
-        self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
-        # Start a Task to play songs
-        self.__loop.create_task(self.__playPlaylistSongs())
 
     def __verifyIfIsPlaying(self) -> bool:
         if self.__voiceClient is None:
@@ -89,8 +73,7 @@ class ThreadPlayer(Thread):
                     song = self.__playlist.next_song()
 
             if song is not None:
-                print('Criando song')
-                self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
+                await self.__playSong(song)
                 self.__playing = True
 
     async def __playSong(self, song: Song) -> None:
@@ -132,7 +115,7 @@ class ThreadPlayer(Thread):
             self.__timer = TimeoutClock(self.__timeoutHandler, self.__loop)
 
             nowPlayingCommand = VCommands(VCommandsType.NOW_PLAYING, song)
-            await self.__callback(nowPlayingCommand, self.__guild.id, song)
+            await self.__callback(nowPlayingCommand, self.__guild, song)
         except Exception as e:
             print(f'[ERROR IN PLAY SONG FUNCTION] -> {e}, {type(e)}')
             self.__playNext(None)
@@ -157,7 +140,8 @@ class ThreadPlayer(Thread):
                     self.__songPlaying = None
                     self.__playing = False
                     # Send a command to the main process to kill this thread
-                    self.__exitCB(self.__guild.id)
+
+                    self.__exitCB(self.__guild)
 
     def __verifyIfSongAvailable(self, song: Song) -> bool:
         """Verify the song source to see if it's already expired"""
@@ -214,12 +198,12 @@ class ThreadPlayer(Thread):
         self.__loop.create_task(self.__playSong(song), name=f'Song {song.identifier}')
 
     async def receiveCommand(self, command: VCommands) -> None:
-        type = command.getType()
-        args = command.getArgs()
-        print(f'Player Thread {self.__guild.name} received command {type}')
-
         try:
             self.__playerLock.acquire()
+            type = command.getType()
+            args = command.getArgs()
+            # print(f'Player Thread {self.__guild.name} received command {type}')
+
             if type == VCommandsType.PAUSE:
                 self.__pause()
             elif type == VCommandsType.RESUME:
