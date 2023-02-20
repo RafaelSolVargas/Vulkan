@@ -4,6 +4,7 @@ from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Handlers.JumpMusicHandler import JumpMusicHandler
 from Messages.MessagesCategory import MessagesCategory
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
 from UI.Views.BasicView import BasicView
 from Utils.Utils import Utils
 from Music.VulkanBot import VulkanBot
@@ -21,29 +22,27 @@ class QueueHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self, pageNumber=0) -> HandlerResponse:
-        # Retrieve the process of the guild
-        processManager = self.config.getProcessManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
-        if not processInfo:  # If no process return empty list
+        playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+        if not playersManager.verifyIfPlayerExists(self.guild):
             embed = self.embeds.EMPTY_QUEUE()
             return HandlerResponse(self.ctx, embed)
 
         # Acquire the Lock to manipulate the playlist
-        processLock = processInfo.getLock()
-        acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+        playerLock = playersManager.getPlayerLock(self.guild)
+        acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
         if acquired:
-            playlist: Playlist = processInfo.getPlaylist()
+            playlist: Playlist = playersManager.getPlayerPlaylist(self.guild)
 
             if playlist.isLoopingOne():
                 song = playlist.getCurrentSong()
                 embed = self.embeds.ONE_SONG_LOOPING(song.info)
-                processLock.release()  # Release the Lock
+                playerLock.release()  # Release the Lock
                 return HandlerResponse(self.ctx, embed)
 
             allSongs = playlist.getSongs()
             if len(allSongs) == 0:
                 embed = self.embeds.EMPTY_QUEUE()
-                processLock.release()  # Release the Lock
+                playerLock.release()  # Release the Lock
                 return HandlerResponse(self.ctx, embed)
 
             songsPages = playlist.getSongsPages()
@@ -92,10 +91,10 @@ class QueueHandler(AbstractHandler):
 
             embed = self.embeds.QUEUE(title, text)
             # Release the acquired Lock
-            processLock.release()
+            playerLock.release()
             return HandlerResponse(self.ctx, embed, view=queueView)
         else:
-            processManager.resetProcess(self.guild, self.ctx)
+            playersManager.resetPlayer(self.guild, self.ctx)
             embed = self.embeds.PLAYER_RESTARTED()
             return HandlerResponse(self.ctx, embed)
 

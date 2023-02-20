@@ -7,6 +7,7 @@ from Config.Exceptions import BadCommandUsage, VulkanError, InvalidInput, Number
 from Music.Playlist import Playlist
 from typing import Union
 from discord import Interaction
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
 
 
 class MoveHandler(AbstractHandler):
@@ -14,45 +15,44 @@ class MoveHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self, pos1: str, pos2: str) -> HandlerResponse:
-        processManager = self.config.getProcessManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
-        if not processInfo:
+        playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+        if not playersManager.verifyIfPlayerExists(self.guild):
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)
 
-        processLock = processInfo.getLock()
-        acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+        playerLock = playersManager.getPlayerLock(self.guild)
+        acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
         if acquired:
             error = self.__validateInput(pos1, pos2)
             if error:
                 embed = self.embeds.ERROR_EMBED(error.message)
-                processLock.release()
+                playerLock.release()
                 return HandlerResponse(self.ctx, embed, error)
 
-            playlist = processInfo.getPlaylist()
+            playlist = playersManager.getPlayerPlaylist(self.guild)
             pos1, pos2 = self.__sanitizeInput(playlist, pos1, pos2)
 
             if not playlist.validate_position(pos1) or not playlist.validate_position(pos2):
                 error = InvalidInput()
                 embed = self.embeds.PLAYLIST_RANGE_ERROR()
-                processLock.release()
+                playerLock.release()
                 return HandlerResponse(self.ctx, embed, error)
             try:
                 song = playlist.move_songs(pos1, pos2)
 
                 song_name = song.title if song.title else song.identifier
                 embed = self.embeds.SONG_MOVED(song_name, pos1, pos2)
-                processLock.release()
+                playerLock.release()
                 return HandlerResponse(self.ctx, embed)
             except:
                 # Release the acquired Lock
-                processLock.release()
+                playerLock.release()
                 embed = self.embeds.ERROR_MOVING()
                 error = UnknownError()
                 return HandlerResponse(self.ctx, embed, error)
         else:
-            processManager.resetProcess(self.guild, self.ctx)
+            playersManager.resetPlayer(self.guild, self.ctx)
             embed = self.embeds.PLAYER_RESTARTED()
             return HandlerResponse(self.ctx, embed)
 

@@ -6,6 +6,7 @@ from discord import Interaction
 from Handlers.HandlerResponse import HandlerResponse
 from Music.Playlist import Playlist
 from Music.VulkanBot import VulkanBot
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
 from Parallelism.Commands import VCommands, VCommandsType
 
 
@@ -16,32 +17,31 @@ class JumpMusicHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self, musicPos: str) -> HandlerResponse:
-        processManager = self.config.getProcessManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
-        if not processInfo:
+        playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+        if not playersManager.verifyIfPlayerExists(self.guild):
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)
 
-        processLock = processInfo.getLock()
-        acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+        playerLock = playersManager.getPlayerLock(self.guild)
+        acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
         if acquired:
             # Try to convert input to int
             error = self.__validateInput(musicPos)
             if error:
                 embed = self.embeds.ERROR_EMBED(error.message)
-                processLock.release()
+                playerLock.release()
                 return HandlerResponse(self.ctx, embed, error)
 
             # Sanitize the input
-            playlist: Playlist = processInfo.getPlaylist()
+            playlist = playersManager.getPlayerPlaylist(self.guild)
             musicPos = self.__sanitizeInput(playlist, musicPos)
 
             # Validate the position
             if not playlist.validate_position(musicPos):
                 error = InvalidInput()
                 embed = self.embeds.PLAYLIST_RANGE_ERROR()
-                processLock.release()
+                playerLock.release()
                 return HandlerResponse(self.ctx, embed, error)
             try:
                 # Move the selected song
@@ -49,19 +49,17 @@ class JumpMusicHandler(AbstractHandler):
 
                 # Send a command to the player to skip the music
                 command = VCommands(VCommandsType.SKIP, None)
-                queue = processInfo.getQueueToPlayer()
-                self.putCommandInQueue(queue, command)
+                await playersManager.sendCommandToPlayer(command, self.guild)
 
-                processLock.release()
                 return HandlerResponse(self.ctx)
             except:
-                # Release the acquired Lock
-                processLock.release()
                 embed = self.embeds.ERROR_MOVING()
                 error = UnknownError()
                 return HandlerResponse(self.ctx, embed, error)
+            finally:
+                playerLock.release()
         else:
-            processManager.resetProcess(self.guild, self.ctx)
+            playersManager.resetPlayer(self.guild, self.ctx)
             embed = self.embeds.PLAYER_RESTARTED()
             return HandlerResponse(self.ctx, embed)
 

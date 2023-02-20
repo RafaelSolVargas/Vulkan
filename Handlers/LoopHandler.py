@@ -5,6 +5,7 @@ from Handlers.HandlerResponse import HandlerResponse
 from Config.Exceptions import BadCommandUsage
 from typing import Union
 from discord import Interaction
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
 
 
 class LoopHandler(AbstractHandler):
@@ -12,23 +13,20 @@ class LoopHandler(AbstractHandler):
         super().__init__(ctx, bot)
 
     async def run(self, args: str) -> HandlerResponse:
-        # Get the current process of the guild
-        processManager = self.config.getProcessManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
-        if not processInfo:
+        playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+        if not playersManager.verifyIfPlayerExists(self.guild):
             embed = self.embeds.NOT_PLAYING()
             error = BadCommandUsage()
             return HandlerResponse(self.ctx, embed, error)
 
-        playlist = processInfo.getPlaylist()
-
-        processLock = processInfo.getLock()
-        acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+        playlist = playersManager.getPlayerPlaylist(self.guild)
+        playerLock = playersManager.getPlayerLock(self.guild)
+        acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
         if acquired:
             if args == '' or args is None:
                 playlist.loop_all()
                 embed = self.embeds.LOOP_ALL_ACTIVATED()
-                processLock.release()
+                playerLock.release()
                 return HandlerResponse(self.ctx, embed)
 
             args = args.lower()
@@ -51,9 +49,9 @@ class LoopHandler(AbstractHandler):
                 error = BadCommandUsage()
                 embed = self.embeds.BAD_LOOP_USE()
 
-            processLock.release()
+            playerLock.release()
             return HandlerResponse(self.ctx, embed, error)
         else:
-            processManager.resetProcess(self.guild, self.ctx)
+            playersManager.resetPlayer(self.guild, self.ctx)
             embed = self.embeds.PLAYER_RESTARTED()
             return HandlerResponse(self.ctx, embed)

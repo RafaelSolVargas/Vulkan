@@ -2,6 +2,7 @@ from discord.ext.commands import Context
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
 from Music.VulkanBot import VulkanBot
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
 from Utils.Cleaner import Cleaner
 from typing import Union
 from discord import Interaction
@@ -13,14 +14,12 @@ class NowPlayingHandler(AbstractHandler):
         self.__cleaner = Cleaner()
 
     async def run(self) -> HandlerResponse:
-        # Get the current process of the guild
-        processManager = self.config.getProcessManager()
-        processInfo = processManager.getRunningPlayerInfo(self.guild)
-        if not processInfo:
+        playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+        if not playersManager.verifyIfPlayerExists(self.guild):
             embed = self.embeds.NOT_PLAYING()
             return HandlerResponse(self.ctx, embed)
 
-        playlist = processInfo.getPlaylist()
+        playlist = playersManager.getPlayerPlaylist(self.guild)
         if playlist.getCurrentSong() is None:
             embed = self.embeds.NOT_PLAYING()
             return HandlerResponse(self.ctx, embed)

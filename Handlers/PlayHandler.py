@@ -1,6 +1,6 @@
 import asyncio
 import traceback
-from typing import List
+from typing import List, Union
 from Config.Exceptions import DownloadingError, InvalidInput, VulkanError
 from discord.ext.commands import Context
 from Handlers.AbstractHandler import AbstractHandler
@@ -9,12 +9,10 @@ from Handlers.HandlerResponse import HandlerResponse
 from Music.Downloader import Downloader
 from Music.Searcher import Searcher
 from Music.Song import Song
-from Parallelism.ProcessInfo import ProcessInfo
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
-from typing import Union
 from discord import Interaction
-from Music.Playlist import Playlist
 
 
 class PlayHandler(AbstractHandler):
@@ -36,13 +34,12 @@ class PlayHandler(AbstractHandler):
             if musicsInfo is None or len(musicsInfo) == 0:
                 raise InvalidInput(self.messages.INVALID_INPUT, self.messages.ERROR_TITLE)
 
-            # Get the process context for the current guild
-            processManager = self.config.getProcessManager()
-            processInfo = processManager.getOrCreatePlayerInfo(self.guild, self.ctx)
-            playlist: Playlist = processInfo.getPlaylist()
-            process = processInfo.getProcess()
-            if not process.is_alive():  # If process has not yet started, start
-                process.start()
+            # If there is no executing player for the guild then we create the player
+            playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+            if not playersManager.verifyIfPlayerExists(self.guild):
+                playersManager.createPlayerForGuild(self.guild, self.ctx)
+
+            playlist = playersManager.getPlayerPlaylist(self.guild)
 
             # Create the Songs objects
             songs: List[Song] = []
@@ -66,32 +63,24 @@ class PlayHandler(AbstractHandler):
                     embed = self.embeds.SONG_ADDED_TWO(song.info, pos)
                     response = HandlerResponse(self.ctx, embed)
 
-                # Add the unique song to the playlist and send a command to player process
-                processLock = processInfo.getLock()
-                acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+                # Add the unique song to the playlist and send a command to player
+                playerLock = playersManager.getPlayerLock(self.guild)
+                acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
                 if acquired:
                     playlist.add_song(song)
                     # Release the acquired Lock
-                    processLock.release()
-                    queue = processInfo.getQueueToPlayer()
+                    playerLock.release()
                     playCommand = VCommands(VCommandsType.PLAY, None)
-                    self.putCommandInQueue(queue, playCommand)
-
+                    await playersManager.sendCommandToPlayer(playCommand, self.guild)
                 else:
-                    processManager.resetProcess(self.guild, self.ctx)
+                    playersManager.resetPlayer(self.guild, self.ctx)
                     embed = self.embeds.PLAYER_RESTARTED()
                     return HandlerResponse(self.ctx, embed)
 
                 return response
             else:  # If multiple songs added
-                # If more than 10 songs, download and load the first 5 to start the play right away
-                if len(songs) > 10:
-                    fiveFirstSongs = songs[0:5]
-                    songs = songs[5:]
-                    await self.__downloadSongsAndStore(fiveFirstSongs, processInfo)
-
-                # Trigger a task to download all songs and then store them in the process playlist
-                asyncio.create_task(self.__downloadSongsAndStore(songs, processInfo))
+                # Trigger a task to download all songs and then store them in the playlist
+                asyncio.create_task(self.__downloadSongsInLots(songs, playersManager))
 
                 embed = self.embeds.SONGS_ADDED(len(songs))
                 return HandlerResponse(self.ctx, embed)
@@ -100,8 +89,8 @@ class PlayHandler(AbstractHandler):
             embed = self.embeds.DOWNLOADING_ERROR()
             return HandlerResponse(self.ctx, embed, error)
         except Exception as error:
-            print(f'ERROR IN PLAYHANDLER -> {traceback.format_exc()}', {type(error)})
-            if isinstance(error, VulkanError):  # If error was already processed
+            print(f'[ERROR IN PLAYHANDLER] -> {traceback.format_exc()}', {type(error)})
+            if isinstance(error, VulkanError):
                 embed = self.embeds.CUSTOM_ERROR(error)
             else:
                 error = UnknownError()
@@ -109,37 +98,40 @@ class PlayHandler(AbstractHandler):
 
             return HandlerResponse(self.ctx, embed, error)
 
-    async def __downloadSongsAndStore(self, songs: List[Song], processInfo: ProcessInfo) -> None:
-        playlist = processInfo.getPlaylist()
-        queue = processInfo.getQueueToPlayer()
+    async def __downloadSongsInLots(self, songs: List[Song], playersManager: AbstractPlayersManager) -> None:
+        """
+        To avoid having a lot of tasks delaying the song playback we will lock the maximum songs downloading at a time
+        """
+        playlist = playersManager.getPlayerPlaylist(self.guild)
         playCommand = VCommands(VCommandsType.PLAY, None)
-        tooManySongs = len(songs) > 100
+        maxDownloads = self.config.MAX_DOWNLOAD_SONGS_AT_A_TIME
 
-        # Trigger a task for each song to be downloaded
-        tasks: List[asyncio.Task] = []
-        for index, song in enumerate(songs):
-            # If there is a lot of songs being downloaded, force a sleep to try resolve the Http Error 429 "To Many Requests"
-            # Trying to fix the issue https://github.com/RafaelSolVargas/Vulkan/issues/32
-            if tooManySongs and index % 3 == 0:
-                await asyncio.sleep(0.5)
-            task = asyncio.create_task(self.__down.download_song(song))
-            tasks.append(task)
+        while len(songs) > 0:
+            # Verify how many songs will be downloaded in this lot and extract from the songs list
+            songsQuant = min(maxDownloads, len(songs))
+            # Get the first quantInLot songs
+            songsInLot = songs[:songsQuant]
+            # Remove the first quantInLot songs from the songs
+            songs = songs[songsQuant:]
 
-        # In the original order, await for the task and then, if successfully downloaded, add to the playlist
-        processManager = self.config.getProcessManager()
-        for index, task in enumerate(tasks):
-            await task
-            song = songs[index]
-            if not song.problematic:  # If downloaded add to the playlist and send play command
-                processInfo = processManager.getOrCreatePlayerInfo(self.guild, self.ctx)
-                processLock = processInfo.getLock()
-                acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
-                if acquired:
-                    playlist.add_song(song)
-                    self.putCommandInQueue(queue, playCommand)
-                    processLock.release()
-                else:
-                    processManager.resetProcess(self.guild, self.ctx)
+            # Create task to download the songs in the lot
+            tasks: List[asyncio.Task] = []
+            for index, song in enumerate(songsInLot):
+                task = asyncio.create_task(self.__down.download_song(song))
+                tasks.append(task)
+
+            for index, task, in enumerate(tasks):
+                await task
+                song = songsInLot[index]
+                if not song.problematic:  # If downloaded add to the playlist and send play command
+                    playerLock = playersManager.getPlayerLock(self.guild)
+                    acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+                    if acquired:
+                        playlist.add_song(song)
+                        await playersManager.sendCommandToPlayer(playCommand, self.guild)
+                        playerLock.release()
+                    else:
+                        playersManager.resetPlayer(self.guild, self.ctx)
 
     def __isUserConnected(self) -> bool:
         if self.ctx.author.voice:

@@ -1,6 +1,4 @@
 from abc import ABC, abstractmethod
-from Parallelism.Commands import VCommands
-from multiprocessing import Queue
 from typing import List, Union
 from discord.ext.commands import Context
 from discord import Client, Guild, ClientUser, Interaction, Member, User
@@ -28,12 +26,6 @@ class AbstractHandler(ABC):
             self.__author = ctx.author
         else:
             self.__author = ctx.user
-
-    def putCommandInQueue(self, queue: Queue, command: VCommands) -> None:
-        try:
-            queue.put(command)
-        except Exception as e:
-            print(f'[ERROR PUTTING COMMAND IN QUEUE] -> {e}')
 
     @abstractmethod
     async def run(self) -> HandlerResponse:

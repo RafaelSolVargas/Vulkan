@@ -1,55 +1,126 @@
 import asyncio
-from multiprocessing import Lock, Queue
+from enum import Enum
+from multiprocessing import Lock, Process, Queue
 from multiprocessing.managers import BaseManager, NamespaceProxy
 from queue import Empty
 from threading import Thread
 from typing import Dict, Tuple, Union
 from Config.Singleton import Singleton
-from discord import Guild, Interaction
+from discord import Guild, Interaction, TextChannel, VoiceChannel
 from discord.ext.commands import Context
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
 from Parallelism.ProcessExecutor import ProcessCommandsExecutor
 from Music.Song import Song
-from Parallelism.PlayerProcess import PlayerProcess
+from Parallelism.ProcessPlayer import ProcessPlayer
 from Music.Playlist import Playlist
-from Parallelism.ProcessInfo import ProcessInfo, ProcessStatus
 from Parallelism.Commands import VCommands, VCommandsType
 from Music.VulkanBot import VulkanBot
 
 
-class ProcessManager(Singleton):
+class ProcessStatus(Enum):
+    RUNNING = 'Running'
+    SLEEPING = 'Sleeping'
+
+
+class PlayerProcessInfo:
+    """
+    Class to store the reference to all structures to maintain a process player
+    """
+
+    def __init__(self, process: Process, queueToPlayer: Queue, queueToMain: Queue, playlist: Playlist, lock: Lock, textChannel: TextChannel) -> None:
+        self.__process = process
+        self.__queueToPlayer = queueToPlayer
+        self.__queueToMain = queueToMain
+        self.__playlist = playlist
+        self.__lock = lock
+        self.__textChannel = textChannel
+        self.__status = ProcessStatus.RUNNING
+
+    def setProcess(self, newProcess: Process) -> None:
+        self.__process = newProcess
+
+    def getStatus(self) -> ProcessStatus:
+        return self.__status
+
+    def setStatus(self, status: ProcessStatus) -> None:
+        self.__status = status
+
+    def getProcess(self) -> Process:
+        return self.__process
+
+    def getQueueToPlayer(self) -> Queue:
+        return self.__queueToPlayer
+
+    def getQueueToMain(self) -> Queue:
+        return self.__queueToMain
+
+    def getPlaylist(self) -> Playlist:
+        return self.__playlist
+
+    def getLock(self) -> Lock:
+        return self.__lock
+
+    def getTextChannel(self) -> TextChannel:
+        return self.__textChannel
+
+
+class ProcessPlayerManager(Singleton, AbstractPlayersManager):
     """
     Manage all running player process, creating and storing them for future calls
-    Deal with the creation of shared memory
+    Deals with the creation of shared memory
     """
 
     def __init__(self, bot: VulkanBot = None) -> None:
         if not super().created:
             self.__bot = bot
             VManager.register('Playlist', Playlist)
+            VManager.register('VoiceChannel', VoiceChannel)
             self.__manager = VManager()
             self.__manager.start()
-            self.__playersProcess: Dict[int, ProcessInfo] = {}
+            self.__playersProcess: Dict[int, PlayerProcessInfo] = {}
             self.__playersListeners: Dict[int, Tuple[Thread, bool]] = {}
             self.__playersCommandsExecutor: Dict[int, ProcessCommandsExecutor] = {}
 
-    def setPlayerInfo(self, guild: Guild, info: ProcessInfo):
-        self.__playersProcess[guild.id] = info
+    async def sendCommandToPlayer(self, command: VCommands, guild: Guild, forceCreation: bool = False, context: Union[Context, Interaction] = None):
+        if forceCreation:
+            processInfo = self.createPlayerForGuild(guild, context)
+        else:
+            processInfo = self.__getRunningPlayerInfo(guild)
+        if processInfo == None:
+            return
 
-    def getOrCreatePlayerInfo(self, guild: Guild, context: Union[Context, Interaction]) -> ProcessInfo:
-        """Return the process info for the guild, the user in context must be connected to a voice_channel"""
+        queue = processInfo.getQueueToPlayer()
+        self.__putCommandInQueue(queue, command)
+
+    def getPlayerPlaylist(self, guild: Guild) -> Playlist:
+        playerInfo = self.__getRunningPlayerInfo(guild)
+        if playerInfo:
+            return playerInfo.getPlaylist()
+
+    def getPlayerLock(self, guild: Guild) -> Lock:
+        playerInfo = self.__getRunningPlayerInfo(guild)
+        if playerInfo:
+            return playerInfo.getLock()
+
+    def verifyIfPlayerExists(self, guild: Guild) -> bool:
+        return guild.id in self.__playersProcess.keys()
+
+    def createPlayerForGuild(self, guild: Guild, context: Union[Context, Interaction]) -> None:
         try:
             if guild.id not in self.__playersProcess.keys():
-                self.__playersProcess[guild.id] = self.__createProcessInfo(guild, context)
+                self.__playersProcess[guild.id] = self.__createProcessPlayerInfo(guild, context)
             else:
                 # If the process has ended create a new one
                 if not self.__playersProcess[guild.id].getProcess().is_alive():
                     self.__playersProcess[guild.id] = self.__recreateProcess(guild, context)
 
+            # Start the process
+            self.__playersProcess[guild.id].getProcess().start()
             return self.__playersProcess[guild.id]
         except Exception as e:
             print(f'[Error In GetPlayerContext] -> {e}')
 
-    def resetProcess(self, guild: Guild, context: Context) -> None:
+    def resetPlayer(self, guild: Guild, context: Context) -> None:
         """Restart a running process, already start it to return to play"""
         if guild.id not in self.__playersProcess.keys():
             return None
@@ -59,10 +130,10 @@ class ProcessManager(Singleton):
         newProcessInfo.getProcess().start()  # Start the process
         # Send a command to start the play again
         playCommand = VCommands(VCommandsType.PLAY)
-        newProcessInfo.getQueueToPlayer().put(playCommand)
+        self.__putCommandInQueue(newProcessInfo.getQueueToPlayer(), playCommand)
         self.__playersProcess[guild.id] = newProcessInfo
 
-    def getRunningPlayerInfo(self, guild: Guild) -> ProcessInfo:
+    def __getRunningPlayerInfo(self, guild: Guild) -> PlayerProcessInfo:
         """Return the process info for the guild, if not, return None"""
         if guild.id not in self.__playersProcess.keys():
             print('Process Info not found')
@@ -70,20 +141,18 @@ class ProcessManager(Singleton):
 
         return self.__playersProcess[guild.id]
 
-    def __createProcessInfo(self, guild: Guild, context: Context) -> ProcessInfo:
+    def __createProcessPlayerInfo(self, guild: Guild, context: Context) -> PlayerProcessInfo:
         guildID: int = context.guild.id
-        textID: int = context.channel.id
         voiceID: int = context.author.voice.channel.id
-        authorID: int = context.author.id
 
         playlist: Playlist = self.__manager.Playlist()
         lock = Lock()
         queueToListen = Queue()
         queueToSend = Queue()
-        process = PlayerProcess(context.guild.name, playlist, lock, queueToSend,
-                                queueToListen, guildID, textID, voiceID, authorID)
-        processInfo = ProcessInfo(process, queueToSend, queueToListen,
-                                  playlist, lock, context.channel)
+        process = ProcessPlayer(context.guild.name, playlist, lock, queueToSend,
+                                queueToListen, guildID, voiceID)
+        processInfo = PlayerProcessInfo(process, queueToSend, queueToListen,
+                                        playlist, lock, context.channel)
 
         # Create a Thread to listen for the queue coming from the Player Process, this will redirect the Queue to a async
         thread = Thread(target=self.__listenToCommands,
@@ -110,7 +179,7 @@ class ProcessManager(Singleton):
         except Exception as e:
             print(f'[ERROR STOPPING PROCESS] -> {e}')
 
-    def __recreateProcess(self, guild: Guild, context: Union[Context, Interaction]) -> ProcessInfo:
+    def __recreateProcess(self, guild: Guild, context: Union[Context, Interaction]) -> PlayerProcessInfo:
         """Create a new process info using previous playlist"""
         self.__stopPossiblyRunningProcess(guild)
 
@@ -127,10 +196,10 @@ class ProcessManager(Singleton):
         lock = Lock()
         queueToListen = Queue()
         queueToSend = Queue()
-        process = PlayerProcess(context.guild.name, playlist, lock, queueToSend,
+        process = ProcessPlayer(context.guild.name, playlist, lock, queueToSend,
                                 queueToListen, guildID, textID, voiceID, authorID)
-        processInfo = ProcessInfo(process, queueToSend, queueToListen,
-                                  playlist, lock, context.channel)
+        processInfo = PlayerProcessInfo(process, queueToSend, queueToListen,
+                                        playlist, lock, context.channel)
 
         # Create a Thread to listen for the queue coming from the Player Process, this will redirect the Queue to a async
         thread = Thread(target=self.__listenToCommands,
@@ -190,10 +259,18 @@ class ProcessManager(Singleton):
         # Set the status of this process as sleeping, only the playlist object remains
         self.__playersProcess[guildID].setStatus(ProcessStatus.SLEEPING)
 
+    def __putCommandInQueue(self, queue: Queue, command: VCommands) -> None:
+        try:
+            queue.put(command)
+        except Exception as e:
+            print(f'[ERROR PUTTING COMMAND IN QUEUE] -> {e}')
+
     async def showNowPlaying(self, guildID: int, song: Song) -> None:
         commandExecutor = self.__playersCommandsExecutor[guildID]
         processInfo = self.__playersProcess[guildID]
-        await commandExecutor.sendNowPlaying(processInfo, song)
+        playlist = processInfo.getPlaylist()
+        channel = processInfo.getTextChannel()
+        await commandExecutor.sendNowPlaying(playlist, channel, song)
 
 
 class VManager(BaseManager):

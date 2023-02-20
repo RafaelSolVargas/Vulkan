@@ -1,4 +1,3 @@
-import os
 from decouple import config
 from Config.Singleton import Singleton
 from Config.Folder import Folder
@@ -10,6 +9,13 @@ class VConfigs(Singleton):
             # You can change this boolean to False if you want to prevent the Bot from auto disconnecting
             # Resolution for the issue: https://github.com/RafaelSolVargas/Vulkan/issues/33
             self.SHOULD_AUTO_DISCONNECT_WHEN_ALONE = False
+            # Recommended to be True, except in cases when your Bot is present in thousands servers, in that case
+            # the delay to start a new Python process for the playback is too much, and to avoid that you set as False
+            # This feature is for now in testing period, for a more stable version, keep this boolean = True
+            self.SONG_PLAYBACK_IN_SEPARATE_PROCESS = True
+            # Maximum of songs that will be downloaded at once, the higher this number is, the faster the songs will be all available
+            # but the slower will be the others commands of the Bot during the downloading time, for example, the playback quality
+            self.MAX_DOWNLOAD_SONGS_AT_A_TIME = 5
 
             self.BOT_PREFIX = '!'
             try:
@@ -44,8 +50,8 @@ class VConfigs(Singleton):
             self.MY_ERROR_BAD_COMMAND = 'This string serves to verify if some error was raised by myself on purpose'
             self.INVITE_URL = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot'
 
-    def getProcessManager(self):
+    def getPlayersManager(self):
         return self.__manager
 
-    def setProcessManager(self, newManager):
+    def setPlayersManager(self, newManager):
         self.__manager = newManager

@@ -4,7 +4,7 @@ from discord.ext.commands import Context
 from Music.VulkanBot import VulkanBot
 from Handlers.AbstractHandler import AbstractHandler
 from Handlers.HandlerResponse import HandlerResponse
-from Parallelism.ProcessInfo import ProcessInfo
+from Parallelism.AbstractProcessManager import AbstractPlayersManager
 
 
 class ClearHandler(AbstractHandler):
@@ -13,19 +13,18 @@ class ClearHandler(AbstractHandler):
 
     async def run(self) -> HandlerResponse:
         # Get the current process of the guild
-        processManager = self.config.getProcessManager()
-        processInfo: ProcessInfo = processManager.getRunningPlayerInfo(self.guild)
-        if processInfo:
+        playersManager: AbstractPlayersManager = self.config.getPlayersManager()
+        if playersManager.verifyIfPlayerExists(self.guild):
             # Clear the playlist
-            playlist = processInfo.getPlaylist()
-            processLock = processInfo.getLock()
-            acquired = processLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
+            playlist = playersManager.getPlayerPlaylist(self.guild)
+            playerLock = playersManager.getPlayerLock(self.guild)
+            acquired = playerLock.acquire(timeout=self.config.ACQUIRE_LOCK_TIMEOUT)
             if acquired:
                 playlist.clear()
-                processLock.release()
+                playerLock.release()
                 embed = self.embeds.PLAYLIST_CLEAR()
                 return HandlerResponse(self.ctx, embed)
             else:
-                processManager.resetProcess(self.guild, self.ctx)
+                playersManager.resetPlayer(self.guild, self.ctx)
                 embed = self.embeds.PLAYER_RESTARTED()
                 return HandlerResponse(self.ctx, embed)
