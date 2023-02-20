@@ -34,8 +34,10 @@ Vulkan uses multiprocessing and asynchronous Python modules to maximize Music Pl
 </p>
 
 
+<hr>
+<br>
 
-# **How to use it** 
+## **Setting up for yourself** 
 
 
 ### **Requirements**
@@ -69,29 +71,25 @@ BOT_PREFIX=Your_Wanted_Prefix_For_Vulkan
 ```
 
 ### **⚙️ Configs**
-The config file is located at ```./config/Configs.py```, it doesn't require any change, but if you can change values to the way you want. <br>
+The config file is located at ```./config/Configs.py```, it doesn't require any change, but if you can change the values to the way you want. <br>
+Take a look in the [Settings page](.github/Docs/SETTINGS.md) to personalize the Bot for you.
 
 
 ### **Initialization**
 - Go to [Discord](https://discord.com/developers) and invite your Bot to your own server
 - Run ```python main.py``` in console to start
-
-
-### **Configuring Auto Disconnect**
-As a result of the [Issue 33](https://github.com/RafaelSolVargas/Vulkan/issues/33) now you can configure if the Bot will auto disconnect when being alone in the voice channel, the default configuration is to disconnect within 300 seconds if it finds out no one is currently listing to it.
-To change that you must: <br> 
-- Change the property SHOULD_AUTO_DISCONNECT_WHEN_ALONE of the VConfigs class to False 
-> The path to the file is ./Config/Configs.py
+- Give this project a nice 🌟
 
 
 <br>
 <hr>
 <br>
 
+
 ## **🚀 Heroku (Not free anymore)**
 > *Heroku doesn't offer free host services anymore.* <br>
 
-To deploy and run your Bot in Heroku 24/7, follow the instructions in the [Heroku Instructions](HEROKU.md) page.
+To deploy and run your Bot in Heroku 24/7, follow the instructions in the [Heroku Instructions](.github/Docs/HEROKU.md) page.
 
 ## 🧪 Tests
 The tests were written manually with no package due to problems with async function in other packages, to execute them type in root: <br>
