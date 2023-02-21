@@ -116,7 +116,7 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
         else:
             voiceID: int = context.author.voice.channel.id
 
-        voiceChannel = self.__bot.get_channel(voiceID)
+        voiceChannel = context.author.voice.channel
 
         playlist = Playlist()
         lock = RLock()
@@ -144,7 +144,7 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
             voiceID: int = context.user.voice.channel.id
         else:
             voiceID: int = context.author.voice.channel.id
-        voiceChannel = self.__bot.get_channel(voiceID)
+        voiceChannel = context.author.voice.channel
 
         playlist = self.__playersThreads[guildID].getPlaylist()
         lock = RLock()

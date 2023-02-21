@@ -334,6 +334,15 @@ class ThreadPlayer(Thread):
     async def __connectToVoiceChannel(self) -> bool:
         try:
             print('[CONNECTING TO VOICE CHANNEL]')
+            # If the voiceChannel is not defined yet, like if the Bot is still loading, wait until we get the voiceChannel
+            if self.__voiceChannel is None:
+                while True:
+                    self.__voiceChannel = self.__bot.get_channel(self.__voiceChannelID)
+                    if self.__voiceChannel is None:
+                        await asyncio.sleep(0.2)
+                    else:
+                        break
+
             if self.__voiceClient is not None:
                 try:
                     await self.__voiceClient.disconnect(force=True)
