@@ -56,6 +56,7 @@ class ProcessPlayer(Process):
 
         self.__playing = False
         self.__forceStop = False
+        self.__botCompletedLoad = False
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
 
@@ -77,6 +78,7 @@ class ProcessPlayer(Process):
     async def _run(self) -> None:
         # Recreate the bot instance and objects using discord API
         self.__bot = await self.__createBotInstance()
+        self.__botCompletedLoad = True
         self.__guild = self.__bot.get_guild(self.__guildID)
         self.__voiceChannel = self.__bot.get_channel(self.__voiceChannelID)
         # Connect to voice Channel
@@ -243,7 +245,7 @@ class ProcessPlayer(Process):
         # Forces the Thread that listen to the commands to await this bot instance
         # to stablish the connection with discord, may delay when running bots in several servers
         while True:
-            if self.__guildID is not None:
+            if self.__botCompletedLoad:
                 break
             sleep(0.1)
 
