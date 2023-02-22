@@ -92,17 +92,17 @@ class ThreadPlayer(Thread):
 
             # If the voice channel disconnect for some reason
             if not self.__voiceClient.is_connected():
-                print('[VOICE CHANNEL NOT NULL BUT DISCONNECTED, CONNECTING AGAIN]')
+                print('[THREAD PLAYER -> VOICE CHANNEL NOT NULL BUT DISCONNECTED, CONNECTING AGAIN]')
                 await self.__connectToVoiceChannel()
             # If the player is connected and playing return the song to the playlist
             elif self.__voiceClient.is_playing():
-                print('[SONG ALREADY PLAYING, RETURNING]')
+                print('[THREAD PLAYER -> SONG ALREADY PLAYING, RETURNING]')
                 self.__playlist.add_song_start(song)
                 return
 
             songStillAvailable = self.__verifyIfSongAvailable(song)
             if not songStillAvailable:
-                print('[SONG NOT AVAILABLE ANYMORE, DOWNLOADING AGAIN]')
+                print('[THREAD PLAYER -> SONG NOT AVAILABLE ANYMORE, DOWNLOADING AGAIN]')
                 song = self.__downloadSongAgain(song)
 
             self.__playing = True
@@ -117,14 +117,14 @@ class ThreadPlayer(Thread):
             nowPlayingCommand = VCommands(VCommandsType.NOW_PLAYING, song)
             await self.__callback(nowPlayingCommand, self.__guild, song)
         except Exception as e:
-            print(f'[ERROR IN PLAY SONG FUNCTION] -> {e}, {type(e)}')
+            print(f'[THREAD PLAYER -> ERROR IN PLAY SONG FUNCTION] -> {e}, {type(e)}')
             self.__playNext(None)
         finally:
             self.__playerLock.release()
 
     def __playNext(self, error) -> None:
         if error is not None:
-            print(f'[ERROR PLAYING SONG] -> {error}')
+            print(f'[THREAD PLAYER -> ERROR PLAYING SONG] -> {error}')
         with self.__playlistLock:
             with self.__playerLock:
                 if self.__forceStop:  # If it's forced to stop player
@@ -160,7 +160,7 @@ class ThreadPlayer(Thread):
                 return False
             return True
         except Exception as e:
-            print(f'[ERROR VERIFYING SONG AVAILABILITY] -> {e}')
+            print(f'[THREAD PLAYER -> ERROR VERIFYING SONG AVAILABILITY] -> {e}')
             return False
 
     def __downloadSongAgain(self, song: Song) -> Song:
@@ -202,7 +202,6 @@ class ThreadPlayer(Thread):
             self.__playerLock.acquire()
             type = command.getType()
             args = command.getArgs()
-            # print(f'Player Thread {self.__guild.name} received command {type}')
 
             if type == VCommandsType.PAUSE:
                 self.__pause()
@@ -219,9 +218,9 @@ class ThreadPlayer(Thread):
             elif type == VCommandsType.STOP:
                 await self.__stop()
             else:
-                print(f'[ERROR] -> Unknown Command Received: {command}')
+                print(f'[THREAD PLAYER ERROR] -> Unknown Command Received: {command}')
         except Exception as e:
-            print(f'[ERROR IN COMMAND RECEIVER] -> {type} - {e}')
+            print(f'[THREAD PLAYER -> ERROR IN COMMAND RECEIVER] -> {type} - {e}')
         finally:
             self.__playerLock.release()
 
@@ -277,7 +276,7 @@ class ThreadPlayer(Thread):
                 self.__voiceClient.stop()
             # If for some reason the Bot has disconnect but there is still songs to play
             elif len(self.__playlist.getSongs()) > 0:
-                print('[RESTARTING CURRENT SONG]')
+                print('[THREAD PLAYER -> RESTARTING CURRENT SONG]')
                 await self.__restartCurrentSong()
 
     async def __forceBotDisconnectAndStop(self) -> None:
@@ -291,7 +290,7 @@ class ThreadPlayer(Thread):
                 self.__voiceClient.stop()
                 await self.__voiceClient.disconnect(force=True)
             except Exception as e:
-                print(f'[ERROR FORCING BOT TO STOP] -> {e}')
+                print(f'[THREAD PLAYER -> ERROR FORCING BOT TO STOP] -> {e}')
             finally:
                 self.__voiceClient = None
             with self.__playlistLock:
@@ -319,7 +318,7 @@ class ThreadPlayer(Thread):
                     self.__playlist.loop_off()
                 await self.__forceBotDisconnectAndStop()
         except Exception as e:
-            print(f'[ERROR IN TIMEOUT] -> {e}')
+            print(f'[THREAD PLAYER -> ERROR IN TIMEOUT] -> {e}')
 
     def __isBotAloneInChannel(self) -> bool:
         try:
@@ -328,12 +327,12 @@ class ThreadPlayer(Thread):
             else:
                 return False
         except Exception as e:
-            print(f'[ERROR IN CHECK BOT ALONE] -> {e}')
+            print(f'[THREAD PLAYER -> ERROR IN CHECK BOT ALONE] -> {e}')
             return False
 
     async def __connectToVoiceChannel(self) -> bool:
         try:
-            print('[CONNECTING TO VOICE CHANNEL]')
+            print('[THREAD PLAYER -> CONNECTING TO VOICE CHANNEL]')
             # If the voiceChannel is not defined yet, like if the Bot is still loading, wait until we get the voiceChannel
             if self.__voiceChannel is None:
                 while True:
@@ -347,9 +346,9 @@ class ThreadPlayer(Thread):
                 try:
                     await self.__voiceClient.disconnect(force=True)
                 except Exception as e:
-                    print(f'[ERROR FORCING DISCONNECT] -> {e}')
+                    print(f'[THREAD PLAYER -> ERROR FORCING DISCONNECT] -> {e}')
             self.__voiceClient = await self.__voiceChannel.connect(reconnect=True, timeout=None)
             return True
         except Exception as e:
-            print(f'[ERROR CONNECTING TO VC] -> {e}')
+            print(f'[THREAD PLAYER -> ERROR CONNECTING TO VC] -> {e}')
             return False
