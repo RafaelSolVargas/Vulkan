@@ -49,7 +49,7 @@ class JumpMusicHandler(AbstractHandler):
 
                 # Send a command to the player to skip the music
                 command = VCommands(VCommandsType.SKIP, None)
-                await playersManager.sendCommandToPlayer(command, self.guild)
+                await playersManager.sendCommandToPlayer(command, self.guild, self.ctx)
 
                 return HandlerResponse(self.ctx)
             except:

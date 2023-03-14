@@ -46,7 +46,7 @@ class ThreadPlayerManager(Singleton, AbstractPlayersManager):
             self.__bot = bot
             self.__playersThreads: Dict[int, ThreadPlayerInfo] = {}
 
-    async def sendCommandToPlayer(self, command: VCommands, guild: Guild, forceCreation: bool = False, context: Union[Context, Interaction] = None):
+    async def sendCommandToPlayer(self, command: VCommands, guild: Guild, context: Union[Context, Interaction], forceCreation: bool = False):
         playerInfo = self.__playersThreads[guild.id]
         player = playerInfo.getPlayer()
         if player is None and forceCreation:

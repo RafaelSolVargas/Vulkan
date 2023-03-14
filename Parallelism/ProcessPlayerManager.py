@@ -81,13 +81,17 @@ class ProcessPlayerManager(Singleton, AbstractPlayersManager):
             self.__playersListeners: Dict[int, Tuple[Thread, bool]] = {}
             self.__playersCommandsExecutor: Dict[int, ProcessCommandsExecutor] = {}
 
-    async def sendCommandToPlayer(self, command: VCommands, guild: Guild, forceCreation: bool = False, context: Union[Context, Interaction] = None):
+    async def sendCommandToPlayer(self, command: VCommands, guild: Guild, context: Union[Context, Interaction], forceCreation: bool = False):
         if forceCreation:
             processInfo = self.createPlayerForGuild(guild, context)
         else:
             processInfo = self.__getRunningPlayerInfo(guild)
         if processInfo == None:
             return
+
+        if processInfo.getStatus() == ProcessStatus.SLEEPING:
+            self.resetPlayer(guild, context)
+            processInfo = self.__getRunningPlayerInfo(guild)
 
         queue = processInfo.getQueueToPlayer()
         self.__putCommandInQueue(queue, command)
@@ -172,24 +176,19 @@ class ProcessPlayerManager(Singleton, AbstractPlayersManager):
                 process = playerProcess.getProcess()
                 process.close()
                 process.kill()
-                playerProcess.getQueueToMain().close()
-                playerProcess.getQueueToMain().join_thread()
-                playerProcess.getQueueToPlayer().close()
-                playerProcess.getQueueToPlayer().join_thread()
+        except ValueError:
+            pass
         except Exception as e:
-            print(f'[ERROR STOPPING PROCESS] -> {e}')
+            print(f'[WARNINGS] -> {e}')
 
     def __recreateProcess(self, guild: Guild, context: Union[Context, Interaction]) -> PlayerProcessInfo:
         """Create a new process info using previous playlist"""
         self.__stopPossiblyRunningProcess(guild)
 
         guildID: int = context.guild.id
-        textID: int = context.channel.id
         if isinstance(context, Interaction):
-            authorID: int = context.user.id
             voiceID: int = context.user.voice.channel.id
         else:
-            authorID: int = context.author.id
             voiceID: int = context.author.voice.channel.id
 
         playlist: Playlist = self.__playersProcess[guildID].getPlaylist()
@@ -197,7 +196,7 @@ class ProcessPlayerManager(Singleton, AbstractPlayersManager):
         queueToListen = Queue()
         queueToSend = Queue()
         process = ProcessPlayer(context.guild.name, playlist, lock, queueToSend,
-                                queueToListen, guildID, textID, voiceID, authorID)
+                                queueToListen, guildID, voiceID)
         processInfo = PlayerProcessInfo(process, queueToSend, queueToListen,
                                         playlist, lock, context.channel)
 

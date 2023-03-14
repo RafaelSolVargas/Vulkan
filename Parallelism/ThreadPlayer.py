@@ -342,11 +342,13 @@ class ThreadPlayer(Thread):
                     else:
                         break
 
-            if self.__voiceClient is not None:
-                try:
-                    await self.__voiceClient.disconnect(force=True)
-                except Exception as e:
-                    print(f'[THREAD PLAYER -> ERROR FORCING DISCONNECT] -> {e}')
+            try:
+                voiceClient = self.__guild.voice_client
+                if voiceClient is not None:
+                    await voiceClient.disconnect(force=True)
+            except Exception as e:
+                print(f'[THREAD PLAYER -> ERROR FORCING DISCONNECT] -> {e}')
+
             self.__voiceClient = await self.__voiceChannel.connect(reconnect=True, timeout=None)
             return True
         except Exception as e:

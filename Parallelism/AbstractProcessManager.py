@@ -13,7 +13,7 @@ class AbstractPlayersManager(ABC):
         pass
 
     @abstractmethod
-    async def sendCommandToPlayer(self, command: VCommands, guild: Guild, forceCreation: bool = False, context: Union[Context, Interaction] = None):
+    async def sendCommandToPlayer(self, command: VCommands, guild: Guild, context: Union[Context, Interaction], forceCreation: bool = False):
         """If the forceCreation boolean is True, then the context must be provided for the Player to be created"""
         pass
 
