@@ -74,7 +74,8 @@ class ControlCog(Cog):
                 colour=self.__colors.BLUE
             )
 
-            embedhelp.set_thumbnail(url=self.__bot.user.avatar)
+            if self.__bot.user.avatar != None:
+                embedhelp.set_thumbnail(url=self.__bot.user.avatar)
             await ctx.send(embed=embedhelp)
 
     @command(name='invite', help=helper.HELP_INVITE, description=helper.HELP_INVITE_LONG, aliases=['convite', 'inv', 'convidar'])
