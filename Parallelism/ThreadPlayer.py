@@ -1,7 +1,7 @@
 import asyncio
 from time import time
 from urllib.parse import parse_qs, urlparse
-from discord import VoiceClient
+from discord import PCMVolumeTransformer, VoiceClient
 from asyncio import AbstractEventLoop
 from threading import RLock, Thread
 from multiprocessing import Lock
@@ -45,6 +45,7 @@ class ThreadPlayer(Thread):
         self.__voiceChannel: VoiceChannel = voiceChannel
         self.__voiceClient: VoiceClient = None
 
+        self.__currentSongChangeVolume = False
         self.__downloader = Downloader()
         self.__callback = callbackToSendCommand
         self.__exitCB = exitCB
@@ -55,6 +56,31 @@ class ThreadPlayer(Thread):
         self.__forceStop = False
         self.FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
                                'options': '-vn'}
+
+    def __set_volume(self, volume: float) -> None:
+        """Set the volume of the player, must be values between 0 and 100"""
+        try:
+            if self.__voiceClient is None:
+                return
+            
+            if not isinstance(volume, float):
+                print('[THREAD ERROR] -> Volume instance must be float')
+                return
+
+            if volume < 0:
+                volume = 0
+            if volume > 100:
+                volume = 100
+
+            volume = volume / 100
+
+            if not self.__currentSongChangeVolume:
+                print('[THREAD ERROR] -> Cannot change the volume of this song')
+                return
+            
+            self.__voiceClient.source.volume = volume
+        except Exception as e:
+            print(e)
 
     def __verifyIfIsPlaying(self) -> bool:
         if self.__voiceClient is None:
@@ -109,6 +135,9 @@ class ThreadPlayer(Thread):
             self.__songPlaying = song
 
             player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
+            if not player.is_opus():
+                player = PCMVolumeTransformer(player, 1)
+                self.__currentSongChangeVolume = True
             self.__voiceClient.play(player, after=lambda e: self.__playNext(e))
 
             self.__timer.cancel()
@@ -127,6 +156,7 @@ class ThreadPlayer(Thread):
             print(f'[THREAD PLAYER -> ERROR PLAYING SONG] -> {error}')
         with self.__playlistLock:
             with self.__playerLock:
+                self.__currentSongChangeVolume = False
                 if self.__forceStop:  # If it's forced to stop player
                     self.__forceStop = False
                     return None
@@ -217,6 +247,8 @@ class ThreadPlayer(Thread):
                 await self.__reset()
             elif type == VCommandsType.STOP:
                 await self.__stop()
+            elif type == VCommandsType.VOLUME:
+                self.__set_volume(args)
             else:
                 print(f'[THREAD PLAYER ERROR] -> Unknown Command Received: {command}')
         except Exception as e:

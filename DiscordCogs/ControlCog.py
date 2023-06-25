@@ -21,7 +21,7 @@ class ControlCog(Cog):
             'MUSIC': ['resume', 'pause', 'loop', 'stop',
                       'skip', 'play', 'queue', 'clear',
                       'np', 'shuffle', 'move', 'remove',
-                      'reset', 'prev', 'history'],
+                      'reset', 'prev', 'history', 'volume'],
             'RANDOM': ['choose', 'cara', 'random']
 
         }

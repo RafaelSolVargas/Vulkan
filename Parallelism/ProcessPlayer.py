@@ -2,7 +2,7 @@ import asyncio
 from time import sleep, time
 from urllib.parse import parse_qs, urlparse
 from Music.VulkanInitializer import VulkanInitializer
-from discord import VoiceClient
+from discord import PCMVolumeTransformer, VoiceClient
 from asyncio import AbstractEventLoop, Semaphore, Queue
 from multiprocessing import Process, RLock, Lock, Queue
 from threading import Thread
@@ -54,6 +54,7 @@ class ProcessPlayer(Process):
         self.__voiceChannel: VoiceChannel = None
         self.__voiceClient: VoiceClient = None
 
+        self.__currentSongChangeVolume = False
         self.__playing = False
         self.__forceStop = False
         self.__botCompletedLoad = False
@@ -97,6 +98,31 @@ class ProcessPlayer(Process):
         await self.__semStopPlaying.acquire()
         # In this point the process should finalize
         self.__timer.cancel()
+
+    def __set_volume(self, volume: float) -> None:
+        """Set the volume of the player, must be values between 0 and 100"""
+        try:
+            if self.__voiceClient is None:
+                return
+            
+            if not isinstance(volume, float):
+                print('[PROCESS ERROR] -> Volume instance must be float')
+                return
+
+            if volume < 0:
+                volume = 0
+            if volume > 100:
+                volume = 100
+
+            volume = volume / 100
+
+            if not self.__currentSongChangeVolume:
+                print('[PROCESS ERROR] -> Cannot change the volume of this song')
+                return
+            
+            self.__voiceClient.source.volume = volume
+        except Exception as e:
+            print(e)
 
     def __verifyIfIsPlaying(self) -> bool:
         if self.__voiceClient is None:
@@ -151,6 +177,10 @@ class ProcessPlayer(Process):
             self.__songPlaying = song
 
             player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
+            if not player.is_opus():
+                player = PCMVolumeTransformer(player, 1)
+                self.__currentSongChangeVolume = True
+
             self.__voiceClient.play(player, after=lambda e: self.__playNext(e))
 
             self.__timer.cancel()
@@ -169,6 +199,8 @@ class ProcessPlayer(Process):
             print(f'[PROCESS PLAYER -> ERROR PLAYING SONG] -> {error}')
         with self.__playlistLock:
             with self.__playerLock:
+                self.__currentSongChangeVolume = False
+
                 if self.__forceStop:  # If it's forced to stop player
                     self.__forceStop = False
                     return None
@@ -271,6 +303,8 @@ class ProcessPlayer(Process):
                     asyncio.run_coroutine_threadsafe(self.__reset(), self.__loop)
                 elif type == VCommandsType.STOP:
                     asyncio.run_coroutine_threadsafe(self.__stop(), self.__loop)
+                elif type == VCommandsType.VOLUME:
+                    self.__set_volume(args)
                 else:
                     print(f'[PROCESS PLAYER ERROR] -> Unknown Command Received: {command}')
             except Exception as e:

@@ -13,6 +13,7 @@ class VCommandsType(Enum):
     RESET = 'Reset'
     NOW_PLAYING = 'Now Playing'
     TERMINATE = 'Terminate'
+    VOLUME = 'Volume'
     SLEEPING = 'Sleeping'
 
 

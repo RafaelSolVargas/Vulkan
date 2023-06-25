@@ -16,6 +16,7 @@ class Messages(Singleton):
             self.SONGINFO_REQUESTER = 'Requester: '
             self.SONGINFO_POSITION = 'Position: '
 
+            self.VOLUME_CHANGED = '**[Pre-release]** - Song volume changed to `{}`%'
             self.SONGS_ADDED = 'Downloading `{}` songs to add to the queue'
             self.SONG_ADDED = 'Downloading the song `{}` to add to the queue'
             self.SONG_ADDED_TWO = f'{self.__emojis.MUSIC} Song added to the queue'
@@ -56,6 +57,7 @@ class Messages(Singleton):
             self.ERROR_MOVING = f'{self.__emojis.ERROR} Error while moving the songs'
             self.LENGTH_ERROR = f'{self.__emojis.ERROR} Numbers must be between 1 and queue length, use -1 for the last song'
             self.ERROR_NUMBER = f'{self.__emojis.ERROR} This command require a number'
+            self.ERROR_VOLUME_NUMBER = f'{self.__emojis.ERROR} This command require a number between 0 and 100'
             self.ERROR_PLAYING = f'{self.__emojis.ERROR} Error while playing songs'
             self.COMMAND_NOT_FOUND = f'{self.__emojis.ERROR} Command not found, type {configs.BOT_PREFIX}help to see all commands'
             self.UNKNOWN_ERROR = f'{self.__emojis.ERROR} Unknown Error, if needed, use {configs.BOT_PREFIX}reset to reset the player of your server'

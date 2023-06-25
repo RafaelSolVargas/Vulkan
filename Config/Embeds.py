@@ -343,6 +343,13 @@ class VEmbeds:
             description=self.__messages.PLAYER_NOT_PLAYING,
             colour=self.__colors.BLUE)
         return embed
+    
+    def VOLUME_CHANGED(self, volume: float) -> Embed:
+        embed = Embed(
+            title=self.__messages.SONG_PLAYER,
+            description=self.__messages.VOLUME_CHANGED.format(volume),
+            colour=self.__colors.BLUE)
+        return embed
 
     def QUEUE(self, title: str, description: str) -> Embed:
         embed = Embed(

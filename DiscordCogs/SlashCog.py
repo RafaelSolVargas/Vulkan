@@ -15,6 +15,7 @@ from Handlers.ResumeHandler import ResumeHandler
 from Handlers.HistoryHandler import HistoryHandler
 from Handlers.QueueHandler import QueueHandler
 from Handlers.LoopHandler import LoopHandler
+from Handlers.VolumeHandler import VolumeHandler
 from Messages.MessagesCategory import MessagesCategory
 from Messages.Responses.SlashEmbedResponse import SlashEmbedResponse
 from Music.VulkanBot import VulkanBot
@@ -233,6 +234,22 @@ class SlashCommands(Cog):
 
             response = await controller.run(from_pos, to_pos)
             cogResponser = SlashEmbedResponse(response, ctx, MessagesCategory.MANAGING_QUEUE)
+            await cogResponser.run()
+        except Exception:
+            print(f'[ERROR IN SLASH COMMAND] -> {traceback.format_exc()}')
+
+    @slash_command(name='volume', description=helper.CHANGE_VOLUME_LONG)
+    async def move(self, ctx: ApplicationContext,
+                   volume: Option(float, "The new volume of the song", min_value=1, default= 100)) -> None:
+        if not self.__bot.listingSlash:
+            return
+        try:
+            await ctx.defer()
+
+            controller = VolumeHandler(ctx, self.__bot)
+
+            response = await controller.run(f'{volume}')
+            cogResponser = SlashEmbedResponse(response, ctx, MessagesCategory.PLAYER)
             await cogResponser.run()
         except Exception:
             print(f'[ERROR IN SLASH COMMAND] -> {traceback.format_exc()}')

@@ -17,6 +17,7 @@ from Handlers.ResumeHandler import ResumeHandler
 from Handlers.HistoryHandler import HistoryHandler
 from Handlers.QueueHandler import QueueHandler
 from Handlers.LoopHandler import LoopHandler
+from Handlers.VolumeHandler import VolumeHandler
 from Messages.MessagesCategory import MessagesCategory
 from Messages.Responses.EmoteCogResponse import EmoteCommandResponse
 from Messages.Responses.EmbedCogResponse import EmbedCommandResponse
@@ -49,6 +50,25 @@ class MusicCog(Cog):
     async def play(self, ctx: Context, *args) -> None:
         try:
             controller = PlayHandler(ctx, self.__bot)
+
+            if len(args) > 1:
+                track = " ".join(args)
+            else:
+                track = args[0]
+
+            response = await controller.run(track)
+            if response is not None:
+                cogResponser1 = EmbedCommandResponse(response, MessagesCategory.PLAYER)
+                cogResponser2 = EmoteCommandResponse(response, MessagesCategory.PLAYER)
+                await cogResponser1.run()
+                await cogResponser2.run()
+        except Exception as e:
+            print(f'[ERROR IN COG] -> {e}')
+
+    @command(name="volume", help=helper.CHANGE_VOLUME, description=helper.CHANGE_VOLUME_LONG, aliases=['v'])
+    async def volume(self, ctx: Context, *args) -> None:
+        try:
+            controller = VolumeHandler(ctx, self.__bot)
 
             if len(args) > 1:
                 track = " ".join(args)
