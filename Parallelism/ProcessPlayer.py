@@ -54,7 +54,9 @@ class ProcessPlayer(Process):
         self.__voiceChannel: VoiceChannel = None
         self.__voiceClient: VoiceClient = None
 
+        self.__songVolumeUsing = 1
         self.__currentSongChangeVolume = False
+
         self.__playing = False
         self.__forceStop = False
         self.__botCompletedLoad = False
@@ -120,6 +122,7 @@ class ProcessPlayer(Process):
                 print('[PROCESS ERROR] -> Cannot change the volume of this song')
                 return
             
+            self.__songVolumeUsing = volume
             self.__voiceClient.source.volume = volume
         except Exception as e:
             print(e)
@@ -178,7 +181,7 @@ class ProcessPlayer(Process):
 
             player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
             if not player.is_opus():
-                player = PCMVolumeTransformer(player, 1)
+                player = PCMVolumeTransformer(player, self.__songVolumeUsing)
                 self.__currentSongChangeVolume = True
 
             self.__voiceClient.play(player, after=lambda e: self.__playNext(e))

@@ -1,14 +1,14 @@
 from Config.Exceptions import DeezerError, InvalidInput, SpotifyError, VulkanError, YoutubeError
-from Music.Downloader import Downloader
-from Music.Types import Provider
 from Music.SpotifySearcher import SpotifySearch
 from Music.DeezerSearcher import DeezerSearcher
-from Utils.Utils import Utils
 from Utils.UrlAnalyzer import URLAnalyzer
 from Config.Messages import SearchMessages
+from Music.Downloader import Downloader
+from Music.Types import Provider
+from Utils.Utils import Utils
 
 
-class Searcher():
+class Searcher:
     def __init__(self) -> None:
         self.__spotify = SpotifySearch()
         self.__deezer = DeezerSearcher()
@@ -35,8 +35,7 @@ class Searcher():
             try:
                 musics = self.__spotify.search(track)
                 if musics == None or len(musics) == 0:
-                    raise SpotifyError(self.__messages.SPOTIFY_NOT_FOUND,
-                                       self.__messages.GENERIC_TITLE)
+                    raise SpotifyError(self.__messages.SPOTIFY_NOT_FOUND, self.__messages.GENERIC_TITLE)
 
                 return musics
             except SpotifyError as error:
@@ -79,7 +78,7 @@ class Searcher():
         if not Utils.is_url(track):
             return Provider.Name
 
-        if "https://www.youtu" in track or "https://youtu.be" in track or "https://music.youtube" in track:
+        if "https://www.youtu" in track or "https://youtu.be" in track or "https://music.youtube" in track or "m.youtube" in track:
             return Provider.YouTube
 
         if "https://open.spotify.com" in track:

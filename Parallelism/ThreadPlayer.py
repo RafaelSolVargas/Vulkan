@@ -46,6 +46,8 @@ class ThreadPlayer(Thread):
         self.__voiceClient: VoiceClient = None
 
         self.__currentSongChangeVolume = False
+        self.__songVolumeUsing = 1
+
         self.__downloader = Downloader()
         self.__callback = callbackToSendCommand
         self.__exitCB = exitCB
@@ -78,6 +80,7 @@ class ThreadPlayer(Thread):
                 print('[THREAD ERROR] -> Cannot change the volume of this song')
                 return
             
+            self.__songVolumeUsing = volume
             self.__voiceClient.source.volume = volume
         except Exception as e:
             print(e)
@@ -136,7 +139,7 @@ class ThreadPlayer(Thread):
 
             player = FFmpegPCMAudio(song.source, **self.FFMPEG_OPTIONS)
             if not player.is_opus():
-                player = PCMVolumeTransformer(player, 1)
+                player = PCMVolumeTransformer(player, self.__songVolumeUsing)
                 self.__currentSongChangeVolume = True
             self.__voiceClient.play(player, after=lambda e: self.__playNext(e))
 
