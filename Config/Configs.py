@@ -31,7 +31,13 @@ class VConfigs(Singleton):
 
             self.SPOTIFY_ID = os.getenv('SPOTIFY_ID')
             self.SPOTIFY_SECRET = os.getenv('SPOTIFY_SECRET')
-
+            
+            if self.SPOTIFY_ID =="Your_Own_Spotify_ID":
+                self.SPOTIFY_ID = None
+            
+            if self.SPOTIFY_SECRET =="Your_Own_Spotify_Secret":
+                self.SPOTIFY_SECRET = None
+            
             if self.SPOTIFY_ID is None or self.SPOTIFY_SECRET is None:
                 print('Spotify will not work')
 
