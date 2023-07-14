@@ -8,7 +8,9 @@ To run this project in a Docker container you must have Docker and Docker Compos
 Once you have Docker and Docker Compose installed in your machine, clone or download this repository and follow the instructions below.
 
 ## **Running the Bot**
-To run the bot in a Docker container, you must first create a `.env` file in the root of the project if there isn't one already. You will need to change the parameters in the `.env` file to your own parameters. You can find an example of a `.env` file [here](.env.example). You will also be able to change the settings in that environment file as explained in the [Settings page](.github/Docs/SETTINGS.md).
+To run the bot in a Docker container, you must first create a `.env` file in the root of the project if there isn't one already. You will need to change the parameters in the `.env` file to your own parameters. You can find an example of a `.env` file [here](.env.example). You will also be able to change the settings in that environment file as explained in the [Settings page](.github/Docs/SETTINGS.md). 
+
+**If any of the following commands fail, try without a dash between docker and compose.**
 
 To run the bot, simply execute the following command in the root of the project:
 ```bash
