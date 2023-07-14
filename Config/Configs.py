@@ -44,7 +44,7 @@ class VConfigs(Singleton):
             self.VC_TIMEOUT = int(os.getenv('VC_TIMEOUT', 300))
 
             self.CHANCE_SHOW_PROJECT = int(os.getenv('CHANCE_SHOW_PROJECT', 15))
-            self.PROJECT_URL = os.getenv('PROJECT_URL', 'https://github.com/Paillat-dev/Vulkan')
+            self.PROJECT_URL = os.getenv('PROJECT_URL', 'https://github.com/RafaelSolVargas/Vulkan')
             self.SUPPORTING_ICON = os.getenv('SUPPORTING_ICON', 'https://i.pinimg.com/originals/d6/05/b4/d605b4f8c5d1c6ae20dc353ef9f091bd.png')
 
             self.MAX_PLAYLIST_LENGTH = int(os.getenv('MAX_PLAYLIST_LENGTH', 50))
