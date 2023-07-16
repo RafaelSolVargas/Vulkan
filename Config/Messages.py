@@ -16,7 +16,7 @@ class Messages(Singleton):
             self.SONGINFO_REQUESTER = 'Requester: '
             self.SONGINFO_POSITION = 'Position: '
 
-            self.VOLUME_CHANGED = '**[Pre-release]** - Song volume changed to `{}`%'
+            self.VOLUME_CHANGED = 'Song volume changed to `{}`%'
             self.SONGS_ADDED = 'Downloading `{}` songs to add to the queue'
             self.SONG_ADDED = 'Downloading the song `{}` to add to the queue'
             self.SONG_ADDED_TWO = f'{self.__emojis.MUSIC} Song added to the queue'
