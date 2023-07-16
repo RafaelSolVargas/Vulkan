@@ -18,6 +18,7 @@ Vulkan uses multiprocessing and asynchronous Python modules to maximize Music Pl
 - Support for the new Discord Slash commands.
 - Search for all musics in Queue using buttons.
 - Shortcut the playing of one song using dropdown menu.
+- Manage the volume of the songs.
 - Manage the loop of one or all playing musics.
 - Manage the order and remove musics from the queue.
 - Shuffle the musics queue order.
