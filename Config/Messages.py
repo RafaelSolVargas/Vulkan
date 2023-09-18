@@ -91,6 +91,7 @@ class SearchMessages(Singleton):
             self.UNKNOWN_INPUT_TITLE = 'Nothing Found'
             self.GENERIC_TITLE = 'URL could not be processed'
             self.SPOTIFY_NOT_FOUND = 'Spotify could not process any songs with this input, verify your link or try again later.'
+            self.YANDEX_MUSIC_NOT_FOUND = 'Yandex Music could not process any songs with this input, verify your link or try again later.'
             self.YOUTUBE_NOT_FOUND = 'Youtube could not process any songs with this input, verify your link or try again later.'
             self.DEEZER_NOT_FOUND = 'Deezer could not process any songs with this input, verify your link or try again later.'
 
@@ -107,3 +108,11 @@ class DeezerMessages(Singleton):
         if not super().created:
             self.INVALID_DEEZER_URL = 'Invalid Deezer URL, verify your link.'
             self.GENERIC_TITLE = 'URL could not be processed'
+
+
+class YandexMusicMessage(Singleton):
+    def __init__(self) -> None:
+        if not super().created:
+            self.INVALID_YANDEX_MUSIC_URL = 'Invalid Yandex Music URL, verify your link.'
+            self.GENERIC_TITLE = 'URL could not be processed'
+            

@@ -26,3 +26,10 @@ class TestsConstants(Singleton):
             self.DEEZER_ALBUM_URL = 'https://www.deezer.com/en/album/236107012'
             self.DEEZER_WRONG1_URL = 'xxxhttps://www.deezer.com/br/album/5'
             self.DEEZER_WRONG2_URL = 'https://www.deezer.com/en/album/23610701252'
+
+            self.YANDEX_MUSIC_TRACK_URL = 'https://music.yandex.ru/album/7018993/track/50684233'
+            self.YANDEX_MUSIC_ARTIST_URL = 'https://music.yandex.ru/artist/41052'
+            self.YANDEX_MUSIC_PLAYLIST_URL = 'https://music.yandex.ru/users/yandexmusic/playlists/1243'
+            self.YANDEX_MUSIC_ALBUM_URL = 'https://music.yandex.ru/album/7018993'
+            self.YANDEX_MUSIC_WRONG1_URL = 'https://music.yandex.ru/wrongType/7018993'
+            self.YANDEX_MUSIC_WRONG2_URL = 'https://music.yandex.ru/album/7018993/track/4294967296'

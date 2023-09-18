@@ -1,6 +1,8 @@
-from Config.Exceptions import DeezerError, InvalidInput, SpotifyError, VulkanError, YoutubeError
+from Config.Exceptions import DeezerError, InvalidInput, SpotifyError, YandexMusicError
+from Config.Exceptions import VulkanError, YoutubeError
 from Music.SpotifySearcher import SpotifySearch
 from Music.DeezerSearcher import DeezerSearcher
+from Music.YandexMusicSearcher import YandexMusicSearcher
 from Utils.UrlAnalyzer import URLAnalyzer
 from Config.Messages import SearchMessages
 from Music.Downloader import Downloader
@@ -12,6 +14,7 @@ class Searcher:
     def __init__(self) -> None:
         self.__spotify = SpotifySearch()
         self.__deezer = DeezerSearcher()
+        self.__yandex = YandexMusicSearcher()
         self.__messages = SearchMessages()
         self.__down = Downloader()
 
@@ -57,6 +60,20 @@ class Searcher:
             except Exception as e:
                 print(f'[Deezer Error] -> {e}')
                 raise DeezerError(self.__messages.DEEZER_NOT_FOUND, self.__messages.GENERIC_TITLE)
+        
+        elif provider == Provider.Yandex:
+            try:
+                musics = self.__yandex.search(track)
+                if musics == None or len(musics) == 0:
+                    raise YandexMusicError(self.__messages.YANDEX_MUSIC_NOT_FOUND,
+                                           self.__messages.GENERIC_TITLE)
+                
+                return musics
+            except YandexMusicError as error:
+                raise error
+            except Exception as e:
+                print(f'[Yandex Music Error] -> {e}')
+                raise YandexMusicError(self.__messages.YANDEX_MUSIC_NOT_FOUND, self.__messages.GENERIC_TITLE)            
 
         elif provider == Provider.Name:
             return [track]
@@ -86,5 +103,8 @@ class Searcher:
 
         if "https://www.deezer.com" in track:
             return Provider.Deezer
-
+        
+        if "https://music.yandex.ru" in track:
+            return Provider.Yandex
+        
         return Provider.Unknown

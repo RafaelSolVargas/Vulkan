@@ -32,7 +32,7 @@ class Helper(Singleton):
             self.HELP_PLAY = 'Plays a song from URL.'
             self.CHANGE_VOLUME = 'Set the volume of the song.'
             self.CHANGE_VOLUME_LONG = 'Change the volume of the song, expect a number from 0 to 100.'
-            self.HELP_PLAY_LONG = 'Play a song in discord. \n\nRequire: You to be connected to a voice channel.\nArguments: Youtube, Spotify or Deezer song/playlist link or the title of the song to be searched in Youtube.'
+            self.HELP_PLAY_LONG = 'Play a song in discord. \n\nRequire: You to be connected to a voice channel.\nArguments: Youtube, Spotify, Deezer or Yandex Music song/playlist link or the title of the song to be searched in Youtube.'
             self.HELP_HISTORY = f'Show the history of played songs.'
             self.HELP_HISTORY_LONG = f'Show the last {config.MAX_SONGS_HISTORY} played songs'
             self.HELP_MOVE = 'Moves a song from position pos1 to pos2 in queue.'

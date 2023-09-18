@@ -1,7 +1,7 @@
 <h1 align="center">Vulkan</h1> 
 
 
-A Music Discord Bot, that plays *Youtube*, *Spotify*, *Deezer* links or raw queries. Vulkan is open source, so everyone can fork this project, follow the instructions and use it in their own way, executing it in your own machine or hosting in others machines to work 24/7.
+A Music Discord Bot, that plays *Youtube*, *Spotify*, *Deezer*, *Yandex Music* links or raw queries. Vulkan is open source, so everyone can fork this project, follow the instructions and use it in their own way, executing it in your own machine or hosting in others machines to work 24/7.
 
 Vulkan uses multiprocessing and asynchronous Python modules to maximize Music Player response time, so the player doesn't lag when many commands are being processed and it can play in multiples discord serves at the same time without affecting the Music Player response time.
 
@@ -12,7 +12,7 @@ Vulkan uses multiprocessing and asynchronous Python modules to maximize Music Pl
 
 
 #  **Music 🎧**
-- Play musics from Youtube, Spotify and Deezer links (Albums, Artists, Playlists and Tracks).
+- Play musics from Youtube, Spotify, Deezer, Yandex Music links (Albums, Artists, Playlists and Tracks).
 - Play musics in multiple discord server at the same time.
 - The player contains buttons to shortcut some commands. 
 - Support for the new Discord Slash commands.
