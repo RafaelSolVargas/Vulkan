@@ -65,7 +65,7 @@ class VConfigs(Singleton):
             Or use this direct URL: {}""")
 
             self.MY_ERROR_BAD_COMMAND = os.getenv('MY_ERROR_BAD_COMMAND', 'This string serves to verify if some error was raised by myself on purpose')
-            self.INVITE_URL = os.getenv('INVITE_URL', 'https://discordapp.com/oauth2/authorize?client_id={}&permissions=8&scope=bot')
+            self.INVITE_URL = os.getenv('INVITE_URL', 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot')
 
     def getPlayersManager(self):
         return self.__manager
