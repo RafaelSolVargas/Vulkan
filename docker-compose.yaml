@@ -1,8 +1,6 @@
 version: '3'
 services:
   vulkan:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/RafaelSolVargas/Vulkan:master 
     env_file:
       - .env
